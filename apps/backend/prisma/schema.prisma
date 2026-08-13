@@ -1,0 +1,1364 @@
+// Aarambh360 — Canonical Production Database Schema (Step 3)
+// PostgreSQL + Prisma | Domain-first design
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum UserRole {
+  USER
+  EDITOR
+  MODERATOR
+  ADMIN
+}
+
+enum PreparationLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum ExamStageType {
+  PRELIMS
+  MAINS
+  INTERVIEW
+}
+
+enum GsPaper {
+  GS1
+  GS2
+  GS3
+  GS4
+  CSAT
+  ESSAY
+  GENERAL
+}
+
+enum QuestionType {
+  MCQ_SINGLE
+  MCQ_MULTI
+  ASSERTION_REASON
+  PYQ_PRELIMS
+  PYQ_MAINS
+  MAINS_DESCRIPTIVE
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+enum PublishStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ContentSourceType {
+  NCERT
+  PYQ
+  EDITORIAL
+  LEGACY_RTDB
+  LEGACY_FIRESTORE
+  USER_GENERATED
+}
+
+enum QuizType {
+  PRACTICE
+  MOCK
+  MICRO
+  PYQ
+  CUSTOM
+}
+
+enum QuizAttemptStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+  TIMED_OUT
+}
+
+enum MainsSubmissionStatus {
+  DRAFT
+  SUBMITTED
+  EVALUATING
+  EVALUATED
+  FAILED
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+}
+
+enum BillingProvider {
+  RAZORPAY
+  GOOGLE_PLAY
+  APPLE_APP_STORE
+  MANUAL
+}
+
+enum StreakType {
+  MCQ
+  STUDY
+  MAINS
+  COMBINED
+}
+
+enum StudyActivityType {
+  LESSON
+  QUIZ
+  MAINS
+  CURRENT_AFFAIRS
+  REVISION
+  PYQ
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  PUBLISH
+  ARCHIVE
+  RESTORE
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+enum BookmarkTargetType {
+  QUESTION
+  LESSON
+  ARTICLE
+  MAINS_QUESTION
+}
+
+enum RagDocumentType {
+  NCERT
+  MODEL_ANSWER
+  SYLLABUS
+  EDITORIAL
+  PYQ_ANSWER
+  RUBRIC
+}
+
+// =============================================================================
+// 1. IDENTITY
+// =============================================================================
+
+model User {
+  id              String    @id @default(uuid()) @db.Uuid
+  firebaseUid     String    @unique @map("firebase_uid")
+  email           String?   @unique
+  phone           String?   @unique
+  role            UserRole  @default(USER)
+  profileCompleted Boolean  @default(false) @map("profile_completed")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  profile           Profile?
+  preferences       UserPreference?
+  onboarding        OnboardingProgress?
+  examPreferences   UserExamPreference[]
+  quizAttempts      QuizAttempt[]
+  questionAttempts  QuestionAttempt[]
+  lessonProgress    LessonProgress[]
+  topicProgress     TopicProgress[]
+  studySessions     StudySession[]
+  dailyActivities   DailyActivity[]
+  streaks           UserStreak[]
+  bookmarks         Bookmark[]
+  mistakes          Mistake[]
+  savedQuestions    SavedQuestion[]
+  mainsSubmissions  MainsSubmission[]
+  subscriptions     Subscription[]
+  entitlements      UserEntitlement[]
+  usageRecords      UsageRecord[]
+  deviceTokens      DeviceToken[]
+  notificationLogs  NotificationLog[]
+  learningEvents    LearningEvent[]
+  questionReports   QuestionReport[]
+  articleBookmarks  ArticleBookmark[]
+  auditLogs         AuditLog[]          @relation("AuditActor")
+  contentRevisions  ContentRevision[]
+
+  @@index([firebaseUid])
+  @@index([email])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model Profile {
+  id                String            @id @default(uuid()) @db.Uuid
+  userId            String            @unique @map("user_id") @db.Uuid
+  name              String
+  dateOfBirth       DateTime?         @map("date_of_birth") @db.Date
+  gender            String?
+  avatarUrl         String?           @map("avatar_url")
+  targetYear        Int?              @map("target_year")
+  preparationLevel  PreparationLevel? @map("preparation_level")
+  dailyStudyMinutes Int?              @map("daily_study_minutes")
+  bio               String?
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model UserPreference {
+  id                   String   @id @default(uuid()) @db.Uuid
+  userId               String   @unique @map("user_id") @db.Uuid
+  theme                String   @default("system")
+  language             String   @default("en")
+  pushNotifications    Boolean  @default(true) @map("push_notifications")
+  emailNotifications   Boolean  @default(true) @map("email_notifications")
+  streakReminders      Boolean  @default(true) @map("streak_reminders")
+  currentAffairsAlerts Boolean  @default(true) @map("current_affairs_alerts")
+  mainsEvalAlerts      Boolean  @default(true) @map("mains_eval_alerts")
+  quizReminders        Boolean  @default(true) @map("quiz_reminders")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model OnboardingProgress {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @unique @map("user_id") @db.Uuid
+  currentStep Int       @default(0) @map("current_step")
+  completed   Boolean   @default(false)
+  completedAt DateTime? @map("completed_at")
+  metadata    Json?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("onboarding_progress")
+}
+
+model UserExamPreference {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  examId      String   @map("exam_id") @db.Uuid
+  isPrimary   Boolean  @default(false) @map("is_primary")
+  targetYear  Int?     @map("target_year")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exam Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, examId])
+  @@index([userId, isPrimary])
+  @@map("user_exam_preferences")
+}
+
+// =============================================================================
+// 2. EXAM STRUCTURE
+// =============================================================================
+
+model Exam {
+  id          String        @id @default(uuid()) @db.Uuid
+  code        String        @unique
+  name        String
+  description String?
+  isActive    Boolean       @default(true) @map("is_active")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  stages            ExamStage[]
+  subjects          Subject[]
+  syllabusNodes     SyllabusNode[]
+  userPreferences   UserExamPreference[]
+  questions         Question[]
+  quizzes           Quiz[]
+  mainsQuestions    MainsQuestion[]
+  articleMappings   ArticleExamMapping[]
+  cutOffRecords     CutOffRecord[]
+  examInfoSections  ExamInfoSection[]
+
+  @@map("exams")
+}
+
+model ExamStage {
+  id          String        @id @default(uuid()) @db.Uuid
+  examId      String        @map("exam_id") @db.Uuid
+  stageType   ExamStageType @map("stage_type")
+  name        String
+  description String?
+  sortOrder   Int           @default(0) @map("sort_order")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  exam Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, stageType])
+  @@index([examId, sortOrder])
+  @@map("exam_stages")
+}
+
+model Subject {
+  id          String        @id @default(uuid()) @db.Uuid
+  examId      String        @map("exam_id") @db.Uuid
+  code        String
+  name        String
+  gsPaper     GsPaper?      @map("gs_paper")
+  iconUrl     String?       @map("icon_url")
+  description String?
+  sortOrder   Int           @default(0) @map("sort_order")
+  publishStatus PublishStatus @default(DRAFT) @map("publish_status")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  deletedAt   DateTime?     @map("deleted_at")
+
+  exam           Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
+  topics         Topic[]
+  chapters       Chapter[]
+  mainsQuestions MainsQuestion[]
+
+  @@unique([examId, code])
+  @@index([examId, publishStatus, sortOrder])
+  @@map("subjects")
+}
+
+model Topic {
+  id          String        @id @default(uuid()) @db.Uuid
+  subjectId   String        @map("subject_id") @db.Uuid
+  parentId    String?       @map("parent_id") @db.Uuid
+  name        String
+  slug        String
+  description String?
+  sortOrder   Int           @default(0) @map("sort_order")
+  publishStatus PublishStatus @default(DRAFT) @map("publish_status")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  deletedAt   DateTime?     @map("deleted_at")
+
+  subject          Subject            @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  parent           Topic?             @relation("TopicHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children         Topic[]            @relation("TopicHierarchy")
+  questionMappings QuestionTopicMap[]
+  topicProgress    TopicProgress[]
+  syllabusNodes    SyllabusNode[]
+
+  @@unique([subjectId, slug])
+  @@index([subjectId, parentId, sortOrder])
+  @@index([publishStatus])
+  @@map("topics")
+}
+
+model SyllabusNode {
+  id          String        @id @default(uuid()) @db.Uuid
+  examId      String        @map("exam_id") @db.Uuid
+  topicId     String?       @map("topic_id") @db.Uuid
+  parentId    String?       @map("parent_id") @db.Uuid
+  title       String
+  description String?
+  sortOrder   Int           @default(0) @map("sort_order")
+  path        String?
+  publishStatus PublishStatus @default(PUBLISHED) @map("publish_status")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  exam     Exam          @relation(fields: [examId], references: [id], onDelete: Cascade)
+  topic    Topic?        @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  parent   SyllabusNode? @relation("SyllabusHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children SyllabusNode[] @relation("SyllabusHierarchy")
+
+  @@index([examId, parentId, sortOrder])
+  @@index([topicId])
+  @@map("syllabus_nodes")
+}
+
+model CutOffRecord {
+  id             String   @id @default(uuid()) @db.Uuid
+  examId         String   @map("exam_id") @db.Uuid
+  year           Int
+  category       String
+  prelimsCutoff  Decimal? @map("prelims_cutoff") @db.Decimal(6, 2)
+  mainsCutoff    Decimal? @map("mains_cutoff") @db.Decimal(6, 2)
+  finalCutoff    Decimal? @map("final_cutoff") @db.Decimal(6, 2)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  exam Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, year, category])
+  @@index([examId, year])
+  @@map("cutoff_records")
+}
+
+model ExamInfoSection {
+  id          String        @id @default(uuid()) @db.Uuid
+  examId      String        @map("exam_id") @db.Uuid
+  sectionKey  String        @map("section_key")
+  title       String
+  content     String
+  sortOrder   Int           @default(0) @map("sort_order")
+  publishStatus PublishStatus @default(PUBLISHED) @map("publish_status")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  exam Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, sectionKey])
+  @@index([examId, sortOrder])
+  @@map("exam_info_sections")
+}
+
+// =============================================================================
+// 3. LEARNING CONTENT
+// =============================================================================
+
+model Chapter {
+  id            String        @id @default(uuid()) @db.Uuid
+  subjectId     String        @map("subject_id") @db.Uuid
+  title         String
+  slug          String
+  introduction  String?
+  sortOrder     Int           @default(0) @map("sort_order")
+  publishStatus PublishStatus @default(DRAFT) @map("publish_status")
+  sourceType    ContentSourceType @default(NCERT) @map("source_type")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  deletedAt     DateTime?     @map("deleted_at")
+
+  subject Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+
+  @@unique([subjectId, slug])
+  @@index([subjectId, publishStatus, sortOrder])
+  @@map("chapters")
+}
+
+model Lesson {
+  id            String        @id @default(uuid()) @db.Uuid
+  chapterId     String        @map("chapter_id") @db.Uuid
+  title         String
+  slug          String
+  summary       String?
+  content       String?
+  mindmapUrl    String?       @map("mindmap_url")
+  sortOrder     Int           @default(0) @map("sort_order")
+  publishStatus PublishStatus @default(DRAFT) @map("publish_status")
+  sourceType    ContentSourceType @default(NCERT) @map("source_type")
+  metadata      Json?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  deletedAt     DateTime?     @map("deleted_at")
+
+  chapter        Chapter          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  sections       LessonSection[]
+  lessonProgress LessonProgress[]
+  bookmarks      Bookmark[]
+
+  @@unique([chapterId, slug])
+  @@index([chapterId, publishStatus, sortOrder])
+  @@map("lessons")
+}
+
+model LessonSection {
+  id        String   @id @default(uuid()) @db.Uuid
+  lessonId  String   @map("lesson_id") @db.Uuid
+  title     String?
+  content   String
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId, sortOrder])
+  @@map("lesson_sections")
+}
+
+model NcertReference {
+  id          String   @id @default(uuid()) @db.Uuid
+  classNumber Int      @map("class_number")
+  subjectName String   @map("subject_name")
+  title       String?
+  pdfUrl      String   @map("pdf_url")
+  sortOrder   Int      @default(0) @map("sort_order")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([classNumber, subjectName])
+  @@index([classNumber, sortOrder])
+  @@map("ncert_references")
+}
+
+model StudyMaterial {
+  id            String            @id @default(uuid()) @db.Uuid
+  title         String
+  description   String?
+  materialType  String            @map("material_type")
+  url           String?
+  metadata      Json?
+  sourceType    ContentSourceType @default(EDITORIAL) @map("source_type")
+  publishStatus PublishStatus     @default(DRAFT) @map("publish_status")
+  sortOrder     Int               @default(0) @map("sort_order")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  deletedAt     DateTime?         @map("deleted_at")
+
+  @@index([materialType, publishStatus])
+  @@map("study_materials")
+}
+
+// =============================================================================
+// 4. QUESTIONS
+// =============================================================================
+
+model Question {
+  id            String            @id @default(uuid()) @db.Uuid
+  examId        String?           @map("exam_id") @db.Uuid
+  type          QuestionType
+  text          String
+  difficulty    Difficulty        @default(MEDIUM)
+  explanation   String?
+  sourceType    ContentSourceType @default(EDITORIAL) @map("source_type")
+  sourceRef     String?           @map("source_ref")
+  sourceYear    Int?              @map("source_year")
+  version       Int               @default(1)
+  publishStatus PublishStatus     @default(DRAFT) @map("publish_status")
+  metadata      Json?
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  deletedAt     DateTime?         @map("deleted_at")
+
+  exam              Exam?               @relation(fields: [examId], references: [id], onDelete: SetNull)
+  options           QuestionOption[]
+  topicMappings     QuestionTopicMap[]
+  tags              QuestionTag[]
+  versions          QuestionVersion[]
+  pyqMetadata       PyqMetadata?
+  quizQuestions     QuizQuestion[]
+  quizAttemptAnswers QuizAttemptAnswer[]
+  questionAttempts  QuestionAttempt[]
+  bookmarks         Bookmark[]
+  mistakes          Mistake[]
+  savedQuestions    SavedQuestion[]
+  questionReports   QuestionReport[]
+
+  @@index([type, publishStatus])
+  @@index([examId, sourceYear])
+  @@index([difficulty])
+  @@map("questions")
+}
+
+model QuestionOption {
+  id          String   @id @default(uuid()) @db.Uuid
+  questionId  String   @map("question_id") @db.Uuid
+  label       String
+  text        String
+  isCorrect   Boolean  @default(false) @map("is_correct")
+  explanation String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  question           Question            @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  quizAttemptAnswers QuizAttemptAnswer[]
+  questionAttempts   QuestionAttempt[]
+
+  @@unique([questionId, label])
+  @@index([questionId, sortOrder])
+  @@map("question_options")
+}
+
+model Tag {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique
+  category  String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  questionTags QuestionTag[]
+  articleTags  ArticleTag[]
+
+  @@index([category])
+  @@map("tags")
+}
+
+model QuestionTag {
+  questionId String @map("question_id") @db.Uuid
+  tagId      String @map("tag_id") @db.Uuid
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([questionId, tagId])
+  @@map("question_tags")
+}
+
+model QuestionTopicMap {
+  questionId String @map("question_id") @db.Uuid
+  topicId    String @map("topic_id") @db.Uuid
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  topic    Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@id([questionId, topicId])
+  @@index([topicId])
+  @@map("question_topic_maps")
+}
+
+model QuestionVersion {
+  id         String   @id @default(uuid()) @db.Uuid
+  questionId String   @map("question_id") @db.Uuid
+  version    Int
+  snapshot   Json
+  changeNote String?  @map("change_note")
+  createdBy  String?  @map("created_by") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, version])
+  @@map("question_versions")
+}
+
+// =============================================================================
+// 5. PYQs
+// =============================================================================
+
+model PyqMetadata {
+  id             String   @id @default(uuid()) @db.Uuid
+  questionId     String   @unique @map("question_id") @db.Uuid
+  examYear       Int      @map("exam_year")
+  paper          GsPaper
+  questionNumber Int?     @map("question_number")
+  wordLimit      Int?     @map("word_limit")
+  marks          Decimal? @db.Decimal(5, 2)
+  modelAnswer    String?  @map("model_answer")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([examYear, paper])
+  @@map("pyq_metadata")
+}
+
+// =============================================================================
+// 6. QUIZZES
+// =============================================================================
+
+model Quiz {
+  id                String        @id @default(uuid()) @db.Uuid
+  examId            String?       @map("exam_id") @db.Uuid
+  title             String
+  description       String?
+  quizType          QuizType      @map("quiz_type")
+  timeLimitSeconds  Int?          @map("time_limit_seconds")
+  questionCount     Int           @default(0) @map("question_count")
+  publishStatus     PublishStatus @default(DRAFT) @map("publish_status")
+  metadata          Json?
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+  deletedAt         DateTime?     @map("deleted_at")
+
+  exam         Exam?          @relation(fields: [examId], references: [id], onDelete: SetNull)
+  questions    QuizQuestion[]
+  attempts     QuizAttempt[]
+
+  @@index([quizType, publishStatus])
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  quizId     String @map("quiz_id") @db.Uuid
+  questionId String @map("question_id") @db.Uuid
+  sortOrder  Int    @default(0) @map("sort_order")
+
+  quiz     Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Restrict)
+
+  @@id([quizId, questionId])
+  @@index([quizId, sortOrder])
+  @@map("quiz_questions")
+}
+
+model QuizAttempt {
+  id               String            @id @default(uuid()) @db.Uuid
+  userId           String            @map("user_id") @db.Uuid
+  quizId           String            @map("quiz_id") @db.Uuid
+  status           QuizAttemptStatus @default(IN_PROGRESS)
+  correctCount     Int               @default(0) @map("correct_count")
+  incorrectCount   Int               @default(0) @map("incorrect_count")
+  totalQuestions   Int               @default(0) @map("total_questions")
+  score            Decimal           @default(0) @db.Decimal(8, 2)
+  accuracy         Decimal           @default(0) @db.Decimal(5, 2)
+  timeTakenSeconds Int?              @map("time_taken_seconds")
+  startedAt        DateTime          @default(now()) @map("started_at")
+  completedAt      DateTime?         @map("completed_at")
+  metadata         Json?
+
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz    Quiz                @relation(fields: [quizId], references: [id], onDelete: Restrict)
+  answers QuizAttemptAnswer[]
+
+  @@index([userId, completedAt(sort: Desc)])
+  @@index([quizId, userId])
+  @@index([userId, status])
+  @@map("quiz_attempts")
+}
+
+model QuizAttemptAnswer {
+  id               String   @id @default(uuid()) @db.Uuid
+  attemptId        String   @map("attempt_id") @db.Uuid
+  questionId       String   @map("question_id") @db.Uuid
+  selectedOptionId String?  @map("selected_option_id") @db.Uuid
+  isCorrect        Boolean  @default(false) @map("is_correct")
+  timeTakenSeconds Int?     @map("time_taken_seconds")
+  answeredAt       DateTime @default(now()) @map("answered_at")
+
+  attempt        QuizAttempt     @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question       Question        @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  selectedOption QuestionOption? @relation(fields: [selectedOptionId], references: [id], onDelete: SetNull)
+
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
+  @@map("quiz_attempt_answers")
+}
+
+// =============================================================================
+// 7. PROGRESS
+// =============================================================================
+
+model QuestionAttempt {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  questionId       String   @map("question_id") @db.Uuid
+  selectedOptionId String?  @map("selected_option_id") @db.Uuid
+  isCorrect        Boolean  @map("is_correct")
+  timeTakenSeconds Int?     @map("time_taken_seconds")
+  attemptedAt      DateTime @default(now()) @map("attempted_at")
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question       Question        @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  selectedOption QuestionOption? @relation(fields: [selectedOptionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, attemptedAt(sort: Desc)])
+  @@index([userId, questionId])
+  @@index([userId, isCorrect])
+  @@map("question_attempts")
+}
+
+model LessonProgress {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  lessonId        String    @map("lesson_id") @db.Uuid
+  progressPercent Int       @default(0) @map("progress_percent")
+  lastReadAt      DateTime  @default(now()) @map("last_read_at")
+  completedAt     DateTime? @map("completed_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId, lastReadAt(sort: Desc)])
+  @@map("lesson_progress")
+}
+
+model TopicProgress {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  topicId         String   @map("topic_id") @db.Uuid
+  masteryPercent  Int      @default(0) @map("mastery_percent")
+  questionsAttempted Int   @default(0) @map("questions_attempted")
+  questionsCorrect   Int   @default(0) @map("questions_correct")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId])
+  @@map("topic_progress")
+}
+
+model StudySession {
+  id           String            @id @default(uuid()) @db.Uuid
+  userId       String            @map("user_id") @db.Uuid
+  activityType StudyActivityType @map("activity_type")
+  startedAt    DateTime          @default(now()) @map("started_at")
+  endedAt      DateTime?         @map("ended_at")
+  durationSeconds Int?           @map("duration_seconds")
+  metadata     Json?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startedAt(sort: Desc)])
+  @@map("study_sessions")
+}
+
+model DailyActivity {
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  activityDate       DateTime @map("activity_date") @db.Date
+  minutesStudied     Int      @default(0) @map("minutes_studied")
+  questionsAnswered  Int      @default(0) @map("questions_answered")
+  lessonsCompleted   Int      @default(0) @map("lessons_completed")
+  mainsSubmitted     Int      @default(0) @map("mains_submitted")
+  metadata           Json?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, activityDate])
+  @@index([userId, activityDate(sort: Desc)])
+  @@map("daily_activities")
+}
+
+model UserStreak {
+  id               String     @id @default(uuid()) @db.Uuid
+  userId           String     @map("user_id") @db.Uuid
+  streakType       StreakType @map("streak_type")
+  currentCount     Int        @default(0) @map("current_count")
+  longestCount     Int        @default(0) @map("longest_count")
+  lastActivityDate DateTime?  @map("last_activity_date") @db.Date
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, streakType])
+  @@map("user_streaks")
+}
+
+model Bookmark {
+  id         String             @id @default(uuid()) @db.Uuid
+  userId     String             @map("user_id") @db.Uuid
+  targetType BookmarkTargetType @map("target_type")
+  questionId String?            @map("question_id") @db.Uuid
+  lessonId   String?            @map("lesson_id") @db.Uuid
+  notes      String?
+  createdAt  DateTime           @default(now()) @map("created_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question? @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  lesson   Lesson?   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([userId, targetType, createdAt(sort: Desc)])
+  @@map("bookmarks")
+}
+
+model Mistake {
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  questionId     String    @map("question_id") @db.Uuid
+  reviewCount    Int       @default(0) @map("review_count")
+  lastReviewedAt DateTime? @map("last_reviewed_at")
+  resolvedAt     DateTime? @map("resolved_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+  @@index([userId, resolvedAt])
+  @@map("mistakes")
+}
+
+model SavedQuestion {
+  userId     String   @map("user_id") @db.Uuid
+  questionId String   @map("question_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, questionId])
+  @@map("saved_questions")
+}
+
+// =============================================================================
+// 8. MAINS
+// =============================================================================
+
+model MainsQuestion {
+  id            String        @id @default(uuid()) @db.Uuid
+  examId        String?       @map("exam_id") @db.Uuid
+  subjectId     String?       @map("subject_id") @db.Uuid
+  text          String
+  gsPaper       GsPaper       @map("gs_paper")
+  maxMarks      Int           @map("max_marks")
+  modelAnswer   String?       @map("model_answer")
+  rubricJson    Json?         @map("rubric_json")
+  publishedDate DateTime?     @map("published_date") @db.Date
+  publishStatus PublishStatus @default(DRAFT) @map("publish_status")
+  metadata      Json?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  deletedAt     DateTime?     @map("deleted_at")
+
+  exam        Exam?              @relation(fields: [examId], references: [id], onDelete: SetNull)
+  subject     Subject?           @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  submissions MainsSubmission[]
+
+  @@index([publishedDate, publishStatus])
+  @@index([gsPaper, publishStatus])
+  @@map("mains_questions")
+}
+
+model MainsSubmission {
+  id              String                @id @default(uuid()) @db.Uuid
+  userId          String                @map("user_id") @db.Uuid
+  mainsQuestionId String                @map("mains_question_id") @db.Uuid
+  status          MainsSubmissionStatus @default(DRAFT)
+  ocrRetryCount   Int                   @default(0) @map("ocr_retry_count")
+  ocrError        String?               @map("ocr_error")
+  evalRetryCount  Int                   @default(0) @map("eval_retry_count")
+  evalError       String?               @map("eval_error")
+  submittedAt     DateTime?             @map("submitted_at")
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mainsQuestion  MainsQuestion    @relation(fields: [mainsQuestionId], references: [id], onDelete: Restrict)
+  answers        MainsAnswer[]
+  evaluations    MainsEvaluation[]
+
+  @@index([userId, submittedAt(sort: Desc)])
+  @@index([mainsQuestionId])
+  @@index([userId, status])
+  @@map("mains_submissions")
+}
+
+model MainsAnswer {
+  id             String   @id @default(uuid()) @db.Uuid
+  submissionId   String   @map("submission_id") @db.Uuid
+  version        Int      @default(1)
+  extractedText  String?  @map("extracted_text")
+  wordCount      Int      @default(0) @map("word_count")
+  imageUrl       String?  @map("image_url")
+  imageUrls      Json?    @map("image_urls")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  submission  MainsSubmission   @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  evaluations MainsEvaluation[]
+
+  @@unique([submissionId, version])
+  @@map("mains_answers")
+}
+
+model MainsEvaluation {
+  id              String   @id @default(uuid()) @db.Uuid
+  submissionId    String   @map("submission_id") @db.Uuid
+  answerId        String   @map("answer_id") @db.Uuid
+  score           Decimal  @db.Decimal(5, 2)
+  maxScore        Decimal  @map("max_score") @db.Decimal(5, 2)
+  relevanceScore  Decimal? @map("relevance_score") @db.Decimal(5, 2)
+  feedbackJson    Json     @map("feedback_json")
+  evaluationMeta  Json?    @map("evaluation_meta")
+  evaluatedAt     DateTime @default(now()) @map("evaluated_at")
+
+  submission MainsSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  answer     MainsAnswer     @relation(fields: [answerId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+  @@map("mains_evaluations")
+}
+
+// =============================================================================
+// 9. CURRENT AFFAIRS
+// =============================================================================
+
+model CurrentAffairsSource {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique
+  url       String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  articles CurrentAffairsArticle[]
+
+  @@map("current_affairs_sources")
+}
+
+model CurrentAffairsCategory {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  articles CurrentAffairsArticle[]
+
+  @@map("current_affairs_categories")
+}
+
+model CurrentAffairsArticle {
+  id            String        @id @default(uuid()) @db.Uuid
+  sourceId      String?       @map("source_id") @db.Uuid
+  categoryId    String?       @map("category_id") @db.Uuid
+  title         String
+  slug          String        @unique
+  summary       String?
+  content       String?
+  externalUrl   String?       @map("external_url")
+  imageUrl      String?       @map("image_url")
+  publishedAt   DateTime      @map("published_at")
+  publishStatus PublishStatus @default(DRAFT) @map("publish_status")
+  gsTags        GsPaper[]     @map("gs_tags")
+  metadata      Json?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  deletedAt     DateTime?     @map("deleted_at")
+
+  source          CurrentAffairsSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  category        CurrentAffairsCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags            ArticleTag[]
+  examMappings    ArticleExamMapping[]
+  bookmarks       ArticleBookmark[]
+
+  @@index([publishedAt(sort: Desc), publishStatus])
+  @@map("current_affairs_articles")
+}
+
+model ArticleTag {
+  articleId String @map("article_id") @db.Uuid
+  tagId     String @map("tag_id") @db.Uuid
+
+  article CurrentAffairsArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag     Tag                   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@map("article_tags")
+}
+
+model ArticleExamMapping {
+  articleId String @map("article_id") @db.Uuid
+  examId    String @map("exam_id") @db.Uuid
+
+  article CurrentAffairsArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  exam    Exam                  @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, examId])
+  @@map("article_exam_mappings")
+}
+
+model ArticleBookmark {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  articleId String   @map("article_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article CurrentAffairsArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@map("article_bookmarks")
+}
+
+// =============================================================================
+// 10. FREEMIUM / PREMIUM
+// =============================================================================
+
+model Plan {
+  id            String   @id @default(uuid()) @db.Uuid
+  code          String   @unique
+  name          String
+  description   String?
+  priceInPaise  Int      @default(0) @map("price_in_paise")
+  billingPeriod String   @map("billing_period")
+  isActive      Boolean  @default(true) @map("is_active")
+  sortOrder     Int      @default(0) @map("sort_order")
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  features      PlanFeature[]
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Feature {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  planFeatures PlanFeature[]
+  entitlements UserEntitlement[]
+  usageRecords UsageRecord[]
+
+  @@map("features")
+}
+
+model PlanFeature {
+  planId    String  @map("plan_id") @db.Uuid
+  featureId String  @map("feature_id") @db.Uuid
+  quota     Int?
+  unlimited Boolean @default(false)
+
+  plan    Plan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  feature Feature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@id([planId, featureId])
+  @@map("plan_features")
+}
+
+model Subscription {
+  id                 String             @id @default(uuid()) @db.Uuid
+  userId             String             @map("user_id") @db.Uuid
+  planId             String             @map("plan_id") @db.Uuid
+  status             SubscriptionStatus @default(TRIAL)
+  billingProvider    BillingProvider?   @map("billing_provider")
+  providerCustomerId String?            @map("provider_customer_id")
+  providerSubId      String?            @map("provider_sub_id")
+  startedAt          DateTime           @default(now()) @map("started_at")
+  expiresAt          DateTime?          @map("expires_at")
+  cancelledAt        DateTime?          @map("cancelled_at")
+  metadata           Json?
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@index([userId, status])
+  @@index([providerSubId])
+  @@map("subscriptions")
+}
+
+model UserEntitlement {
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  featureId      String    @map("feature_id") @db.Uuid
+  quotaRemaining Int?      @map("quota_remaining")
+  unlimited      Boolean   @default(false)
+  expiresAt      DateTime? @map("expires_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feature Feature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, featureId])
+  @@map("user_entitlements")
+}
+
+model UsageRecord {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  featureId   String   @map("feature_id") @db.Uuid
+  count       Int      @default(1)
+  periodStart DateTime @map("period_start") @db.Date
+  periodEnd   DateTime @map("period_end") @db.Date
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feature Feature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, featureId, periodStart])
+  @@index([userId, featureId])
+  @@index([userId, featureId, createdAt])
+  @@map("usage_records")
+}
+
+enum NotificationDeliveryStatus {
+  SENT
+  FAILED
+  SKIPPED
+}
+
+enum NotificationType {
+  MAINS_EVAL_COMPLETE
+  STREAK_REMINDER
+  QUIZ_REMINDER
+  GENERAL
+}
+
+enum LearningEventType {
+  QUIZ_COMPLETED
+  MAINS_SUBMITTED
+  MAINS_EVALUATED
+  LESSON_READ
+  STUDY_SESSION
+  APP_OPEN
+}
+
+model DeviceToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique
+  platform  String
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@map("device_tokens")
+}
+
+model NotificationLog {
+  id        String                     @id @default(uuid()) @db.Uuid
+  userId    String                     @map("user_id") @db.Uuid
+  type      NotificationType
+  title     String
+  body      String
+  status    NotificationDeliveryStatus
+  metadata  Json?
+  createdAt DateTime                   @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("notification_logs")
+}
+
+model LearningEvent {
+  id         String            @id @default(uuid()) @db.Uuid
+  userId     String            @map("user_id") @db.Uuid
+  eventType  LearningEventType @map("event_type")
+  entityType String?           @map("entity_type")
+  entityId   String?           @map("entity_id") @db.Uuid
+  metadata   Json?
+  createdAt  DateTime          @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, eventType, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("learning_events")
+}
+
+// =============================================================================
+// 11. ADMIN / AUDIT
+// =============================================================================
+
+model AuditLog {
+  id         String      @id @default(uuid()) @db.Uuid
+  actorId    String?     @map("actor_id") @db.Uuid
+  action     AuditAction
+  entityType String      @map("entity_type")
+  entityId   String?     @map("entity_id")
+  before     Json?
+  after      Json?
+  ipAddress  String?     @map("ip_address")
+  userAgent  String?     @map("user_agent")
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+model ContentRevision {
+  id         String   @id @default(uuid()) @db.Uuid
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  version    Int
+  snapshot   Json
+  changeNote String?  @map("change_note")
+  authorId   String?  @map("author_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@unique([entityType, entityId, version])
+  @@index([entityType, entityId])
+  @@map("content_revisions")
+}
+
+model QuestionReport {
+  id         String       @id @default(uuid()) @db.Uuid
+  userId     String       @map("user_id") @db.Uuid
+  questionId String       @map("question_id") @db.Uuid
+  reason     String
+  status     ReportStatus @default(OPEN)
+  adminNotes String?      @map("admin_notes")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+  resolvedAt DateTime?    @map("resolved_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt(sort: Desc)])
+  @@map("question_reports")
+}
+
+// =============================================================================
+// 12. FUTURE RAG (pgvector preparation — pipeline not implemented in Step 3)
+// =============================================================================
+
+model RagDocument {
+  id           String          @id @default(uuid()) @db.Uuid
+  documentType RagDocumentType @map("document_type")
+  title        String
+  sourceRef    String?         @map("source_ref")
+  sourceUrl    String?         @map("source_url")
+  metadata     Json?
+  isActive     Boolean         @default(true) @map("is_active")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+
+  chunks RagChunk[]
+
+  @@index([documentType, isActive])
+  @@map("rag_documents")
+}
+
+model RagChunk {
+  id          String   @id @default(uuid()) @db.Uuid
+  documentId  String   @map("document_id") @db.Uuid
+  chunkIndex  Int      @map("chunk_index")
+  content     String
+  tokenCount  Int?     @map("token_count")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  document  RagDocument   @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  embedding RagEmbedding?
+
+  @@unique([documentId, chunkIndex])
+  @@index([documentId])
+  @@map("rag_chunks")
+}
+
+model RagEmbedding {
+  id         String @id @default(uuid()) @db.Uuid
+  chunkId    String @unique @map("chunk_id") @db.Uuid
+  model      String
+  dimensions Int    @default(1536)
+  // pgvector column — created via raw SQL migration when RAG pipeline is enabled
+  // embedding vector(1536)
+  embedding  Unsupported("vector(1536)")?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  chunk RagChunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+
+  @@index([model])
+  @@map("rag_embeddings")
+}

@@ -1,0 +1,111 @@
+// App.tsx
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { AuthProvider } from "./src/context/AuthContext";
+
+// Screens
+import LoginScreen from "./src/screens/LoginScreen";
+import SignupScreen from "./src/screens/signupScreen";
+import ExamHomeScreen from "./src/screens/ExamHomeScreen";
+import QuizScreen from "./src/screens/QuizScreen";
+import QuizResultScreen from "./src/screens/QuizResultScreen";
+import MCQScreen from "./src/screens/MCQScreen";
+import SyllabusScreen from "./src/screens/SyllabusScreen";
+import NcertScreen from "./src/screens/NcertScreen";
+import ExamInfoScreen from "./src/screens/examinfoScreen";
+import NewsScreen from "./src/screens/NewsScreen";
+import StreakScreen from "./src/screens/StreakScreen";
+import MainScreen from "./src/screens/MainScreen";
+import CutOffScreen from "./src/screens/CutOffScreen";
+import StrategyScreen from "./src/screens/StrategyScreen";
+import ProfileScreen from "./src/screens/ProfileScreen";
+import NotesScreen from "./src/screens/NoteScreen";
+import PYQScreen from "./src/screens/pyqScreen";
+import MainHomeScreen from "./src/screens/MainHomeScreen";
+import ChapterScreen from "./src/screens/ChapterScreen";
+import SubscriptionScreen from "./src/screens/SubscriptionScreen";
+
+// Type definitions for navigation
+export type RootStackParamList = {
+  Login: undefined;
+  Signup: undefined;
+  ExamHomeScreen: { exam?: string } | undefined;
+  QuizScreen: {
+    topicId?: string;
+    subject?: string;
+    class?: number | "all";
+    subjectKey?: string;
+    classKey?: string;
+    classNumber?: number;
+    count?: number;
+  };
+  QuizResultScreen: {
+    sessionId?: string;
+    correctCount?: number;
+    incorrectCount?: number;
+    totalQuestions?: number;
+    accuracy?: number;
+    timeTakenSeconds?: number;
+    subject?: string;
+    questions?: any[];
+    answers?: any[];
+    timeTaken?: string;
+    subjectKey?: string;
+    classKey?: string;
+  } | undefined;
+  MCQScreen: undefined;
+  SyllabusScreen: undefined;
+  NcertScreen: undefined;
+  ExamInfoScreen: undefined;
+  NewsScreen: undefined;
+  StreakScreen: undefined;
+  MainScreen: undefined;
+  CutOffScreen: undefined;
+  StrategyScreen: undefined;
+  ProfileScreen: undefined;
+  NotesScreen: undefined;
+  PYQScreen: undefined;
+  MainHomeScreen: undefined;
+  SubscriptionScreen: undefined;
+  ChapterScreen: { subject: string; chapter: string };
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Login"
+        screenOptions={{
+          headerShown: false,
+          animation: "slide_from_right",
+        }}
+      >
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Signup" component={SignupScreen} />
+        <Stack.Screen name="MainHomeScreen" component={MainHomeScreen} />
+        <Stack.Screen name="ExamHomeScreen" component={ExamHomeScreen} />
+        <Stack.Screen name="QuizScreen" component={QuizScreen} />
+        <Stack.Screen name="QuizResultScreen" component={QuizResultScreen} />
+        <Stack.Screen name="MCQScreen" component={MCQScreen} />
+        <Stack.Screen name="SyllabusScreen" component={SyllabusScreen} />
+        <Stack.Screen name="NcertScreen" component={NcertScreen} />
+        <Stack.Screen name="ExamInfoScreen" component={ExamInfoScreen} />
+        <Stack.Screen name="NewsScreen" component={NewsScreen} />
+        <Stack.Screen name="StreakScreen" component={StreakScreen} />
+        <Stack.Screen name="MainScreen" component={MainScreen} />
+        <Stack.Screen name="CutOffScreen" component={CutOffScreen} />
+        <Stack.Screen name="StrategyScreen" component={StrategyScreen} />
+        <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+        <Stack.Screen name="NotesScreen" component={NotesScreen} />
+        <Stack.Screen name="PYQScreen" component={PYQScreen} />
+        <Stack.Screen name="ChapterScreen" component={ChapterScreen} />
+        <Stack.Screen name="SubscriptionScreen" component={SubscriptionScreen} />
+      </Stack.Navigator>
+      </NavigationContainer>
+    </AuthProvider>
+  );
+}

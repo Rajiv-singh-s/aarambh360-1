@@ -1,0 +1,1129 @@
+// src/screens/QuizScreen.tsx
+import React, { useEffect, useRef, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  ScrollView,
+  SafeAreaView,
+  Animated,
+  Modal,
+  TextInput,
+} from "react-native";
+
+import { useRoute, useNavigation } from "@react-navigation/native";
+import { useColorScheme } from "react-native";
+import { useQuizEngine } from "../hooks/useQuizEngine";
+import { apiPost } from "../services/apiClient";
+import { trackLearningEvent } from "../services/analyticsService";
+
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import Svg, { Circle } from "react-native-svg";
+import ConfettiCannon from "react-native-confetti-cannon";
+import { BlurView } from "expo-blur";
+
+import styles from "./styles/QuizScreen.styles";
+
+type RouteParams = {
+  topicId?: string;
+  subject?: string;
+  subjectKey?: string;
+  classKey?: string;
+  count?: number;
+};
+
+interface NormalizedOption {
+  key?: string;
+  text: string;
+  optionId?: string;
+}
+
+interface Question {
+  id: string;
+  question: string;
+  options: NormalizedOption[];
+  answerRaw: string;
+  explanation: string;
+}
+
+export default function QuizScreen() {
+  const route = useRoute();
+  const navigation = useNavigation<any>();
+
+  const params = (route.params || {}) as RouteParams;
+  const topicId = params.topicId;
+  const subject = params.subject ?? "General";
+  const subjectKey = params.subjectKey ?? "default";
+  const classKey = params.classKey ?? "0";
+  const count = params.count ?? 25;
+
+  const { startSession, submitAnswer, completeSession } = useQuizEngine();
+  const questionStartRef = useRef(Date.now());
+  const isDark = useColorScheme() === "dark";
+
+  /* THEME */
+  const COLORS = {
+    bg: (isDark
+      ? ["#0b1220", "#111b2e"]
+      : ["#e9f3ff", "#ffffff"]) as [string, string],
+
+    card: isDark ? "#1e293b" : "#ffffff",
+    accent: isDark ? "#06b6d4" : "#0284c7",
+    text: isDark ? "#ffffff" : "#0f172a",
+    sub: isDark ? "#94a3b8" : "#475569",
+
+    // dot system
+    dotDefault: isDark ? "#334155" : "#cce4ff",
+    correct: "#22c55e",
+    wrong: "#ef4444",
+  };
+
+  /* STATES */
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [answers, setAnswers] = useState<(NormalizedOption | null)[]>([]);
+  const [progressColors, setProgressColors] = useState<string[]>([]);
+
+  const [correctCount, setCorrectCount] = useState(0);
+  const [incorrectCount, setIncorrectCount] = useState(0);
+
+  const [loading, setLoading] = useState(true);
+  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [secondsElapsed, setSecondsElapsed] = useState(0);
+  const [reviewMode, setReviewMode] = useState(false);
+
+  /* REPORT POPUP */
+  const [showReportPopup, setShowReportPopup] = useState(false);
+  const [reportText, setReportText] = useState("");
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
+  /* STREAK POPUP */
+  const [showStreakPopup, setShowStreakPopup] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [streakMessage, setStreakMessage] = useState("");
+
+  const popupScale = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  /* RESULT ANIMATION */
+  const animatedPerc = useRef(new Animated.Value(0)).current;
+  const [displayPerc, setDisplayPerc] = useState(0);
+  const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+  /* REFS */
+  const progressScrollRef = useRef<ScrollView | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  /* BOOKMARKS */
+  const [showBookmarkPopup, setShowBookmarkPopup] = useState(false);
+  const [bookmarks, setBookmarks] = useState<{ [key: number]: boolean }>({});
+
+  const saveBookmark = async () => {
+    try {
+      const q = questions[currentIndex];
+      setBookmarks((prev) => ({ ...prev, [currentIndex]: true }));
+      setShowBookmarkPopup(false);
+      await apiPost("/bookmarks", {
+        targetType: "QUESTION",
+        targetId: q.id,
+      });
+    } catch (err) {
+      console.error("Bookmark error:", err);
+    }
+  };
+
+  /* LISTEN FOR RESULT % */
+  useEffect(() => {
+    const id = animatedPerc.addListener(({ value }) =>
+      setDisplayPerc(Math.round(value))
+    );
+    return () => animatedPerc.removeListener(id);
+  }, [animatedPerc]);
+
+  /* TIMER */
+  useEffect(() => {
+    if (!quizCompleted && questions.length > 0) {
+      if (!timerRef.current) {
+        timerRef.current = setInterval(() => {
+          setSecondsElapsed((s) => s + 1);
+        }, 1000);
+      }
+    }
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [quizCompleted, questions.length]);
+
+  /* FETCH QUESTIONS FROM API */
+  useEffect(() => {
+    (async () => {
+      if (!topicId) {
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        const session = await startSession(topicId, count);
+        const mapped: Question[] = session.questions.map((q) => ({
+          id: q.id,
+          question: q.text,
+          options: q.options.map((opt) => ({
+            key: opt.label,
+            text: opt.text,
+            optionId: opt.id,
+          })),
+          answerRaw: "",
+          explanation: "",
+        }));
+        setQuestions(mapped);
+        setAnswers(new Array(mapped.length).fill(null));
+        setProgressColors(new Array(mapped.length).fill("neutral"));
+        setCurrentIndex(0);
+        setSecondsElapsed(0);
+        setCorrectCount(0);
+        setIncorrectCount(0);
+        setQuizCompleted(false);
+        questionStartRef.current = Date.now();
+        animatedPerc.setValue(0);
+      } catch (err) {
+        console.log("Question Fetch Error:", err);
+      }
+      setLoading(false);
+    })();
+  }, [topicId, count, animatedPerc, startSession]);
+
+  /* FORMAT TIME */
+  const formatSeconds = (sec: number) => {
+    const m = Math.floor(sec / 60).toString().padStart(2, "0");
+    const s = (sec % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
+
+  /* CORRECTNESS LOGIC */
+  const isOptionCorrect = (option: NormalizedOption, answerRaw: string) => {
+    if (option.optionId && answerRaw) {
+      return option.optionId === answerRaw;
+    }
+    const ans = (answerRaw ?? "").trim().toLowerCase();
+    if (!ans) return false;
+    const key = (option.key ?? "").trim().toLowerCase();
+    const text = (option.text ?? "").trim().toLowerCase();
+    if (key === ans || text === ans) return true;
+    return false;
+  };
+
+  /* SELECT OPTION — server authoritative scoring */
+  const selectOption = async (option: NormalizedOption) => {
+    if (answers[currentIndex] || !option.optionId) return;
+
+    const timeTakenSeconds = Math.max(
+      1,
+      Math.round((Date.now() - questionStartRef.current) / 1000),
+    );
+
+    try {
+      const result = await submitAnswer(questions[currentIndex].id, option.optionId, timeTakenSeconds);
+      const correct = result.isCorrect;
+
+      const newProgress = [...progressColors];
+      newProgress[currentIndex] = correct ? "correct" : "wrong";
+      setProgressColors(newProgress);
+
+      const newAnswers = [...answers];
+      newAnswers[currentIndex] = option;
+      setAnswers(newAnswers);
+
+      if (correct) setCorrectCount((c) => c + 1);
+      else setIncorrectCount((c) => c + 1);
+
+      setQuestions((prev) =>
+        prev.map((item, index) =>
+          index === currentIndex
+            ? {
+                ...item,
+                answerRaw: result.correctOptionId,
+                explanation: result.explanation ?? "",
+              }
+            : item,
+        ),
+      );
+
+      progressScrollRef.current?.scrollTo({
+        x: (currentIndex + 1) * 40,
+        animated: true,
+      });
+    } catch (err) {
+      console.log("Submit answer error:", err);
+    }
+  };
+
+  /* NAVIGATION */
+  const next = () => {
+    if (currentIndex + 1 < questions.length) {
+      setCurrentIndex((i) => i + 1);
+      questionStartRef.current = Date.now();
+
+      progressScrollRef.current?.scrollTo({
+        x: (currentIndex + 1) * 40,
+        animated: true,
+      });
+    } else {
+      finishQuiz();
+    }
+  };
+
+  const prev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex((i) => i - 1);
+
+      progressScrollRef.current?.scrollTo({
+        x: (currentIndex - 1) * 40,
+        animated: true,
+      });
+    }
+  };
+
+  /* FINISH QUIZ */
+  const finishQuiz = async () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    try {
+      const result = await completeSession();
+      setQuizCompleted(true);
+
+      trackLearningEvent({
+        eventType: "QUIZ_COMPLETED",
+        entityType: "QuizSession",
+        entityId: result.sessionId,
+        metadata: {
+          topicId,
+          subject,
+          correctCount: result.correctCount,
+          incorrectCount: result.incorrectCount,
+          totalQuestions: result.totalQuestions,
+          accuracy: result.accuracy,
+          timeTakenSeconds: result.timeTakenSeconds,
+        },
+      }).catch((err) => console.error("Error tracking QUIZ_COMPLETED:", err));
+
+      Animated.timing(animatedPerc, {
+        toValue: result.accuracy,
+        duration: 1200,
+        useNativeDriver: false,
+      }).start();
+
+      navigation.navigate("QuizResultScreen", {
+        sessionId: result.sessionId,
+        correctCount: result.correctCount,
+        incorrectCount: result.incorrectCount,
+        totalQuestions: result.totalQuestions,
+        accuracy: result.accuracy,
+        timeTakenSeconds: result.timeTakenSeconds,
+        subject,
+        subjectKey,
+        classKey,
+        questions,
+        answers,
+        timeTaken: formatSeconds(result.timeTakenSeconds),
+      });
+    } catch (err) {
+      console.log("Complete session error:", err);
+      setQuizCompleted(true);
+    }
+  };
+
+  /* REPORT MODAL */
+  const openReport = () => {
+    setShowReportPopup(true);
+    Animated.timing(slideAnim, {
+      toValue: 1,
+      duration: 350,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closeReport = () => {
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowReportPopup(false);
+      setReportText("");
+    });
+  };
+
+  const submitReport = async () => {
+    const words = reportText.trim().split(/\s+/);
+    if (words.length < 5 || words.length > 50) {
+      alert("Please enter between 5 and 50 words.");
+      return;
+    }
+
+    const q = questions[currentIndex];
+    console.log("Report submitted:", q.id, reportText.trim());
+    closeReport();
+  };
+
+  /* STREAK handled server-side on session complete */
+  const handleContinue = async () => {
+    setStreakMessage("Streak updated on the server. Keep practicing!");
+    setShowConfetti(true);
+    setShowStreakPopup(true);
+  };
+
+  /* STREAK ANIMATION */
+  useEffect(() => {
+    if (showStreakPopup) {
+      popupScale.setValue(0);
+
+      Animated.spring(popupScale, {
+        toValue: 1,
+        friction: 5,
+        tension: 80,
+        useNativeDriver: true,
+      }).start();
+
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 900,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 0.97,
+            duration: 900,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+
+      loop.start();
+      return () => loop.stop();
+    }
+  }, [showStreakPopup, popupScale, pulseAnim]);
+
+  /* RESULT SCREEN */
+  if (loading) {
+    return (
+      <LinearGradient colors={COLORS.bg} style={styles.center}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+        <Text style={[styles.loadingText, { color: COLORS.sub }]}>
+          Loading quiz...
+        </Text>
+      </LinearGradient>
+    );
+  }
+
+  if (quizCompleted) {
+    const totalMarks = correctCount * 2 - incorrectCount * 0.66;
+    const maxMarks = questions.length * 2;
+
+    const radius = 60;
+    const strokeWidth = 10;
+    const circumference = 2 * Math.PI * radius;
+
+    const strokeDashoffset = animatedPerc.interpolate({
+      inputRange: [0, 100],
+      outputRange: [circumference, 0],
+    });
+
+    return (
+      <LinearGradient colors={COLORS.bg} style={styles.safe}>
+        <SafeAreaView style={styles.resultBox}>
+          {showConfetti && (
+            <ConfettiCannon count={120} origin={{ x: 180, y: 0 }} fadeOut />
+          )}
+
+          <View
+            style={[
+              styles.resultCard,
+              { backgroundColor: COLORS.card, borderColor: COLORS.accent },
+            ]}
+          >
+            <Text style={[styles.resultTitle, { color: COLORS.text }]}>
+              Your Report
+            </Text>
+
+            <Svg width={160} height={160}>
+              <Circle
+                stroke={isDark ? "#334155" : "#cbd5e1"}
+                fill="none"
+                cx="80"
+                cy="80"
+                r={radius}
+                strokeWidth={strokeWidth}
+              />
+
+              <AnimatedCircle
+                stroke={COLORS.accent}
+                fill="none"
+                cx="80"
+                cy="80"
+                r={radius}
+                strokeWidth={strokeWidth}
+                strokeDasharray={`${circumference} ${circumference}`}
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap="round"
+                rotation="-90"
+                originX="80"
+                originY="80"
+              />
+            </Svg>
+
+            <Text style={[styles.resultPerc, { color: COLORS.accent }]}>
+              {displayPerc}%
+            </Text>
+
+            <View
+              style={{
+                width: "90%",
+                backgroundColor: COLORS.card,
+                marginTop: 20,
+                borderRadius: 18,
+                padding: 16,
+                elevation: 6,
+              }}
+            >
+              <Text
+                style={{
+                  color: COLORS.text,
+                  fontSize: 18,
+                  fontWeight: "700",
+                  marginBottom: 12,
+                  textAlign: "center",
+                }}
+              >
+                Performance Summary
+              </Text>
+
+              <View style={{ marginTop: 6 }}>
+                <View style={{ flexDirection: "row", marginVertical: 6 }}>
+                  <Ionicons name="book-outline" size={20} color={COLORS.accent} />
+                  <Text style={{ color: COLORS.text, marginLeft: 10, fontSize: 15 }}>
+                    Subject:{" "}
+                    <Text style={{ color: COLORS.accent, fontWeight: "700" }}>
+                      {subject}
+                    </Text>
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: "row", marginVertical: 6 }}>
+                  <Ionicons name="checkmark-circle-outline" size={20} color="#10B981" />
+                  <Text style={{ color: COLORS.text, marginLeft: 10, fontSize: 15 }}>
+                    Correct:{" "}
+                    <Text style={{ color: "#10B981", fontWeight: "700" }}>
+                      {correctCount}
+                    </Text>
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: "row", marginVertical: 6 }}>
+                  <Ionicons name="close-circle-outline" size={20} color="#EF4444" />
+                  <Text style={{ color: COLORS.text, marginLeft: 10, fontSize: 15 }}>
+                    Incorrect:{" "}
+                    <Text style={{ color: "#EF4444", fontWeight: "700" }}>
+                      {incorrectCount}
+                    </Text>
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: "row", marginVertical: 6 }}>
+                  <Ionicons name="trophy-outline" size={20} color={COLORS.accent} />
+                  <Text style={{ color: COLORS.text, marginLeft: 10, fontSize: 15 }}>
+                    Marks:{" "}
+                    <Text style={{ color: COLORS.accent, fontWeight: "700" }}>
+                      {totalMarks.toFixed(2)} / {maxMarks}
+                    </Text>
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: "row", marginVertical: 6 }}>
+                  <Ionicons name="time-outline" size={20} color={COLORS.accent} />
+                  <Text style={{ color: COLORS.text, marginLeft: 10, fontSize: 15 }}>
+                    Time Taken:{" "}
+                    <Text style={{ color: COLORS.accent, fontWeight: "700" }}>
+                      {formatSeconds(secondsElapsed)}
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* BUTTONS */}
+            <View style={styles.resultButtons}>
+              <TouchableOpacity
+                style={[styles.btn, { backgroundColor: COLORS.accent }]}
+                onPress={() => {
+                  const first = answers.findIndex((a) => a !== null);
+                  setCurrentIndex(first >= 0 ? first : 0);
+                  setQuizCompleted(false);
+                  setReviewMode(true);
+                }}
+              >
+                <Text style={[styles.btnText, { color: "#fff" }]}>
+                  Review Answers
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.btn, { backgroundColor: COLORS.sub }]}
+                onPress={handleContinue}
+              >
+                <Text style={[styles.btnText, { color: "#fff" }]}>
+                  Continue
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* STREAK POPUP */}
+          <Modal visible={showStreakPopup} transparent animationType="fade">
+            <View style={styles.popupOverlay}>
+              <BlurView
+                intensity={35}
+                tint={isDark ? "dark" : "light"}
+                pointerEvents="none"
+                style={styles.fullscreenBlur}
+              />
+
+              <Animated.View
+                style={[
+                  styles.popupCardBig,
+                  {
+                    backgroundColor: isDark
+                      ? "rgba(30,41,59,0.97)"
+                      : "rgba(255,255,255,0.97)",
+                    transform: [
+                      {
+                        scale: Animated.multiply(
+                          popupScale.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.6, 1],
+                          }),
+                          pulseAnim
+                        ),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <View style={[styles.streakBadge, { backgroundColor: COLORS.accent }]}>
+                  <Ionicons name="flame" size={20} color="#fff" />
+                  <Text style={[styles.streakBadgeText, { color: "#fff" }]}>
+                    {streakMessage.match(/\d+/)
+                      ? `Day ${streakMessage.match(/\d+/)?.[0]}`
+                      : "🔥"}
+                  </Text>
+                </View>
+
+                <Text style={[styles.popupTextLarge, { color: COLORS.accent }]}>
+                  {streakMessage}
+                </Text>
+
+                <Text
+                  style={[
+                    styles.popupSubText,
+                    { color: isDark ? "#cbd5e1" : "#475569" },
+                  ]}
+                >
+                  Keep your streak going — consistency builds mastery!
+                </Text>
+
+                <TouchableOpacity
+                  style={[styles.okBtn, { backgroundColor: COLORS.accent }]}
+                  onPress={() => {
+                    setShowStreakPopup(false);
+                    setShowConfetti(false);
+                    navigation.goBack();
+                  }}
+                >
+                  <Text style={[styles.btnText, { color: "#fff" }]}>OK</Text>
+                </TouchableOpacity>
+              </Animated.View>
+
+              {showConfetti && (
+                <View style={styles.confettiLayer}>
+                  <ConfettiCannon
+                    count={120}
+                    origin={{ x: 200, y: 0 }}
+                    fadeOut
+                    autoStart
+                  />
+                </View>
+              )}
+            </View>
+          </Modal>
+        </SafeAreaView>
+      </LinearGradient>
+    );
+  }
+
+  /* REVIEW MODE */
+  if (reviewMode) {
+    const q = questions[currentIndex];
+
+    return (
+      <LinearGradient colors={COLORS.bg} style={styles.safe}>
+        <SafeAreaView style={{ flex: 1 }}>
+          <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+            <View style={styles.header}>
+              <TouchableOpacity
+                onPress={() => {
+                  setReviewMode(false);
+                  setQuizCompleted(true);
+                }}
+              >
+                <Ionicons name="arrow-back" size={22} color={COLORS.accent} />
+              </TouchableOpacity>
+
+              <Text style={[styles.headerTitle, { color: COLORS.text }]}>
+                Review Answers
+              </Text>
+
+              <Text style={[styles.timer, { color: COLORS.sub }]}>
+                {currentIndex + 1}/{questions.length}
+              </Text>
+            </View>
+
+            <View
+              style={[
+                styles.reviewCard,
+                { backgroundColor: COLORS.card, borderColor: COLORS.accent },
+              ]}
+            >
+              <Text style={[styles.reviewQNo, { color: COLORS.accent }]}>
+                Question {currentIndex + 1}
+              </Text>
+
+              <Text style={[styles.question, { color: COLORS.text }]}>
+                {q.question}
+              </Text>
+
+              {q.options.map((opt, i) => {
+                const correct = isOptionCorrect(opt, q.answerRaw);
+                const chosen =
+                  answers[currentIndex]?.key === opt.key &&
+                  answers[currentIndex]?.text === opt.text;
+
+                return (
+                  <View
+                    key={i}
+                    style={[
+                      styles.optionCard,
+                      {
+                        backgroundColor: COLORS.card,
+                        borderColor: COLORS.accent + "55",
+                      },
+                      correct && {
+                        backgroundColor: "#16a34a33",
+                        borderColor: "#16a34a",
+                      },
+                      chosen &&
+                        !correct && {
+                          backgroundColor: "#ef444433",
+                          borderColor: "#ef4444",
+                        },
+                    ]}
+                  >
+                    <Text style={[styles.optionText, { color: COLORS.text }]}>
+                      {String.fromCharCode(65 + i)}. {opt.text}
+                    </Text>
+                  </View>
+                );
+              })}
+
+              <View
+                style={[
+                  styles.explanationBox,
+                  { borderLeftColor: COLORS.accent, backgroundColor: COLORS.card },
+                ]}
+              >
+                <Text
+                  style={[styles.explanationTitle, { color: COLORS.accent }]}
+                >
+                  Explanation:
+                </Text>
+                <Text style={[styles.explanationText, { color: COLORS.sub }]}>
+                  {q.explanation || "No explanation provided."}
+                </Text>
+              </View>
+            </View>
+          </ScrollView>
+
+          <View style={styles.bottomNav}>
+            <TouchableOpacity
+              disabled={currentIndex === 0}
+              onPress={prev}
+              style={[
+                styles.navBtn,
+                currentIndex === 0 && { opacity: 0.35 },
+              ]}
+            >
+              <LinearGradient
+                colors={[COLORS.accent, COLORS.accent]}
+                style={styles.navBtnInner}
+              >
+                <Text style={styles.navText}>Previous</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                if (currentIndex + 1 === questions.length) {
+                  setReviewMode(false);
+                  setQuizCompleted(true);
+                } else next();
+              }}
+              style={styles.navBtn}
+            >
+              <LinearGradient
+                colors={[COLORS.accent, COLORS.accent]}
+                style={styles.navBtnInner}
+              >
+                <Text style={styles.navText}>
+                  {currentIndex + 1 === questions.length ? "Finish" : "Next"}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+    );
+  }
+
+  /* MAIN QUIZ UI */
+  const q = questions[currentIndex];
+
+  return (
+    <LinearGradient colors={COLORS.bg} style={styles.safe}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+          {/* HEADER */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={22} color={COLORS.accent} />
+            </TouchableOpacity>
+
+            <Text style={[styles.headerTitle, { color: COLORS.text }]}>
+              {subject}
+            </Text>
+
+            <View style={{ width: 22 }} />
+          </View>
+
+          {/* PROGRESS DOTS */}
+          <ScrollView
+            ref={progressScrollRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.progressRow}
+          >
+            {progressColors.map((state, i) => {
+              let color = COLORS.dotDefault;
+
+              if (state === "correct") color = COLORS.correct;
+              else if (state === "wrong") color = COLORS.wrong;
+
+              const isSelected = currentIndex === i;
+
+              return (
+                <TouchableOpacity
+                  key={i}
+                  onPress={() => {
+                    setCurrentIndex(i);
+                    progressScrollRef.current?.scrollTo({
+                      x: i * 40,
+                      animated: true,
+                    });
+                  }}
+                >
+                  <View
+                    style={[
+                      styles.progressDot,
+                      {
+                        backgroundColor: color,
+                        borderColor: isSelected
+                          ? COLORS.accent
+                          : "transparent",
+                        borderWidth: isSelected ? 2 : 1,
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.dotText, { color: COLORS.text }]}>
+                      {i + 1}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          {/* TOP INFO CARD */}
+          <View
+            style={[
+              styles.topInfoCard,
+              { backgroundColor: COLORS.card, borderColor: COLORS.accent + "22" },
+            ]}
+          >
+            <View style={styles.infoItem}>
+              <Text style={[styles.infoLabel, { color: COLORS.sub }]}>QUESTION</Text>
+              <Text style={[styles.infoValue, { color: COLORS.text }]}>
+                {currentIndex + 1}/{questions.length}
+              </Text>
+            </View>
+
+            <View style={styles.infoItem}>
+              <Text style={[styles.infoLabel, { color: COLORS.sub }]}>SCORE</Text>
+              <Text style={[styles.infoValue, { color: COLORS.text }]}>
+                {(correctCount * 2 - incorrectCount * 0.66).toFixed(2)}
+              </Text>
+            </View>
+
+            <View style={styles.infoItem}>
+              <Text style={[styles.infoLabel, { color: COLORS.sub }]}>TIME</Text>
+              <Text style={[styles.infoValue, { color: COLORS.text }]}>
+                {formatSeconds(secondsElapsed)}
+              </Text>
+            </View>
+          </View>
+
+          {/* QUESTION CARD */}
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: COLORS.card, borderColor: COLORS.accent + "22" },
+            ]}
+          >
+            <Text style={[styles.question, { color: COLORS.text }]}>
+              {q.question}
+            </Text>
+
+            {q.options.map((opt, i) => {
+              const answered = answers[currentIndex] !== null;
+              const selected =
+                answers[currentIndex]?.key === opt.key &&
+                answers[currentIndex]?.text === opt.text;
+              const correct = isOptionCorrect(opt, q.answerRaw);
+
+              return (
+                <TouchableOpacity
+                  key={i}
+                  disabled={answered}
+                  onPress={() => selectOption(opt)}
+                  style={[
+                    styles.optionCard,
+                    {
+                      backgroundColor: COLORS.card,
+                      borderColor: COLORS.accent + "33",
+                    },
+                    answered &&
+                      correct && {
+                        backgroundColor: "#16a34a33",
+                        borderColor: "#16a34a",
+                      },
+                    answered &&
+                      selected &&
+                      !correct && {
+                        backgroundColor: "#ef444433",
+                        borderColor: "#ef4444",
+                      },
+                  ]}
+                >
+                  <Text style={[styles.optionText, { color: COLORS.text }]}>
+                    {String.fromCharCode(65 + i)}. {opt.text}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+
+            {answers[currentIndex] && (
+              <View
+                style={[
+                  styles.explanationBox,
+                  {
+                    backgroundColor: isDark ? "#1e293b" : "#e2e8f0",
+                    borderLeftColor: COLORS.accent,
+                  },
+                ]}
+              >
+                <Text
+                  style={[styles.explanationTitle, { color: COLORS.accent }]}
+                >
+                  Explanation:
+                </Text>
+                <Text style={[styles.explanationText, { color: COLORS.sub }]}>
+                  {q.explanation || "No explanation provided."}
+                </Text>
+              </View>
+            )}
+
+            {/* ACTIONS */}
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                onPress={() => setShowBookmarkPopup(true)}
+              >
+                <Ionicons
+                  name={bookmarks[currentIndex] ? "bookmark" : "bookmark-outline"}
+                  size={22}
+                  color={COLORS.accent}
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={openReport}>
+                <Ionicons name="flag-outline" size={22} color="#ef4444" />
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={next}>
+                <Ionicons
+                  name="play-skip-forward-outline"
+                  size={22}
+                  color={COLORS.sub}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* BOTTOM NAV */}
+        <View style={styles.bottomNav}>
+          <TouchableOpacity
+            disabled={currentIndex === 0}
+            onPress={prev}
+            style={[
+              styles.navBtn,
+              currentIndex === 0 && { opacity: 0.35 },
+            ]}
+          >
+            <LinearGradient
+              colors={[COLORS.accent, COLORS.accent]}
+              style={styles.navBtnInner}
+            >
+              <Text style={styles.navText}>Previous</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={next} style={styles.navBtn}>
+            <LinearGradient
+              colors={[COLORS.accent, COLORS.accent]}
+              style={styles.navBtnInner}
+            >
+              <Text style={styles.navText}>
+                {currentIndex + 1 === questions.length ? "Finish" : "Next"}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+
+      <Modal visible={showBookmarkPopup} transparent animationType="fade">
+        <View style={styles.modalWrapper}>
+          <TouchableOpacity
+            style={styles.backdrop}
+            activeOpacity={1}
+            onPress={() => setShowBookmarkPopup(false)}
+          />
+
+          <Animated.View style={styles.bookmarkPopupCard}>
+            <Text style={[styles.popupTextLarge, { color: COLORS.text }]}>
+              Bookmark this question?
+            </Text>
+
+            <View style={{ flexDirection: "row", marginTop: 20 }}>
+              <TouchableOpacity
+                style={[styles.btn, { backgroundColor: "#334155", marginRight: 10 }]}
+                onPress={() => setShowBookmarkPopup(false)}
+              >
+                <Text style={[styles.btnText, { color: "#fff" }]}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.btn, { backgroundColor: COLORS.accent }]}
+                onPress={saveBookmark}
+              >
+                <Text style={[styles.btnText, { color: "#fff" }]}>Yes</Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </View>
+      </Modal>
+
+      {/* REPORT POPUP */}
+      <Modal visible={showReportPopup} transparent animationType="none">
+        <View style={styles.modalWrapper}>
+          <TouchableOpacity
+            style={styles.backdrop}
+            activeOpacity={1}
+            onPress={closeReport}
+          />
+
+          <Animated.View
+            style={[
+              styles.reportPopupContainer,
+              {
+                transform: [
+                  {
+                    translateY: slideAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [50, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <BlurView
+              intensity={50}
+              tint={isDark ? "dark" : "light"}
+              style={styles.reportCard}
+            >
+              <Text style={[styles.reportTitle, { color: COLORS.text }]}>
+                Why are you reporting this question?
+              </Text>
+
+              <TextInput
+                value={reportText}
+                onChangeText={setReportText}
+                placeholder="Type your reason (5–50 words)…"
+                placeholderTextColor={COLORS.sub}
+                multiline
+                style={[
+                  styles.reportInput,
+                  {
+                    backgroundColor: isDark ? "#1e293b" : "#e2e8f0",
+                    color: COLORS.text,
+                  },
+                ]}
+              />
+
+              <View style={styles.reportButtons}>
+                <TouchableOpacity
+                  onPress={closeReport}
+                  style={[styles.btn, { backgroundColor: "#334155" }]}
+                >
+                  <Text style={[styles.btnText, { color: "#fff" }]}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={submitReport}
+                  style={[styles.btn, { backgroundColor: COLORS.accent }]}
+                >
+                  <Text style={[styles.btnText, { color: "#fff" }]}>Submit</Text>
+                </TouchableOpacity>
+              </View>
+            </BlurView>
+          </Animated.View>
+        </View>
+      </Modal>
+    </LinearGradient>
+  );
+}

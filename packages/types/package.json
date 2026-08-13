@@ -1,0 +1,26 @@
+{
+  "name": "@aarambh360/types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript definitions and contracts for Aarambh360",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "prepare": "pnpm run build",
+    "lint": "echo \"@aarambh360/types: no lint config needed\""
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

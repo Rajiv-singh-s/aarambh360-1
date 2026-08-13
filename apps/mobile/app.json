@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "Aarambh360",
+    "slug": "Aarambh360",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.aarambh360.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Aarambh360 needs camera access to capture your Mains answer sheets for evaluation.",
+        "NSPhotoLibraryUsageDescription": "Aarambh360 needs photo library access to upload your Mains answer sheets for evaluation."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.aarambh360.app",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Aarambh360 needs photo library access to upload your Mains answer sheets.",
+          "cameraPermission": "Aarambh360 needs camera access to capture your Mains answer sheets."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b48f85c9-d1eb-4b96-a3f3-e46d0a713189"
+      }
+    }
+  }
+}
