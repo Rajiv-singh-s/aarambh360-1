@@ -26,6 +26,10 @@ import MainHomeScreen from "./src/screens/MainHomeScreen";
 import ChapterScreen from "./src/screens/ChapterScreen";
 import LearnScreen from "./src/screens/LearnScreen";
 import AiMentorScreen from "./src/screens/AiMentorScreen";
+import NewsReelsScreen from "./src/screens/NewsReelsScreen";
+import FlashcardsScreen from "./src/screens/FlashcardsScreen";
+import LeaderboardScreen from "./src/screens/LeaderboardScreen";
+import StudyRoomScreen from "./src/screens/StudyRoomScreen";
 import SubscriptionScreen from "./src/screens/SubscriptionScreen";
 
 // Type definitions for navigation
@@ -71,6 +75,10 @@ export type RootStackParamList = {
   MainHomeScreen: undefined;
   LearnScreen: undefined;
   AiMentorScreen: undefined;
+  NewsReelsScreen: undefined;
+  FlashcardsScreen: undefined;
+  LeaderboardScreen: undefined;
+  StudyRoomScreen: undefined;
   SubscriptionScreen: undefined;
   ChapterScreen: { subject: string; chapter: string };
 };
@@ -96,6 +104,10 @@ export default function App() {
           <Stack.Screen name="MainHomeScreen" component={MainHomeScreen} />
           <Stack.Screen name="LearnScreen" component={LearnScreen} />
           <Stack.Screen name="AiMentorScreen" component={AiMentorScreen} />
+          <Stack.Screen name="NewsReelsScreen" component={NewsReelsScreen} />
+          <Stack.Screen name="FlashcardsScreen" component={FlashcardsScreen} />
+          <Stack.Screen name="LeaderboardScreen" component={LeaderboardScreen} />
+          <Stack.Screen name="StudyRoomScreen" component={StudyRoomScreen} />
           <Stack.Screen name="ExamHomeScreen" component={ExamHomeScreen} />
           <Stack.Screen name="QuizScreen" component={QuizScreen} />
           <Stack.Screen name="QuizResultScreen" component={QuizResultScreen} />

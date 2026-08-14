@@ -336,6 +336,31 @@ export default function ExamHomeScreen({ navigation, route }: any) {
             </View>
           )}
 
+          <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Premium Features</Text>
+          <View style={styles.quickGrid}>
+            <TouchableOpacity
+              style={[styles.quickCard, { backgroundColor: COLORS.card, borderColor: "#fbbf24", borderWidth: 1 }]}
+              onPress={() => navigation.navigate("NewsReelsScreen")}
+            >
+              <Ionicons name="play-circle" size={28} color="#fbbf24" />
+              <Text style={[styles.quickText, { fontWeight: "800" }]}>News Reels</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickCard, { backgroundColor: COLORS.card, borderColor: "#06b6d4", borderWidth: 1 }]}
+              onPress={() => navigation.navigate("FlashcardsScreen")}
+            >
+              <Ionicons name="albums" size={28} color="#06b6d4" />
+              <Text style={[styles.quickText, { fontWeight: "800" }]}>Flashcards</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickCard, { backgroundColor: COLORS.card, borderColor: "#10b981", borderWidth: 1 }]}
+              onPress={() => navigation.navigate("StudyRoomScreen")}
+            >
+              <Ionicons name="headset" size={28} color="#10b981" />
+              <Text style={[styles.quickText, { fontWeight: "800" }]}>Study Room</Text>
+            </TouchableOpacity>
+          </View>
+
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Study Tools</Text>
           <View style={styles.quickGrid}>
             <TouchableOpacity
