@@ -23,6 +23,12 @@ import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop } from "react-na
 
 const { width } = Dimensions.get("window");
 
+const NATIONAL_HOLIDAYS: Record<string, string> = {
+  "01-26": "Republic Day",
+  "08-15": "Independence Day",
+  "10-02": "Gandhi Jayanti",
+};
+
 export default function StreakScreen({ navigation }: any) {
   const { streaks, stats, loading } = useProgress();
   const mcqStreak = streaks.find((item) => item.streakType === "MCQ");
@@ -254,6 +260,9 @@ export default function StreakScreen({ navigation }: any) {
                       if (d === null) return <View key={di} style={[styles.dayCell, { opacity: 0 }]} />;
 
                       const dateKey = `${monthKey}-${String(d).padStart(2, "0")}`;
+                      const monthDayKey = `${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+                      const isHoliday = !!NATIONAL_HOLIDAYS[monthDayKey];
+                      
                       const isActive = streakDates.includes(dateKey);
                       const isToday = dateKey === todayKey;
 
@@ -263,15 +272,16 @@ export default function StreakScreen({ navigation }: any) {
                           style={[
                             styles.dayCell,
                             {
-                              backgroundColor: isActive ? COLORS.activeCellBg : COLORS.cellBg,
-                              borderColor: isToday ? "#10b981" : isActive ? "rgba(16,185,129,0.3)" : "transparent",
-                              borderWidth: isToday ? 1.5 : isActive ? 1 : 0,
+                              backgroundColor: isActive ? COLORS.activeCellBg : isHoliday ? "rgba(245,158,11,0.15)" : COLORS.cellBg,
+                              borderColor: isToday ? "#10b981" : isActive ? "rgba(16,185,129,0.3)" : isHoliday ? "rgba(245,158,11,0.4)" : "transparent",
+                              borderWidth: isToday ? 1.5 : isActive || isHoliday ? 1 : 0,
                             },
                           ]}
                         >
-                          <Text style={[styles.dayNum, { color: isActive ? "#10b981" : COLORS.text, fontWeight: isActive ? "800" : "500" }]}>
+                          <Text style={[styles.dayNum, { color: isActive ? "#10b981" : isHoliday ? "#f59e0b" : COLORS.text, fontWeight: isActive || isHoliday ? "800" : "500" }]}>
                             {d}
                           </Text>
+                          {isHoliday && <Text style={{ position: "absolute", top: -2, right: -2, fontSize: 8 }}>🇮🇳</Text>}
                           {isActive && <View style={styles.activeDot} />}
                         </View>
                       );
