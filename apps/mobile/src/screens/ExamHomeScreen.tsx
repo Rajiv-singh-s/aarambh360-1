@@ -1,5 +1,3 @@
-import SafeContainer from '../components/SafeContainer';
-// src/screens/ExamHomeScreen.tsx
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -13,7 +11,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { Ionicons, MaterialIcons, FontAwesome5, Entypo } from "@expo/vector-icons";
 import { auth } from "../firebaseConfig";
 import { useAuth } from "../hooks/useAuth";
@@ -21,6 +18,7 @@ import { useProgress } from "../hooks/useProgress";
 import { useFocusEffect } from "@react-navigation/native";
 import { getRecommendations } from "../services/analyticsService";
 import type { RecommendationDto } from "@aarambh360/types";
+import SafeContainer from "../components/SafeContainer";
 
 export default function ExamHomeScreen({ navigation, route }: any) {
   const exam = route?.params?.exam || "UPSC";
@@ -78,10 +76,11 @@ export default function ExamHomeScreen({ navigation, route }: any) {
     bg: isDark
       ? (["#0b1220", "#111b2e"] as [string, string])
       : (["#e9f3ff", "#ffffff"] as [string, string]),
-    card: isDark ? "#1e293b" : "#e2e8f0",
+    card: isDark ? "#1e293b" : "#ffffff",
     accent: isDark ? "#06b6d4" : "#0284c7",
     text: isDark ? "#fff" : "#0f172a",
     sub: isDark ? "#94a3b8" : "#475569",
+    border: isDark ? "rgba(255,255,255,0.05)" : "#e2e8f0",
   };
 
   const getGreeting = () => {
@@ -91,25 +90,20 @@ export default function ExamHomeScreen({ navigation, route }: any) {
     return "Good Evening";
   };
 
-
   useEffect(() => {
     if (!auth.currentUser) {
       navigation.replace("Login");
       return;
     }
 
-    // Fetch strict IST time from a public time API to calculate offset
     const fetchRealTime = async () => {
       try {
-        // Use worldtimeapi for reliable unix timestamp to avoid Hermes ISO-8601 parsing errors
         const response = await fetch("https://worldtimeapi.org/api/timezone/Asia/Kolkata");
         const data = await response.json();
         const serverTime = data.unixtime * 1000;
         const localTime = Date.now();
         setTimeOffset(serverTime - localTime);
-      } catch (err) {
-        // Silently fallback to device time if API fails (e.g. rate limit, offline)
-      }
+      } catch (err) {}
     };
 
     fetchRealTime();
@@ -149,39 +143,38 @@ export default function ExamHomeScreen({ navigation, route }: any) {
     );
   }
 
-  if (exam !== "UPSC") {
-    return (
-      <SafeContainer style={styles.centered}>
-        <Text style={{ fontSize: 25, fontWeight: "800", color: COLORS.text }}>
-          {exam} Section
-        </Text>
-        <Text style={{ marginTop: 10, fontSize: 16, color: COLORS.sub }}>
-          Content Coming Soon
-        </Text>
-        <TouchableOpacity
-          style={{
-            marginTop: 20,
-            paddingVertical: 12,
-            paddingHorizontal: 28,
-            backgroundColor: COLORS.accent,
-            borderRadius: 12,
-          }}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={{ color: "#fff", fontWeight: "700" }}>Go Back</Text>
-        </TouchableOpacity>
-      </SafeContainer>
-    );
-  }
+  const PremiumCard = ({ icon, color, title, desc, onPress, IconLib = Ionicons }: any) => (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      style={[styles.premiumCard, { borderColor: color, backgroundColor: COLORS.card }]}
+      onPress={onPress}
+    >
+      <View style={[styles.premiumIconBox, { backgroundColor: color + "15" }]}>
+        <IconLib name={icon} size={32} color={color} />
+      </View>
+      <Text style={[styles.premiumCardTitle, { color: COLORS.text }]}>{title}</Text>
+      <Text style={[styles.premiumCardDesc, { color: COLORS.sub }]}>{desc}</Text>
+    </TouchableOpacity>
+  );
+
+  const ListItem = ({ icon, color, title, onPress, IconLib = Ionicons }: any) => (
+    <TouchableOpacity style={styles.listItem} onPress={onPress}>
+      <View style={[styles.listIconBox, { backgroundColor: color + "10" }]}>
+        <IconLib name={icon} size={20} color={color} />
+      </View>
+      <Text style={[styles.listText, { color: COLORS.text }]}>{title}</Text>
+      <Ionicons name="chevron-forward" size={18} color={COLORS.sub} />
+    </TouchableOpacity>
+  );
 
   return (
     <LinearGradient colors={COLORS.bg} style={styles.safe}>
       <SafeContainer style={{ flex: 1 }} disableBottom={true}>
         <ScrollView showsVerticalScrollIndicator={false}>
+          {/* Header */}
           <View style={styles.headerRow}>
-            {/* Centered Name */}
             <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }]}>
-              <Text style={[styles.greetTitle, { color: COLORS.text, fontSize: 18 }]}>Hi, {userData.name}!</Text>
+              <Text style={[styles.greetTitle, { color: COLORS.text }]}>{getGreeting()}, {userData.name}!</Text>
             </View>
             <TouchableOpacity
               style={[styles.avatarCircle, { backgroundColor: COLORS.card }]}
@@ -190,9 +183,6 @@ export default function ExamHomeScreen({ navigation, route }: any) {
               <Ionicons name="person-outline" size={20} color={COLORS.accent} />
             </TouchableOpacity>
             <View style={styles.headerRight}>
-              <TouchableOpacity style={styles.headerIcon}>
-                <Ionicons name="trophy-outline" size={22} color={COLORS.accent} />
-              </TouchableOpacity>
               <TouchableOpacity style={styles.headerIcon}>
                 <Ionicons name="notifications-outline" size={22} color={COLORS.accent} />
               </TouchableOpacity>
@@ -205,56 +195,43 @@ export default function ExamHomeScreen({ navigation, route }: any) {
           </View>
 
           <View style={styles.greetingBox}>
-            <Text style={[styles.greetSub, { color: COLORS.sub }]}>
-              💡 {dailyTip}
-            </Text>
+            <Text style={[styles.greetSub, { color: COLORS.sub }]}>💡 {dailyTip}</Text>
           </View>
 
-          {/* AI MENTOR BANNER */}
+          {/* AI Mentor */}
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={() => navigation.navigate("AiMentorScreen")}
-            style={{
-              marginHorizontal: 16,
-              marginTop: 16,
-              borderRadius: 16,
-              padding: 16,
-              backgroundColor: COLORS.card,
-              borderWidth: 1,
-              borderColor: COLORS.accent,
-              flexDirection: "row",
-              alignItems: "center",
-            }}
+            style={[styles.aiMentorBanner, { backgroundColor: COLORS.card, borderColor: COLORS.accent }]}
           >
-            <View style={{ backgroundColor: isDark ? "rgba(6,182,212,0.15)" : "#e0f2fe", padding: 12, borderRadius: 12, marginRight: 12 }}>
+            <View style={[styles.aiIconBox, { backgroundColor: isDark ? "rgba(6,182,212,0.15)" : "#e0f2fe" }]}>
               <Ionicons name="sparkles" size={24} color={COLORS.accent} />
             </View>
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <Text style={{ fontSize: 16, fontWeight: "700", color: COLORS.text, marginRight: 6 }}>Ask UPSC Mentor</Text>
-                <View style={{ backgroundColor: "#ef4444", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                  <Text style={{ color: "#fff", fontSize: 9, fontWeight: "900" }}>BETA</Text>
-                </View>
+                <Text style={[styles.aiBannerTitle, { color: COLORS.text }]}>Ask UPSC Mentor</Text>
+                <View style={styles.betaBadge}><Text style={styles.betaText}>BETA</Text></View>
               </View>
               <Text style={{ fontSize: 12, color: COLORS.sub, marginTop: 2 }}>Resolve your doubts instantly with AI</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={COLORS.sub} />
           </TouchableOpacity>
 
-          <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Your Progress</Text>
+          {/* Daily Goals */}
+          <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Today's Mission</Text>
           <View style={styles.progressContainer}>
-            <View style={[styles.progressCardNew, { backgroundColor: COLORS.card }]}>
-              <Ionicons name="book-outline" size={18} color={COLORS.accent} />
-              <Text style={styles.progressValueNew}>{userData.quizzesTaken}</Text>
-              <Text style={styles.progressLabelNew}>Quizzes</Text>
+            <View style={[styles.progressCardNew, { backgroundColor: COLORS.card, shadowColor: COLORS.border }]}>
+              <Ionicons name="book-outline" size={20} color={COLORS.accent} />
+              <Text style={[styles.progressValueNew, { color: COLORS.text }]}>{userData.quizzesTaken}</Text>
+              <Text style={[styles.progressLabelNew, { color: COLORS.sub }]}>Quizzes</Text>
             </View>
-            <View style={[styles.progressCardNew, { backgroundColor: COLORS.card }]}>
-              <Ionicons name="stats-chart-outline" size={18} color="#10B981" />
-              <Text style={styles.progressValueNew}>{userData.accuracyRate}%</Text>
-              <Text style={styles.progressLabelNew}>Accuracy</Text>
+            <View style={[styles.progressCardNew, { backgroundColor: COLORS.card, shadowColor: COLORS.border }]}>
+              <Ionicons name="stats-chart-outline" size={20} color="#10B981" />
+              <Text style={[styles.progressValueNew, { color: COLORS.text }]}>{userData.accuracyRate}%</Text>
+              <Text style={[styles.progressLabelNew, { color: COLORS.sub }]}>Accuracy</Text>
             </View>
             <TouchableOpacity
-              style={[styles.progressCardNew, { backgroundColor: COLORS.card }]}
+              style={[styles.progressCardNew, { backgroundColor: COLORS.card, shadowColor: COLORS.border }]}
               onPress={() => navigation.navigate("StreakScreen")}
             >
               <Ionicons name="flame" size={20} color="#F59E0B" />
@@ -263,249 +240,75 @@ export default function ExamHomeScreen({ navigation, route }: any) {
             </TouchableOpacity>
           </View>
 
-          <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Recommended for You</Text>
-          {recLoading ? (
-            <View style={styles.recStateBox}>
-              <ActivityIndicator size="small" color={COLORS.accent} />
-              <Text style={[styles.recStateText, { color: COLORS.sub }]}>Loading recommendations...</Text>
-            </View>
-          ) : recError ? (
-            <View style={styles.recStateBox}>
-              <Text style={[styles.recStateText, { color: "#ef4444" }]}>{recError}</Text>
-              <TouchableOpacity style={[styles.retryBtn, { backgroundColor: COLORS.accent }]} onPress={fetchRecommendations}>
-                <Text style={styles.retryBtnText}>Retry</Text>
-              </TouchableOpacity>
-            </View>
-          ) : recommendations.length === 0 ? (
-            <View style={styles.recStateBox}>
-              <Text style={[styles.recStateText, { color: COLORS.sub }]}>All caught up! No recommendations today.</Text>
-            </View>
-          ) : (
-            <View style={styles.recList}>
-              {recommendations.map((rec, index) => {
-                let iconName: any = "book-outline";
-                let IconComponent: any = Ionicons;
-                if (rec.type === "QUIZ") {
-                  IconComponent = MaterialIcons;
-                  iconName = "quiz";
-                } else if (rec.type === "MAINS") {
-                  IconComponent = Ionicons;
-                  iconName = "create-outline";
-                } else if (rec.type === "TOPIC") {
-                  IconComponent = FontAwesome5;
-                  iconName = "book-open";
-                } else if (rec.type === "REVISION") {
-                  IconComponent = Ionicons;
-                  iconName = "refresh-outline";
-                }
-
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    style={[styles.recCard, { backgroundColor: COLORS.card }]}
-                    onPress={() => {
-                      if (rec.type === "QUIZ") {
-                        navigation.navigate("MCQScreen");
-                      } else if (rec.type === "MAINS") {
-                        navigation.navigate("MainScreen");
-                      } else if (rec.type === "TOPIC" || rec.type === "REVISION") {
-                        if (rec.topicId) {
-                          navigation.navigate("ChapterScreen", {
-                            materialId: rec.topicId,
-                            subject: "Recommended Topic",
-                            chapter: rec.title,
-                          });
-                        } else {
-                          navigation.navigate("NotesScreen");
-                        }
-                      }
-                    }}
-                  >
-                    <View style={styles.recCardHeader}>
-                      <View style={[styles.recIconCircle, { backgroundColor: COLORS.accent + "15" }]}>
-                        <IconComponent name={iconName} size={16} color={COLORS.accent} />
-                      </View>
-                      <View style={styles.recCardContent}>
-                        <Text style={[styles.recCardTitle, { color: COLORS.text }]}>{rec.title}</Text>
-                        <Text style={[styles.recCardReason, { color: COLORS.sub }]}>{rec.reason}</Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+          {/* Recommended */}
+          {recommendations.length > 0 && (
+            <>
+              <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Recommended for You</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
+                {recommendations.map((rec, index) => (
+                  <View key={index} style={[styles.recCard, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
+                    <Text style={[styles.recCardTitle, { color: COLORS.text }]} numberOfLines={2}>{rec.title}</Text>
+                    <Text style={[styles.recCardReason, { color: COLORS.sub }]} numberOfLines={2}>{rec.reason}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </>
           )}
 
+          {/* Premium Features Carousel */}
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Premium Features</Text>
-          <View style={styles.quickGrid}>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card, borderColor: "#fbbf24", borderWidth: 1 }]}
-              onPress={() => navigation.navigate("NewsReelsScreen")}
-            >
-              <Ionicons name="play-circle" size={28} color="#fbbf24" />
-              <Text style={[styles.quickText, { fontWeight: "800" }]}>News Reels</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card, borderColor: "#06b6d4", borderWidth: 1 }]}
-              onPress={() => navigation.navigate("FlashcardsScreen")}
-            >
-              <Ionicons name="albums" size={28} color="#06b6d4" />
-              <Text style={[styles.quickText, { fontWeight: "800" }]}>Flashcards</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card, borderColor: "#10b981", borderWidth: 1 }]}
-              onPress={() => navigation.navigate("StudyRoomScreen")}
-            >
-              <Ionicons name="headset" size={28} color="#10b981" />
-              <Text style={[styles.quickText, { fontWeight: "800" }]}>Study Room</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.quickGrid}>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card, borderColor: "#ef4444", borderWidth: 1 }]}
-              onPress={() => navigation.navigate("LeaderboardScreen")}
-            >
-              <Ionicons name="trophy" size={28} color="#ef4444" />
-              <Text style={[styles.quickText, { fontWeight: "800" }]}>Leaderboard</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card, borderColor: "#8b5cf6", borderWidth: 1 }]}
-              onPress={() => navigation.navigate("TestSeriesHubScreen")}
-            >
-              <Ionicons name="clipboard" size={28} color="#8b5cf6" />
-              <Text style={[styles.quickText, { fontWeight: "800" }]}>Test Series</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card, borderColor: "#f59e0b", borderWidth: 1 }]}
-              onPress={() => navigation.navigate("MapPracticeScreen")}
-            >
-              <Ionicons name="map" size={28} color="#f59e0b" />
-              <Text style={[styles.quickText, { fontWeight: "800" }]}>Map Game</Text>
-            </TouchableOpacity>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 10 }}>
+            <PremiumCard icon="clipboard" color="#8b5cf6" title="Test Series" desc="Full mock exams" onPress={() => navigation.navigate("TestSeriesHubScreen")} />
+            <PremiumCard icon="map" color="#f59e0b" title="Map Game" desc="Geography practice" onPress={() => navigation.navigate("MapPracticeScreen")} />
+            <PremiumCard icon="play-circle" color="#f43f5e" title="News Reels" desc="Daily 60s shorts" onPress={() => navigation.navigate("NewsReelsScreen")} />
+            <PremiumCard icon="albums" color="#06b6d4" title="Flashcards" desc="Spaced repetition" onPress={() => navigation.navigate("FlashcardsScreen")} />
+            <PremiumCard icon="headset" color="#10b981" title="Study Room" desc="Focus timer" onPress={() => navigation.navigate("StudyRoomScreen")} />
+            <PremiumCard icon="trophy" color="#ef4444" title="Leaderboard" desc="All-India ranks" onPress={() => navigation.navigate("LeaderboardScreen")} />
+          </ScrollView>
+
+          {/* Core Practice */}
+          <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Core Practice</Text>
+          <View style={[styles.listGroup, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
+            <ListItem icon="quiz" IconLib={MaterialIcons} color={COLORS.accent} title="Daily MCQs" onPress={() => navigation.navigate("MCQScreen")} />
+            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
+            <ListItem icon="create-outline" color={COLORS.accent} title="Mains Answer Writing" onPress={() => navigation.navigate("MainScreen")} />
+            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
+            <ListItem icon="clipboard-list" IconLib={FontAwesome5} color={COLORS.accent} title="Previous Year Papers" onPress={() => navigation.navigate("PYQScreen")} />
           </View>
 
-          <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Study Tools</Text>
-          <View style={styles.quickGrid}>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("MCQScreen")}
-            >
-              <MaterialIcons name="quiz" size={28} color={COLORS.accent} />
-              <Text style={styles.quickText}>MCQs</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("MainScreen")}
-            >
-              <Ionicons name="create-outline" size={28} color={COLORS.accent} />
-              <Text style={styles.quickText}>Mains</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("SyllabusTrackerScreen")}
-            >
-              <Ionicons name="bar-chart-outline" size={26} color={COLORS.accent} />
-              <Text style={styles.quickText}>Tracker</Text>
-            </TouchableOpacity>
+          {/* Study Materials */}
+          <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Study Materials</Text>
+          <View style={[styles.listGroup, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
+            <ListItem icon="book-open" IconLib={FontAwesome5} color={COLORS.accent} title="NCERT Books" onPress={() => navigation.navigate("NcertScreen")} />
+            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
+            <ListItem icon="document-text-outline" color={COLORS.accent} title="Revision Notes" onPress={() => navigation.navigate("NotesScreen")} />
+            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
+            <ListItem icon="document-text-outline" color={COLORS.accent} title="Cheat Sheet" onPress={() => navigation.navigate("CheatSheetScreen")} />
+            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
+            <ListItem icon="bar-chart-outline" color={COLORS.accent} title="Syllabus Tracker" onPress={() => navigation.navigate("SyllabusTrackerScreen")} />
           </View>
 
-          <View style={styles.quickGrid}>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("SyllabusScreen")}
-            >
-              <FontAwesome5 name="list-alt" size={24} color={COLORS.accent} />
-              <Text style={styles.quickText}>Syllabus</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("ExamInfoScreen")}
-            >
-              <Ionicons name="information-circle-outline" size={26} color={COLORS.accent} />
-              <Text style={styles.quickText}>Exam Info</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("CutOffScreen")}
-            >
-              <Ionicons name="stats-chart" size={26} color={COLORS.accent} />
-              <Text style={styles.quickText}>Cut-Offs</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.quickGrid}>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("NcertScreen")}
-            >
-              <FontAwesome5 name="book-open" size={24} color={COLORS.accent} />
-              <Text style={styles.quickText}>NCERTs</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("WeaknessVaultScreen")}
-            >
-              <Ionicons name="warning-outline" size={26} color={COLORS.accent} />
-              <Text style={styles.quickText}>Mistakes</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("CheatSheetScreen")}
-            >
-              <Ionicons name="document-text-outline" size={26} color={COLORS.accent} />
-              <Text style={styles.quickText}>Cheat Sheet</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.quickGrid}>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("StrategyScreen")}
-            >
-              <Entypo name="light-bulb" size={26} color={COLORS.accent} />
-              <Text style={styles.quickText}>Strategy</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("NotesScreen")}
-            >
-              <Ionicons name="document-text-outline" size={26} color={COLORS.accent} />
-              <Text style={styles.quickText}>Notes</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("PYQScreen")}
-            >
-              <FontAwesome5 name="clipboard-list" size={24} color={COLORS.accent} />
-              <Text style={styles.quickText}>PYQs</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.quickGrid}>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("NewsScreen")}
-            >
-              <Entypo name="news" size={26} color={COLORS.accent} />
-              <Text style={styles.quickText}>News</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("LearnScreen")}
-            >
-              <Ionicons name="library-outline" size={26} color={COLORS.accent} />
-              <Text style={styles.quickText}>Learn</Text>
-            </TouchableOpacity>
-            <View style={{ width: "30%" }} />
+          {/* Resources & Strategy */}
+          <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Resources & Strategy</Text>
+          <View style={[styles.listGroup, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
+            <ListItem icon="warning-outline" color="#ef4444" title="Mistake Vault" onPress={() => navigation.navigate("WeaknessVaultScreen")} />
+            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
+            <ListItem icon="list-alt" IconLib={FontAwesome5} color={COLORS.accent} title="Syllabus PDF" onPress={() => navigation.navigate("SyllabusScreen")} />
+            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
+            <ListItem icon="light-bulb" IconLib={Entypo} color={COLORS.accent} title="Strategy" onPress={() => navigation.navigate("StrategyScreen")} />
+            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
+            <ListItem icon="stats-chart" color={COLORS.accent} title="Cut-Offs" onPress={() => navigation.navigate("CutOffScreen")} />
+            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
+            <ListItem icon="information-circle-outline" color={COLORS.accent} title="Exam Info" onPress={() => navigation.navigate("ExamInfoScreen")} />
           </View>
 
           <View style={{ height: 100 }} />
         </ScrollView>
 
+        {/* Bottom Nav */}
         <LinearGradient
-          colors={isDark ? ["#0f172a", "#1e293b"] : ["#ffffff", "#f1f5f9"]}
-          style={[styles.bottomBar, { paddingBottom: insets.bottom, height: 72 + insets.bottom }]}
+          colors={isDark ? ["#0f172a", "#1e293b"] : ["#ffffff", "#f8fafc"]}
+          style={[styles.bottomBar, { paddingBottom: insets.bottom, height: 72 + insets.bottom, borderTopColor: COLORS.border }]}
         >
           <TouchableOpacity style={styles.tab}>
             <Ionicons name="home" size={22} color={COLORS.accent} />
@@ -515,13 +318,15 @@ export default function ExamHomeScreen({ navigation, route }: any) {
             <Ionicons name="library-outline" size={22} color={COLORS.sub} />
             <Text style={[styles.tabLabel, { color: COLORS.sub }]}>Learn</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.tab} onPress={() => navigation.navigate("MCQScreen")}>
-            <Ionicons name="document-text-outline" size={22} color={COLORS.sub} />
-            <Text style={[styles.tabLabel, { color: COLORS.sub }]}>Prelims</Text>
+          <TouchableOpacity style={styles.tab} onPress={() => navigation.navigate("AiMentorScreen")}>
+            <View style={[styles.floatingTab, { backgroundColor: COLORS.accent }]}>
+              <Ionicons name="sparkles" size={22} color="#fff" />
+            </View>
+            <Text style={[styles.tabLabel, { color: COLORS.accent, marginTop: 4, fontWeight: "800" }]}>Mentor</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.tab} onPress={() => navigation.navigate("MainScreen")}>
-            <Ionicons name="create-outline" size={22} color={COLORS.sub} />
-            <Text style={[styles.tabLabel, { color: COLORS.sub }]}>Mains</Text>
+          <TouchableOpacity style={styles.tab} onPress={() => navigation.navigate("NewsScreen")}>
+            <Entypo name="news" size={22} color={COLORS.sub} />
+            <Text style={[styles.tabLabel, { color: COLORS.sub }]}>News</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.tab} onPress={() => navigation.navigate("ProfileScreen")}>
             <Ionicons name="person-outline" size={22} color={COLORS.sub} />
@@ -554,124 +359,127 @@ const styles = StyleSheet.create({
   headerRight: { flexDirection: "row" },
   headerIcon: { marginLeft: 14 },
   dateTimeBox: { flexDirection: "row", alignItems: "center", justifyContent: "center", marginTop: 10 },
-  dateText: { fontSize: 15 },
-  timeText: { fontSize: 18, fontWeight: "700" },
+  dateText: { fontSize: 14, fontWeight: "500" },
+  timeText: { fontSize: 16, fontWeight: "700" },
   greetingBox: { marginHorizontal: 16, marginTop: 4, alignItems: "center" },
-  greetTitle: { fontSize: 20, fontWeight: "800" },
-  greetSub: { textAlign: "center", fontSize: 13, fontStyle: "italic" },
-  sectionTitle: { fontSize: 16, fontWeight: "700", marginTop: 20, marginLeft: 16 },
-  tipCard: {
+  greetTitle: { fontSize: 18, fontWeight: "800" },
+  greetSub: { textAlign: "center", fontSize: 13, fontStyle: "italic", marginTop: 4 },
+  sectionTitle: { fontSize: 18, fontWeight: "800", marginTop: 24, marginBottom: 12, marginLeft: 16 },
+  
+  aiMentorBanner: {
+    marginHorizontal: 16,
+    marginTop: 16,
     borderRadius: 16,
-    margin: 16,
     padding: 16,
-    borderWidth: 0.5,
-    overflow: "hidden",
-  },
-  tipTitle: { fontWeight: "700", fontSize: 15 },
-  tipText: { marginTop: 4 },
-  quickGrid: {
+    borderWidth: 1,
     flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 10,
+    alignItems: "center",
+  },
+  aiIconBox: { padding: 12, borderRadius: 12, marginRight: 12 },
+  aiBannerTitle: { fontSize: 16, fontWeight: "800", marginRight: 6 },
+  betaBadge: { backgroundColor: "#ef4444", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  betaText: { color: "#fff", fontSize: 9, fontWeight: "900" },
+
+  progressContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginHorizontal: 16,
   },
-  quickCard: {
-    paddingVertical: 20,
-    borderRadius: 14,
+  progressCardNew: {
+    width: "31%",
+    paddingVertical: 14,
+    borderRadius: 16,
     alignItems: "center",
-    width: "30%",
+    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
   },
-  quickText: { marginTop: 6, fontWeight: "600" },
+  progressValueNew: { fontSize: 18, fontWeight: "900", marginTop: 4 },
+  progressLabelNew: { fontSize: 11, fontWeight: "600", marginTop: 2 },
+
+  premiumCard: {
+    width: 140,
+    height: 140,
+    borderRadius: 20,
+    padding: 16,
+    marginRight: 12,
+    borderWidth: 1,
+    justifyContent: "center",
+  },
+  premiumIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  premiumCardTitle: { fontSize: 15, fontWeight: "800", marginBottom: 4 },
+  premiumCardDesc: { fontSize: 11, fontWeight: "500" },
+
+  listGroup: {
+    marginHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  listItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+  },
+  listIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  listText: {
+    fontSize: 15,
+    fontWeight: "600",
+    flex: 1,
+  },
+  divider: {
+    height: 1,
+    marginLeft: 64, // aligns with text
+  },
+
+  recCard: {
+    width: 280,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginRight: 12,
+  },
+  recCardTitle: { fontSize: 15, fontWeight: "700", marginBottom: 6 },
+  recCardReason: { fontSize: 13, lineHeight: 18 },
+
   bottomBar: {
     position: "absolute",
     bottom: 0,
-    height: 72,
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
     borderTopWidth: 1,
+    elevation: 8,
   },
   tab: { alignItems: "center" },
-  tabLabel: { fontSize: 12, marginTop: 4 },
-  progressContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginHorizontal: 16,
-    marginTop: 12,
-  },
-  progressCardNew: {
-    width: "31%",
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: "center",
-    elevation: 3,
-  },
-  progressValueNew: { fontSize: 16, fontWeight: "800", marginTop: 2 },
-  progressLabelNew: { fontSize: 10, marginTop: 2 },
-  recStateBox: {
-    marginHorizontal: 16,
-    marginTop: 10,
-    padding: 16,
-    borderRadius: 14,
+  floatingTab: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.15)",
+    marginTop: -16,
+    elevation: 4,
+    shadowColor: "#06b6d4",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
-  recStateText: {
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  retryBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginTop: 4,
-  },
-  retryBtnText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 13,
-  },
-  recList: {
-    marginHorizontal: 16,
-    marginTop: 10,
-  },
-  recCard: {
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 1.5,
-  },
-  recCardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  recIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-  },
-  recCardContent: {
-    flex: 1,
-  },
-  recCardTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    lineHeight: 18,
-  },
-  recCardReason: {
-    fontSize: 11,
-    marginTop: 2,
-    lineHeight: 14,
-  },
+  tabLabel: { fontSize: 11, fontWeight: "600", marginTop: 4 },
 });
