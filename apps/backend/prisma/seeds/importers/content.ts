@@ -126,6 +126,10 @@ async function importQuestionRecord(
         text,
         explanation: params.question.explanation ?? null,
         publishStatus: PublishStatus.PUBLISHED,
+        topicMappings: {
+          deleteMany: {},
+          create: [{ topicId: params.topicId }]
+        }
       },
     });
     counters.updated += 1;
@@ -199,7 +203,8 @@ export async function importMcqs(
         continue;
       }
 
-      const topicId = await upsertClassTopic(prisma, subjectId, classKey);
+      const actualClassNumber = (classNode as Record<string, unknown>).class?.toString() || classKey;
+      const topicId = await upsertClassTopic(prisma, subjectId, actualClassNumber);
       const questionsArray: LegacyMcqQuestion[] = Array.isArray(questionsNode)
         ? questionsNode
         : Object.values(questionsNode as Record<string, LegacyMcqQuestion>);

@@ -68,7 +68,12 @@ export class ProgressService {
       subjectMap.set(subjectId, existing);
     }
 
+    const totalQuizzesTaken = await this.prisma.quizAttempt.count({
+      where: { userId, status: 'COMPLETED' },
+    });
+
     return {
+      totalQuizzesTaken,
       totalQuestionsAnswered,
       totalCorrect,
       accuracy: Math.round(accuracy * 100) / 100,

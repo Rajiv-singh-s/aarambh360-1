@@ -25,7 +25,7 @@ import type { RecommendationDto } from "@aarambh360/types";
 export default function ExamHomeScreen({ navigation, route }: any) {
   const exam = route?.params?.exam || "UPSC";
   const { profile, loading: authLoading } = useAuth();
-  const { streaks, stats, loading: progressLoading } = useProgress();
+  const { streaks, stats, loading: progressLoading, reload: reloadProgress } = useProgress();
   const [dailyTip, setDailyTip] = useState("");
   const [dateTime, setDateTime] = useState(new Date());
   const [timeOffset, setTimeOffset] = useState(0);
@@ -36,7 +36,7 @@ export default function ExamHomeScreen({ navigation, route }: any) {
   const userData = {
     name: profile?.profile.name ?? "Aspirant",
     streak: mcqStreak?.currentCount ?? 0,
-    quizzesTaken: stats?.totalQuestionsAnswered ?? 0,
+    quizzesTaken: stats?.totalQuizzesTaken ?? 0,
     accuracyRate: stats?.accuracy ?? 0,
   };
   const loading = authLoading || progressLoading;
@@ -62,7 +62,8 @@ export default function ExamHomeScreen({ navigation, route }: any) {
   useFocusEffect(
     React.useCallback(() => {
       fetchRecommendations();
-    }, [])
+      void reloadProgress();
+    }, [reloadProgress])
   );
 
   const TIPS = [
@@ -125,17 +126,19 @@ export default function ExamHomeScreen({ navigation, route }: any) {
     }
   }, [profile]);
 
-  const formattedDate = dateTime.toLocaleDateString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
-  const formattedTime = dateTime.toLocaleTimeString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const istTimestamp = dateTime.getTime() + (5.5 * 60 * 60 * 1000); 
+  const istDate = new Date(istTimestamp);
+
+  const hours = istDate.getUTCHours();
+  const minutes = istDate.getUTCMinutes();
+  const seconds = istDate.getUTCSeconds();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const formattedHours = hours % 12 || 12;
+  const formattedTime = `${formattedHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${ampm}`;
+
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const formattedDate = `${days[istDate.getUTCDay()]}, ${istDate.getUTCDate()} ${months[istDate.getUTCMonth()]}`;
 
   if (loading) {
     return (
@@ -173,9 +176,13 @@ export default function ExamHomeScreen({ navigation, route }: any) {
 
   return (
     <LinearGradient colors={COLORS.bg} style={styles.safe}>
-      <SafeContainer style={{ flex: 1 }}>
+      <SafeContainer style={{ flex: 1 }} disableBottom={true}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.headerRow}>
+            {/* Centered Name */}
+            <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }]}>
+              <Text style={[styles.greetTitle, { color: COLORS.text, fontSize: 18 }]}>Hi, {userData.name}!</Text>
+            </View>
             <TouchableOpacity
               style={[styles.avatarCircle, { backgroundColor: COLORS.card }]}
               onPress={() => navigation.navigate("ProfileScreen")}
@@ -193,29 +200,25 @@ export default function ExamHomeScreen({ navigation, route }: any) {
           </View>
 
           <View style={styles.dateTimeBox}>
-            <Text style={[styles.dateText, { color: COLORS.sub }]}>{formattedDate}</Text>
+            <Text style={[styles.dateText, { color: COLORS.sub }]}>{formattedDate}   •   </Text>
             <Text style={[styles.timeText, { color: COLORS.accent }]}>{formattedTime}</Text>
           </View>
 
           <View style={styles.greetingBox}>
-            <Text style={styles.greetEmoji}>👋</Text>
-            <Text style={[styles.greetTitle, { color: COLORS.text }]}>
-              {getGreeting()}, {userData.name} !!!
-            </Text>
             <Text style={[styles.greetSub, { color: COLORS.sub }]}>
-              Stay focused and conquer one topic at a time.
+              💡 {dailyTip}
             </Text>
           </View>
 
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Your Progress</Text>
           <View style={styles.progressContainer}>
             <View style={[styles.progressCardNew, { backgroundColor: COLORS.card }]}>
-              <Ionicons name="book-outline" size={22} color={COLORS.accent} />
+              <Ionicons name="book-outline" size={18} color={COLORS.accent} />
               <Text style={styles.progressValueNew}>{userData.quizzesTaken}</Text>
               <Text style={styles.progressLabelNew}>Quizzes</Text>
             </View>
             <View style={[styles.progressCardNew, { backgroundColor: COLORS.card }]}>
-              <Ionicons name="stats-chart-outline" size={22} color="#10B981" />
+              <Ionicons name="stats-chart-outline" size={18} color="#10B981" />
               <Text style={styles.progressValueNew}>{userData.accuracyRate}%</Text>
               <Text style={styles.progressLabelNew}>Accuracy</Text>
             </View>
@@ -223,7 +226,7 @@ export default function ExamHomeScreen({ navigation, route }: any) {
               style={[styles.progressCardNew, { backgroundColor: COLORS.card }]}
               onPress={() => navigation.navigate("StreakScreen")}
             >
-              <Ionicons name="flame" size={24} color="#F59E0B" />
+              <Ionicons name="flame" size={20} color="#F59E0B" />
               <Text style={[styles.progressValueNew, { color: "#F59E0B" }]}>{userData.streak}</Text>
               <Text style={[styles.progressLabelNew, { color: "#b45309" }]}>MCQ Streak</Text>
             </TouchableOpacity>
@@ -289,7 +292,7 @@ export default function ExamHomeScreen({ navigation, route }: any) {
                   >
                     <View style={styles.recCardHeader}>
                       <View style={[styles.recIconCircle, { backgroundColor: COLORS.accent + "15" }]}>
-                        <IconComponent name={iconName} size={20} color={COLORS.accent} />
+                        <IconComponent name={iconName} size={16} color={COLORS.accent} />
                       </View>
                       <View style={styles.recCardContent}>
                         <Text style={[styles.recCardTitle, { color: COLORS.text }]}>{rec.title}</Text>
@@ -301,15 +304,6 @@ export default function ExamHomeScreen({ navigation, route }: any) {
               })}
             </View>
           )}
-
-          <BlurView
-            intensity={50}
-            tint={isDark ? "dark" : "light"}
-            style={[styles.tipCard, { borderColor: COLORS.accent }]}
-          >
-            <Text style={[styles.tipTitle, { color: COLORS.accent }]}>💡 Daily Tip</Text>
-            <Text style={[styles.tipText, { color: COLORS.text }]}>{dailyTip}</Text>
-          </BlurView>
 
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Study Tools</Text>
           <View style={styles.quickGrid}>
@@ -399,7 +393,7 @@ export default function ExamHomeScreen({ navigation, route }: any) {
 
         <LinearGradient
           colors={isDark ? ["#0f172a", "#1e293b"] : ["#ffffff", "#f1f5f9"]}
-          style={[styles.bottomBar, { paddingBottom: Platform.OS === 'android' ? Math.max(insets.bottom, 24) : insets.bottom, height: 72 + (Platform.OS === 'android' ? Math.max(insets.bottom, 24) : insets.bottom) }]}
+          style={[styles.bottomBar, { paddingBottom: insets.bottom, height: 72 + insets.bottom }]}
         >
           <TouchableOpacity style={styles.tab}>
             <Ionicons name="home" size={22} color={COLORS.accent} />
@@ -443,13 +437,12 @@ const styles = StyleSheet.create({
   },
   headerRight: { flexDirection: "row" },
   headerIcon: { marginLeft: 14 },
-  dateTimeBox: { alignItems: "center", marginTop: 10 },
+  dateTimeBox: { flexDirection: "row", alignItems: "center", justifyContent: "center", marginTop: 10 },
   dateText: { fontSize: 15 },
-  timeText: { fontSize: 18, fontWeight: "700", marginTop: 4 },
-  greetingBox: { marginHorizontal: 16, marginTop: 10, alignItems: "center" },
-  greetEmoji: { fontSize: 26 },
-  greetTitle: { fontSize: 22, fontWeight: "800", marginTop: 4 },
-  greetSub: { marginTop: 4, textAlign: "center" },
+  timeText: { fontSize: 18, fontWeight: "700" },
+  greetingBox: { marginHorizontal: 16, marginTop: 4, alignItems: "center" },
+  greetTitle: { fontSize: 20, fontWeight: "800" },
+  greetSub: { textAlign: "center", fontSize: 13, fontStyle: "italic" },
   sectionTitle: { fontSize: 16, fontWeight: "700", marginTop: 20, marginLeft: 16 },
   tipCard: {
     borderRadius: 16,
@@ -493,13 +486,13 @@ const styles = StyleSheet.create({
   },
   progressCardNew: {
     width: "31%",
-    paddingVertical: 18,
-    borderRadius: 14,
+    paddingVertical: 12,
+    borderRadius: 12,
     alignItems: "center",
     elevation: 3,
   },
-  progressValueNew: { fontSize: 20, fontWeight: "800", marginTop: 6 },
-  progressLabelNew: { fontSize: 12, marginTop: 4 },
+  progressValueNew: { fontSize: 16, fontWeight: "800", marginTop: 2 },
+  progressLabelNew: { fontSize: 10, marginTop: 2 },
   recStateBox: {
     marginHorizontal: 16,
     marginTop: 10,
@@ -531,9 +524,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   recCard: {
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -545,24 +538,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   recIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: 10,
   },
   recCardContent: {
     flex: 1,
   },
   recCardTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "700",
-    lineHeight: 20,
+    lineHeight: 18,
   },
   recCardReason: {
-    fontSize: 12,
+    fontSize: 11,
     marginTop: 2,
-    lineHeight: 16,
+    lineHeight: 14,
   },
 });

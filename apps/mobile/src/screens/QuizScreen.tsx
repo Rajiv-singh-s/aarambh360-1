@@ -169,17 +169,20 @@ export default function QuizScreen() {
       try {
         setLoading(true);
         const session = await startSession(topicId, count);
-        const mapped: Question[] = session.questions.map((q) => ({
-          id: q.id,
-          question: q.text,
-          options: q.options.map((opt) => ({
-            key: opt.label,
-            text: opt.text,
-            optionId: opt.id,
-          })),
-          answerRaw: "",
-          explanation: "",
-        }));
+        const mapped: Question[] = session.questions.map((q) => {
+          const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+          return {
+            id: q.id,
+            question: q.text,
+            options: shuffledOptions.map((opt) => ({
+              key: opt.label,
+              text: opt.text,
+              optionId: opt.id,
+            })),
+            answerRaw: "",
+            explanation: "",
+          };
+        });
         setQuestions(mapped);
         setAnswers(new Array(mapped.length).fill(null));
         setProgressColors(new Array(mapped.length).fill("neutral"));

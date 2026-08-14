@@ -112,31 +112,38 @@ export default function MCQScreen({ navigation }: any) {
           </ScrollView>
         )}
 
-        <Modal visible={topicModalVisible} transparent animationType="slide">
-          <BlurView intensity={40} style={styles.modalOverlay}>
+        <Modal visible={topicModalVisible} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
             <View style={[styles.modalBox, { backgroundColor: COLORS.card }]}>
-              <Text style={[styles.modalTitle, { color: COLORS.text }]}>Select Topic</Text>
+              <View style={styles.modalHeader}>
+                <Text style={[styles.modalTitle, { color: COLORS.text }]}>Select Topic</Text>
+                <TouchableOpacity onPress={() => setTopicModalVisible(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                  <Ionicons name="close" size={24} color={COLORS.sub} />
+                </TouchableOpacity>
+              </View>
               <ScrollView>
                 {topics.map((topic) => (
                   <TouchableOpacity key={topic.id} style={styles.modalItem} onPress={() => handleTopicSelect(topic)}>
-                    <Text style={{ color: COLORS.text }}>{topic.name}</Text>
+                    <Text style={{ color: COLORS.text, fontSize: 16 }}>{topic.name}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
-              <TouchableOpacity onPress={() => setTopicModalVisible(false)}>
-                <Text style={{ color: COLORS.accent, textAlign: "center", marginTop: 12 }}>Cancel</Text>
-              </TouchableOpacity>
             </View>
-          </BlurView>
+          </View>
         </Modal>
 
         <Modal visible={countModalVisible} transparent animationType="fade">
           <View style={styles.modalOverlay}>
             <View style={[styles.modalBox, { backgroundColor: COLORS.card }]}>
-              <Text style={[styles.modalTitle, { color: COLORS.text }]}>Question Count</Text>
+              <View style={styles.modalHeader}>
+                <Text style={[styles.modalTitle, { color: COLORS.text }]}>Question Count</Text>
+                <TouchableOpacity onPress={() => setCountModalVisible(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                  <Ionicons name="close" size={24} color={COLORS.sub} />
+                </TouchableOpacity>
+              </View>
               {mcqCounts.map((count) => (
                 <TouchableOpacity key={count} style={styles.modalItem} onPress={() => handleMCQSelect(count)}>
-                  <Text style={{ color: COLORS.text, fontWeight: "700" }}>{count} Questions</Text>
+                  <Text style={{ color: COLORS.text, fontWeight: "600", fontSize: 16 }}>{count} Questions</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -176,8 +183,9 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 17, fontWeight: "700", flex: 1 },
   cardSub: { fontSize: 12 },
-  modalOverlay: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.4)" },
-  modalBox: { borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, maxHeight: "70%" },
-  modalTitle: { fontSize: 18, fontWeight: "800", marginBottom: 12 },
-  modalItem: { paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#64748b55" },
+  modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
+  modalBox: { borderRadius: 16, padding: 20, maxHeight: "70%", width: "85%", elevation: 5, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10 },
+  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
+  modalTitle: { fontSize: 20, fontWeight: "800" },
+  modalItem: { paddingVertical: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#64748b33" },
 });

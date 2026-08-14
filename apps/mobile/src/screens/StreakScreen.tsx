@@ -164,7 +164,7 @@ export default function StreakScreen({ navigation }: any) {
               }
               style={styles.streakGradient}
             >
-              <Ionicons name="flame" size={50} color="#f59e0b" />
+              <Ionicons name="flame" size={36} color="#f59e0b" />
               <Text
                 style={[
                   styles.streakCount,
@@ -274,9 +274,9 @@ export default function StreakScreen({ navigation }: any) {
                       {isActive && (
                         <Ionicons
                           name="flame"
-                          size={13}
+                          size={10}
                           color="#f59e0b"
-                          style={{ marginTop: 2 }}
+                          style={{ marginTop: 1 }}
                         />
                       )}
                     </View>
@@ -296,7 +296,7 @@ export default function StreakScreen({ navigation }: any) {
               { borderColor: COLORS.accent },
             ]}
           >
-            <Ionicons name="rocket-outline" size={22} color={COLORS.accent} />
+            <Ionicons name="rocket-outline" size={18} color={COLORS.accent} />
             <View style={{ marginLeft: 10 }}>
               <Text style={[styles.tipTitle, { color: COLORS.accent }]}>
                 Consistency Tip
@@ -335,9 +335,9 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 18, fontWeight: "700" },
 
   mainCard: {
-    borderRadius: 20,
-    marginHorizontal: 20,
-    marginVertical: 10,
+    borderRadius: 16,
+    marginHorizontal: 16,
+    marginVertical: 6,
     shadowColor: "#06b6d4",
     shadowOpacity: 0.4,
     shadowRadius: 12,
@@ -345,24 +345,24 @@ const styles = StyleSheet.create({
   },
 
   streakGradient: {
-    borderRadius: 20,
-    padding: 24,
+    borderRadius: 16,
+    padding: 12,
     alignItems: "center",
   },
 
-  streakCount: { fontSize: 26, fontWeight: "900", marginTop: 8 },
+  streakCount: { fontSize: 20, fontWeight: "900", marginTop: 2 },
 
   streakSub: {
-    fontSize: 14,
-    marginTop: 6,
+    fontSize: 12,
+    marginTop: 2,
     textAlign: "center",
   },
 
   monthCard: {
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 16,
+    padding: 12,
     marginHorizontal: 16,
-    marginTop: 14,
+    marginTop: 6,
     borderWidth: 1,
   },
 
@@ -372,8 +372,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  monthTitle: { fontWeight: "700", fontSize: 16 },
-  monthSub: { marginTop: 4, marginBottom: 10 },
+  monthTitle: { fontWeight: "700", fontSize: 14 },
+  monthSub: { marginTop: 2, marginBottom: 6, fontSize: 12 },
 
   weekRow: {
     flexDirection: "row",
@@ -382,41 +382,41 @@ const styles = StyleSheet.create({
   },
 
   weekText: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: "700",
-    width: 35,
+    width: 30,
     textAlign: "center",
   },
 
   dayCell: {
-    width: 38,
-    height: 50,
-    borderRadius: 12,
+    width: 30,
+    height: 34,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
   },
 
-  dayNum: { fontSize: 13, fontWeight: "600" },
+  dayNum: { fontSize: 11, fontWeight: "600" },
 
   tipCard: {
     flexDirection: "row",
     alignItems: "center",
-    marginHorizontal: 20,
-    borderRadius: 16,
-    padding: 14,
-    marginTop: 20,
+    marginHorizontal: 16,
+    borderRadius: 12,
+    padding: 10,
+    marginTop: 12,
     borderWidth: 0.5,
   },
 
-  tipTitle: { fontWeight: "700", fontSize: 15 },
-  tipText: { marginTop: 2, lineHeight: 18, fontSize: 13 },
+  tipTitle: { fontWeight: "700", fontSize: 14 },
+  tipText: { marginTop: 2, lineHeight: 16, fontSize: 12 },
 
   shareBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 30,
+    marginTop: 16,
   },
 
   shareText: { fontWeight: "700", marginLeft: 8 },

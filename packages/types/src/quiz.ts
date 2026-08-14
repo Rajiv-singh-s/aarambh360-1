@@ -62,6 +62,7 @@ export interface StreakDto {
 }
 
 export interface ProgressStatsDto {
+  totalQuizzesTaken: number;
   totalQuestionsAnswered: number;
   totalCorrect: number;
   accuracy: number;

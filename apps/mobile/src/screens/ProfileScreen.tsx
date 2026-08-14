@@ -79,7 +79,7 @@ export default function ProfileScreen({ navigation }: any) {
       setEntitlements(entDetails);
       setNotifPrefs(prefs);
     } catch (err) {
-      console.error("Failed to load profile dependencies:", err);
+      console.warn("Failed to load profile dependencies (possibly not deployed to Render yet):", err);
     }
   };
 
