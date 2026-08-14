@@ -7,8 +7,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Share,
-  Animated,
   useColorScheme,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -17,54 +17,53 @@ import { ListSkeleton } from "../components/SkeletonLoader";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { useProgress } from "../hooks/useProgress";
+import ConfettiCannon from "react-native-confetti-cannon";
+import Animated, { FadeInDown, FadeIn, Easing, useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence } from "react-native-reanimated";
+import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop } from "react-native-svg";
+
+const { width } = Dimensions.get("window");
 
 export default function StreakScreen({ navigation }: any) {
   const { streaks, stats, loading } = useProgress();
   const mcqStreak = streaks.find((item) => item.streakType === "MCQ");
   const streakCount = mcqStreak?.currentCount ?? 0;
   
-  // Real dates fetched from DB
   const streakDates = stats?.activityDates || [];
   const longestStreak = stats?.longestStreak || 0;
   const totalStudyDays = streakDates.length;
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const pulseAnim = useRef(new Animated.Value(1)).current;
   const isDark = useColorScheme() === "dark";
   const insets = useSafeAreaInsets();
 
-  // Dynamic Colors
-  const COLORS = {
-    bg: (isDark ? ["#0b1220", "#111b2e"] : ["#e9f3ff", "#ffffff"]) as [string, string],
-    card: isDark ? "rgba(30,41,59,0.7)" : "rgba(255,255,255,0.7)",
-    accent: isDark ? "#06b6d4" : "#0284c7",
-    text: isDark ? "#fff" : "#0f172a",
-    sub: isDark ? "#94a3b8" : "#475569",
-    streakBorder: isDark ? "rgba(6,182,212,0.5)" : "rgba(2,132,199,0.5)",
-    cellBg: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
-    activeCellBg: isDark ? "rgba(34,197,94,0.2)" : "rgba(187,247,208,0.5)",
-    glassBorder: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
-  };
-
-  // Pulse animation for the flame card
+  // Reanimated pulse for the flame
+  const pulseScale = useSharedValue(1);
   useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.03,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1200,
-          useNativeDriver: true,
-        }),
-      ])
+    pulseScale.value = withRepeat(
+      withSequence(
+        withTiming(1.08, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
     );
-    loop.start();
-    return () => loop.stop();
-  }, [pulseAnim]);
+  }, []);
+
+  const animatedFlameStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseScale.value }],
+  }));
+
+  // Dynamic Colors for Ultra Premium feel
+  const COLORS = {
+    bg: (isDark ? ["#020617", "#0f172a"] : ["#f8fafc", "#e2e8f0"]) as [string, string],
+    card: isDark ? "rgba(30,41,59,0.8)" : "rgba(255,255,255,0.8)",
+    accent: isDark ? "#0ea5e9" : "#0284c7",
+    text: isDark ? "#f8fafc" : "#0f172a",
+    sub: isDark ? "#94a3b8" : "#475569",
+    glassBorder: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
+    activeCellBg: isDark ? "rgba(16,185,129,0.2)" : "rgba(16,185,129,0.15)",
+    cellBg: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)",
+  };
 
   // Calendar helpers
   const getMonthName = (date: Date) => date.toLocaleString("default", { month: "long", year: "numeric" });
@@ -86,7 +85,6 @@ export default function StreakScreen({ navigation }: any) {
   const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
 
-  // Build weeks
   const weeks: (number | null)[][] = [];
   let day = 1;
   for (let i = 0; i < 6; i++) {
@@ -102,20 +100,27 @@ export default function StreakScreen({ navigation }: any) {
     weeks.push(week);
     if (day > daysInMonth) break;
   }
+  const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
 
-  const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-  // Milestones Calculation based on longestStreak
+  // Milestones Calculation
   const milestones = [
     { title: "7-Day Scholar", required: 7, icon: "shield-checkmark" as const },
-    { title: "30-Day Master", required: 30, icon: "shield" as const },
+    { title: "21-Day Habit", required: 21, icon: "flash" as const },
+    { title: "50-Day Elite", required: 50, icon: "ribbon" as const },
     { title: "100-Day Legend", required: 100, icon: "trophy" as const },
   ];
   const unlockedMilestonesCount = milestones.filter(m => longestStreak >= m.required).length;
+  
+  // Progress Ring Calculation
+  const nextMilestone = milestones.find(m => longestStreak < m.required) || milestones[milestones.length - 1];
+  const previousMilestone = [...milestones].reverse().find(m => longestStreak >= m.required) || { required: 0 };
+  const progressToNext = Math.min(1, Math.max(0, (longestStreak - previousMilestone.required) / (nextMilestone.required - previousMilestone.required || 1)));
+  const ringCircumference = 2 * Math.PI * 65; // radius 65
+  const strokeDashoffset = ringCircumference - progressToNext * ringCircumference;
 
   const shareStreak = async () => {
     try {
-      const msg = `🔥 I'm on a ${streakCount}-day study streak using Aarambh360! #UPSC #Motivation`;
+      const msg = `🔥 I'm on a ${streakCount}-day study streak using Aarambh360! Next stop: ${nextMilestone.title}. #UPSC`;
       await Share.share({ message: msg });
     } catch (err) {
       console.error("Error sharing streak:", err);
@@ -131,7 +136,7 @@ export default function StreakScreen({ navigation }: any) {
               <Ionicons name="arrow-back" size={24} color={COLORS.accent} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: COLORS.text }]}>My Streak</Text>
-            <Ionicons name="share-social-outline" size={24} color="transparent" />
+            <View style={{ width: 24 }} />
           </View>
           <ListSkeleton />
         </SafeContainer>
@@ -140,265 +145,316 @@ export default function StreakScreen({ navigation }: any) {
   }
 
   return (
-    <LinearGradient colors={COLORS.bg} style={{ flex: 1 }}>
-      <SafeContainer>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={22} color={COLORS.accent} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: COLORS.text }]}>Your Streak</Text>
-          <View style={{ width: 22 }} />
-        </View>
-
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.bg[0] }}>
+      {/* Aurora Background Orbs */}
+      <View style={[styles.orb, { backgroundColor: "#0ea5e9", top: -100, left: -50 }]} />
+      <View style={[styles.orb, { backgroundColor: "#f59e0b", top: 200, right: -100, opacity: 0.15 }]} />
+      
+      <LinearGradient colors={COLORS.bg} style={{ flex: 1 }} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}>
+        <SafeContainer>
+          {streakCount > 0 && (
+            <ConfettiCannon count={50} origin={{ x: width / 2, y: -20 }} fallSpeed={2500} fadeOut />
+          )}
           
-          {/* Main Streak Card - Glassmorphism & Pulse */}
-          <Animated.View style={[styles.mainCardContainer, { transform: [{ scale: pulseAnim }] }]}>
-            <LinearGradient
-              colors={isDark ? ["#1e293b", "#0f172a"] : ["#c7ddff", "#e7f1ff"]}
-              style={styles.streakGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.streakGlass}>
-                <Ionicons name="flame" size={48} color="#f59e0b" style={styles.flameIcon} />
-                <Text style={[styles.streakCount, { color: isDark ? "#fbbf24" : "#b45309" }]}>
-                  {streakCount}-Day Streak
-                </Text>
-                <Text style={[styles.streakSub, { color: COLORS.sub }]}>
-                  {streakCount >= 3 ? "🔥 You’re unstoppable!" : "Keep it going — small steps daily!"}
-                </Text>
-              </BlurView>
-            </LinearGradient>
+          {/* Header */}
+          <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
+              <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+            </TouchableOpacity>
+            <Text style={[styles.headerTitle, { color: COLORS.text }]}>Journey</Text>
+            <TouchableOpacity onPress={shareStreak} style={styles.iconBtn}>
+              <Ionicons name="share-outline" size={24} color={COLORS.text} />
+            </TouchableOpacity>
           </Animated.View>
 
-          {/* Calendar Box */}
-          <BlurView intensity={30} tint={isDark ? "dark" : "light"} style={[styles.monthCard, { borderColor: COLORS.glassBorder }]}>
-            <View style={styles.monthHeader}>
-              <TouchableOpacity onPress={() => handleMonthChange("prev")}>
-                <Ionicons name="chevron-back" size={22} color={COLORS.accent} />
-              </TouchableOpacity>
-              <Text style={[styles.monthTitle, { color: COLORS.text }]}>{getMonthName(currentMonth)}</Text>
-              <TouchableOpacity onPress={() => handleMonthChange("next")}>
-                <Ionicons name="chevron-forward" size={22} color={COLORS.accent} />
-              </TouchableOpacity>
-            </View>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+            
+            {/* Massive Circular Progress Flame */}
+            <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.ringContainer}>
+              <View style={styles.svgWrapper}>
+                <Svg width={180} height={180} viewBox="0 0 160 160">
+                  <Defs>
+                    <SvgGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                      <Stop offset="0" stopColor="#f59e0b" />
+                      <Stop offset="1" stopColor="#f43f5e" />
+                    </SvgGradient>
+                  </Defs>
+                  {/* Background Track */}
+                  <Circle cx="80" cy="80" r="65" stroke={COLORS.glassBorder} strokeWidth="8" fill="none" />
+                  {/* Active Progress */}
+                  <Circle
+                    cx="80"
+                    cy="80"
+                    r="65"
+                    stroke="url(#ringGrad)"
+                    strokeWidth="8"
+                    fill="none"
+                    strokeDasharray={ringCircumference}
+                    strokeDashoffset={strokeDashoffset}
+                    strokeLinecap="round"
+                    transform="rotate(-90 80 80)"
+                  />
+                </Svg>
+                
+                {/* Flame & Count */}
+                <Animated.View style={[styles.flameCenter, animatedFlameStyle]}>
+                  <Ionicons name="flame" size={56} color="#f59e0b" style={styles.flameIconGlow} />
+                  <Text style={[styles.ringCountText, { color: COLORS.text }]}>{streakCount}</Text>
+                  <Text style={[styles.ringSubText, { color: COLORS.sub }]}>DAYS</Text>
+                </Animated.View>
+              </View>
+              
+              <Text style={[styles.ringCaption, { color: COLORS.text }]}>
+                {longestStreak >= nextMilestone.required 
+                  ? "All milestones conquered! 👑" 
+                  : `${nextMilestone.required - longestStreak} days to ${nextMilestone.title}`}
+              </Text>
+            </Animated.View>
 
-            <Text style={[styles.monthSub, { color: COLORS.sub }]}>
-              Completed {streakDates.filter((d) => d.startsWith(monthKey)).length} of {daysInMonth} days
-            </Text>
+            {/* Heatmap Calendar */}
+            <Animated.View entering={FadeInDown.delay(200).duration(500)}>
+              <BlurView intensity={isDark ? 30 : 60} tint={isDark ? "dark" : "light"} style={[styles.glassCard, { borderColor: COLORS.glassBorder }]}>
+                <View style={styles.monthHeader}>
+                  <TouchableOpacity onPress={() => handleMonthChange("prev")} style={styles.monthArrow}>
+                    <Ionicons name="chevron-back" size={20} color={COLORS.text} />
+                  </TouchableOpacity>
+                  <Text style={[styles.monthTitle, { color: COLORS.text }]}>{getMonthName(currentMonth)}</Text>
+                  <TouchableOpacity onPress={() => handleMonthChange("next")} style={styles.monthArrow}>
+                    <Ionicons name="chevron-forward" size={20} color={COLORS.text} />
+                  </TouchableOpacity>
+                </View>
 
-            <View style={styles.weekRow}>
-              {weekdays.map((d) => (
-                <Text key={d} style={[styles.weekText, { color: COLORS.accent }]}>{d}</Text>
-              ))}
-            </View>
+                <View style={styles.weekRow}>
+                  {weekdays.map((d, idx) => (
+                    <Text key={idx} style={[styles.weekText, { color: COLORS.sub }]}>{d}</Text>
+                  ))}
+                </View>
 
-            {weeks.map((week, wi) => (
-              <View key={wi} style={styles.weekRow}>
-                {week.map((d, di) => {
-                  if (d === null) return <View key={di} style={[styles.dayCell, { opacity: 0 }]} />;
+                {weeks.map((week, wi) => (
+                  <View key={wi} style={styles.weekRow}>
+                    {week.map((d, di) => {
+                      if (d === null) return <View key={di} style={[styles.dayCell, { opacity: 0 }]} />;
 
-                  const dateKey = `${monthKey}-${String(d).padStart(2, "0")}`;
-                  const isActive = streakDates.includes(dateKey);
-                  const isToday = dateKey === todayKey;
+                      const dateKey = `${monthKey}-${String(d).padStart(2, "0")}`;
+                      const isActive = streakDates.includes(dateKey);
+                      const isToday = dateKey === todayKey;
 
+                      return (
+                        <View
+                          key={di}
+                          style={[
+                            styles.dayCell,
+                            {
+                              backgroundColor: isActive ? COLORS.activeCellBg : COLORS.cellBg,
+                              borderColor: isToday ? "#10b981" : isActive ? "rgba(16,185,129,0.3)" : "transparent",
+                              borderWidth: isToday ? 1.5 : isActive ? 1 : 0,
+                            },
+                          ]}
+                        >
+                          <Text style={[styles.dayNum, { color: isActive ? "#10b981" : COLORS.text, fontWeight: isActive ? "800" : "500" }]}>
+                            {d}
+                          </Text>
+                          {isActive && <View style={styles.activeDot} />}
+                        </View>
+                      );
+                    })}
+                  </View>
+                ))}
+              </BlurView>
+            </Animated.View>
+
+            {/* Lifetime Stats */}
+            <Animated.View entering={FadeInDown.delay(300).duration(500)} style={styles.statsRow}>
+              <BlurView intensity={isDark ? 30 : 60} tint={isDark ? "dark" : "light"} style={[styles.statBox, { borderColor: COLORS.glassBorder }]}>
+                <View style={[styles.statIconWrap, { backgroundColor: "rgba(16,185,129,0.1)" }]}>
+                  <Ionicons name="trending-up" size={22} color="#10b981" />
+                </View>
+                <Text style={[styles.statValue, { color: COLORS.text }]}>{longestStreak}</Text>
+                <Text style={[styles.statLabel, { color: COLORS.sub }]}>Best Streak</Text>
+              </BlurView>
+              <BlurView intensity={isDark ? 30 : 60} tint={isDark ? "dark" : "light"} style={[styles.statBox, { borderColor: COLORS.glassBorder }]}>
+                <View style={[styles.statIconWrap, { backgroundColor: "rgba(14,165,233,0.1)" }]}>
+                  <Ionicons name="calendar" size={22} color="#0ea5e9" />
+                </View>
+                <Text style={[styles.statValue, { color: COLORS.text }]}>{totalStudyDays}</Text>
+                <Text style={[styles.statLabel, { color: COLORS.sub }]}>Total Days</Text>
+              </BlurView>
+            </Animated.View>
+
+            {/* Milestones Scroll */}
+            <Animated.View entering={FadeInDown.delay(400).duration(500)}>
+              <Text style={[styles.sectionTitle, { color: COLORS.text }]}>Trophies</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
+                {milestones.map((m, idx) => {
+                  const isUnlocked = longestStreak >= m.required;
                   return (
-                    <View
-                      key={di}
+                    <BlurView 
+                      key={idx} 
+                      intensity={isDark ? 30 : 60} 
+                      tint={isDark ? "dark" : "light"}
                       style={[
-                        styles.dayCell,
-                        {
-                          backgroundColor: isActive ? COLORS.activeCellBg : COLORS.cellBg,
-                          borderColor: isToday ? COLORS.accent : isActive ? "rgba(34,197,94,0.5)" : "transparent",
-                          borderWidth: isToday || isActive ? 1 : 0,
-                        },
+                        styles.milestoneCard, 
+                        { 
+                          borderColor: isUnlocked ? "rgba(245,158,11,0.5)" : COLORS.glassBorder,
+                          opacity: isUnlocked ? 1 : 0.6,
+                        }
                       ]}
                     >
-                      <Text style={[styles.dayNum, { color: isActive ? "#22c55e" : COLORS.text, fontWeight: isActive ? "800" : "600" }]}>
-                        {d}
+                      {isUnlocked && <View style={styles.milestoneGlow} />}
+                      <Ionicons name={isUnlocked ? m.icon : `${m.icon}-outline`} size={36} color={isUnlocked ? "#f59e0b" : COLORS.sub} />
+                      <Text style={[styles.milestoneText, { color: isUnlocked ? COLORS.text : COLORS.sub }]}>{m.title}</Text>
+                      <Text style={[styles.milestoneSub, { color: isUnlocked ? "#f59e0b" : COLORS.sub }]}>
+                        {isUnlocked ? "Achieved" : `${longestStreak}/${m.required} Days`}
                       </Text>
-                      {isActive && <Ionicons name="flame" size={10} color="#f59e0b" style={{ position: 'absolute', top: 2, right: 2 }} />}
-                    </View>
+                    </BlurView>
                   );
                 })}
-              </View>
-            ))}
-          </BlurView>
+              </ScrollView>
+            </Animated.View>
 
-          {/* Dynamic Milestones */}
-          <Text style={[styles.sectionTitle, { color: COLORS.text }]}>Milestones</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
-            {milestones.map((m, idx) => {
-              const isUnlocked = longestStreak >= m.required;
-              return (
-                <BlurView 
-                  key={idx} 
-                  intensity={30} 
-                  tint={isDark ? "dark" : "light"}
-                  style={[
-                    styles.milestoneCard, 
-                    { 
-                      borderColor: isUnlocked ? "#f59e0b" : COLORS.glassBorder,
-                      opacity: isUnlocked ? 1 : 0.6,
-                      borderWidth: isUnlocked ? 1.5 : 1
-                    }
-                  ]}
-                >
-                  <Ionicons name={isUnlocked ? m.icon : `${m.icon}-outline`} size={32} color={isUnlocked ? "#f59e0b" : COLORS.sub} />
-                  <Text style={[styles.milestoneText, { color: isUnlocked ? COLORS.text : COLORS.sub }]}>{m.title}</Text>
-                  <Text style={[styles.milestoneSub, { color: isUnlocked ? "#f59e0b" : COLORS.sub }]}>
-                    {isUnlocked ? "Achieved" : `Locked (${longestStreak}/${m.required})`}
-                  </Text>
-                </BlurView>
-              );
-            })}
           </ScrollView>
-
-          {/* Real Lifetime Stats */}
-          <Text style={[styles.sectionTitle, { color: COLORS.text }]}>Lifetime Stats</Text>
-          <View style={styles.statsGrid}>
-            <BlurView intensity={30} tint={isDark ? "dark" : "light"} style={[styles.statBox, { borderColor: COLORS.glassBorder }]}>
-              <Ionicons name="trending-up" size={26} color="#10b981" />
-              <Text style={[styles.statValue, { color: COLORS.text }]}>{longestStreak}</Text>
-              <Text style={[styles.statLabel, { color: COLORS.sub }]}>Longest Streak</Text>
-            </BlurView>
-            <BlurView intensity={30} tint={isDark ? "dark" : "light"} style={[styles.statBox, { borderColor: COLORS.glassBorder }]}>
-              <Ionicons name="calendar-outline" size={26} color="#06b6d4" />
-              <Text style={[styles.statValue, { color: COLORS.text }]}>{totalStudyDays}</Text>
-              <Text style={[styles.statLabel, { color: COLORS.sub }]}>Total Study Days</Text>
-            </BlurView>
-            <BlurView intensity={30} tint={isDark ? "dark" : "light"} style={[styles.statBox, { borderColor: COLORS.glassBorder }]}>
-              <Ionicons name="medal-outline" size={26} color="#fbbf24" />
-              <Text style={[styles.statValue, { color: COLORS.text }]}>{unlockedMilestonesCount}</Text>
-              <Text style={[styles.statLabel, { color: COLORS.sub }]}>Milestones</Text>
-            </BlurView>
-          </View>
-
-          {/* Tip Card */}
-          <BlurView intensity={40} tint={isDark ? "dark" : "light"} style={[styles.tipCard, { borderColor: COLORS.glassBorder }]}>
-            <Ionicons name="rocket-outline" size={22} color={COLORS.accent} />
-            <View style={{ marginLeft: 12, flex: 1 }}>
-              <Text style={[styles.tipTitle, { color: COLORS.accent }]}>Consistency Tip</Text>
-              <Text style={[styles.tipText, { color: COLORS.sub }]}>
-                Even one small study session counts toward your streak. Don’t break it 💪
-              </Text>
-            </View>
-          </BlurView>
-
-          {/* Share */}
-          <TouchableOpacity style={styles.shareBtn} onPress={shareStreak}>
-            <LinearGradient colors={["#06b6d4", "#3b82f6"]} style={styles.shareGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <Ionicons name="share-social" size={20} color="#fff" />
-              <Text style={styles.shareText}>Share your streak</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </ScrollView>
-      </SafeContainer>
-    </LinearGradient>
+        </SafeContainer>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  orb: {
+    position: "absolute",
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    opacity: 0.1,
+    transform: [{ scale: 1.5 }],
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 20,
+    zIndex: 10,
   },
-  headerTitle: { fontSize: 20, fontWeight: "800", letterSpacing: 0.5 },
-
-  mainCardContainer: {
-    marginHorizontal: 16,
-    marginVertical: 12,
-    shadowColor: "#06b6d4",
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 8,
-  },
-  streakGradient: {
+  iconBtn: {
+    padding: 8,
     borderRadius: 20,
-    overflow: "hidden",
+    backgroundColor: "rgba(255,255,255,0.05)",
   },
-  streakGlass: {
-    padding: 24,
+  headerTitle: { fontSize: 22, fontWeight: "900", letterSpacing: 0.5 },
+
+  ringContainer: {
     alignItems: "center",
+    marginVertical: 20,
   },
-  flameIcon: {
-    marginBottom: 8,
-    textShadowColor: 'rgba(245, 158, 11, 0.4)',
+  svgWrapper: {
+    width: 180,
+    height: 180,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  flameCenter: {
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  flameIconGlow: {
+    textShadowColor: 'rgba(245, 158, 11, 0.6)',
     textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 10,
+    textShadowRadius: 15,
   },
-  streakCount: { fontSize: 28, fontWeight: "900", letterSpacing: 1 },
-  streakSub: { fontSize: 13, marginTop: 4, textAlign: "center", fontWeight: "600" },
+  ringCountText: {
+    fontSize: 36,
+    fontWeight: "900",
+    letterSpacing: 1,
+    marginTop: -4,
+  },
+  ringSubText: {
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 2,
+    marginTop: -2,
+  },
+  ringCaption: {
+    marginTop: 16,
+    fontSize: 15,
+    fontWeight: "700",
+    opacity: 0.9,
+  },
 
-  monthCard: {
-    borderRadius: 20,
-    padding: 16,
+  glassCard: {
+    borderRadius: 24,
+    padding: 20,
     marginHorizontal: 16,
-    marginTop: 8,
     borderWidth: 1,
     overflow: "hidden",
   },
-  monthHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  monthTitle: { fontWeight: "800", fontSize: 16, letterSpacing: 0.5 },
-  monthSub: { marginTop: 4, marginBottom: 12, fontSize: 13, fontWeight: "500" },
-  weekRow: { flexDirection: "row", justifyContent: "space-around", marginBottom: 6 },
-  weekText: { fontSize: 12, fontWeight: "800", width: 32, textAlign: "center" },
-
-  sectionTitle: { fontSize: 18, fontWeight: "800", marginLeft: 16, marginTop: 28, marginBottom: 12, letterSpacing: 0.5 },
+  monthHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
+  monthArrow: { padding: 4, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 12 },
+  monthTitle: { fontWeight: "800", fontSize: 18, letterSpacing: 0.5 },
   
-  milestoneCard: {
-    width: 130,
-    padding: 16,
-    borderRadius: 20,
+  weekRow: { flexDirection: "row", justifyContent: "space-around", marginBottom: 10 },
+  weekText: { fontSize: 13, fontWeight: "800", width: 34, textAlign: "center" },
+
+  dayCell: {
+    width: 34,
+    height: 38,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
-    overflow: "hidden",
   },
-  milestoneText: { fontSize: 13, fontWeight: "800", textAlign: "center", marginTop: 10 },
-  milestoneSub: { fontSize: 11, fontWeight: "700", marginTop: 4 },
+  dayNum: { fontSize: 13 },
+  activeDot: {
+    position: 'absolute',
+    bottom: 4,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#10b981',
+  },
 
-  statsGrid: { flexDirection: "row", paddingHorizontal: 16, justifyContent: "space-between" },
+  statsRow: { flexDirection: "row", paddingHorizontal: 16, marginTop: 16, gap: 12 },
   statBox: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 18,
-    borderRadius: 20,
-    marginHorizontal: 4,
+    paddingVertical: 20,
+    borderRadius: 24,
     borderWidth: 1,
     overflow: "hidden",
   },
-  statValue: { fontSize: 24, fontWeight: "900", marginTop: 8 },
-  statLabel: { fontSize: 11, fontWeight: "700", marginTop: 4, textAlign: "center" },
-
-  dayCell: {
-    width: 32,
-    height: 36,
-    borderRadius: 10,
+  statIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 8,
   },
-  dayNum: { fontSize: 12 },
+  statValue: { fontSize: 26, fontWeight: "900", letterSpacing: 0.5 },
+  statLabel: { fontSize: 12, fontWeight: "700", marginTop: 2 },
 
-  tipCard: {
-    flexDirection: "row",
+  sectionTitle: { fontSize: 20, fontWeight: "900", marginLeft: 16, marginTop: 32, marginBottom: 16, letterSpacing: 0.5 },
+  
+  milestoneCard: {
+    width: 140,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    borderRadius: 24,
     alignItems: "center",
-    marginHorizontal: 16,
-    borderRadius: 20,
-    padding: 16,
-    marginTop: 24,
+    justifyContent: "center",
+    marginRight: 12,
     borderWidth: 1,
     overflow: "hidden",
   },
-  tipTitle: { fontWeight: "800", fontSize: 15, marginBottom: 2 },
-  tipText: { lineHeight: 18, fontSize: 13, fontWeight: "500" },
-
-  shareBtn: { marginTop: 24, marginHorizontal: 16, borderRadius: 20, overflow: 'hidden' },
-  shareGradient: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 14 },
-  shareText: { fontWeight: "800", color: "#fff", marginLeft: 8, fontSize: 16, letterSpacing: 0.5 },
+  milestoneGlow: {
+    position: "absolute",
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "rgba(245,158,11,0.15)",
+    top: -20,
+  },
+  milestoneText: { fontSize: 14, fontWeight: "800", textAlign: "center", marginTop: 12 },
+  milestoneSub: { fontSize: 12, fontWeight: "700", marginTop: 4 },
 });
