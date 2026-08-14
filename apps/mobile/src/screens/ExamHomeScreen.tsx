@@ -386,6 +386,14 @@ export default function ExamHomeScreen({ navigation, route }: any) {
               <Entypo name="news" size={26} color={COLORS.accent} />
               <Text style={styles.quickText}>News</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
+              onPress={() => navigation.navigate("LearnScreen")}
+            >
+              <Ionicons name="library-outline" size={26} color={COLORS.accent} />
+              <Text style={styles.quickText}>Learn</Text>
+            </TouchableOpacity>
+            <View style={{ width: "30%" }} />
           </View>
 
           <View style={{ height: 100 }} />
