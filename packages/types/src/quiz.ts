@@ -52,6 +52,8 @@ export interface CompleteQuizSessionResponseDto {
   accuracy: number;
   timeTakenSeconds: number;
   completedAt: string;
+  streakExtendedToday?: boolean;
+  streakCount?: number;
 }
 
 export interface StreakDto {

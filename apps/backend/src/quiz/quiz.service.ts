@@ -254,10 +254,13 @@ export class QuizService {
 
       const yesterday = getIstActivityDate(new Date(activityDate.getTime() - 86400000));
       let currentCount = 1;
+      let streakExtendedToday = true;
+
       if (streak?.lastActivityDate) {
         const last = getIstActivityDate(streak.lastActivityDate);
         if (last.getTime() === activityDate.getTime()) {
           currentCount = streak.currentCount;
+          streakExtendedToday = false; // Already extended today
         } else if (last.getTime() === yesterday.getTime()) {
           currentCount = streak.currentCount + 1;
         }

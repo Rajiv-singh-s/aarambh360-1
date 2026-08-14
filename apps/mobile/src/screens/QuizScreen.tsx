@@ -93,6 +93,7 @@ export default function QuizScreen() {
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [secondsElapsed, setSecondsElapsed] = useState(0);
   const [reviewMode, setReviewMode] = useState(false);
+  const [streakExtendedToday, setStreakExtendedToday] = useState(false);
 
   /* REPORT POPUP */
   const [showReportPopup, setShowReportPopup] = useState(false);
@@ -301,6 +302,9 @@ export default function QuizScreen() {
     try {
       const result = await completeSession();
       setQuizCompleted(true);
+      if (result.streakExtendedToday) {
+        setStreakExtendedToday(true);
+      }
 
       trackLearningEvent({
         eventType: "QUIZ_COMPLETED",
@@ -364,9 +368,13 @@ export default function QuizScreen() {
 
   /* STREAK handled server-side on session complete */
   const handleContinue = async () => {
-    setStreakMessage("Streak updated on the server. Keep practicing!");
-    setShowConfetti(true);
-    setShowStreakPopup(true);
+    if (streakExtendedToday) {
+      setStreakMessage("Streak updated on the server. Keep practicing!");
+      setShowConfetti(true);
+      setShowStreakPopup(true);
+    } else {
+      navigation.goBack();
+    }
   };
 
   /* STREAK ANIMATION */
