@@ -37,11 +37,13 @@ import SyllabusTrackerScreen from "./src/screens/SyllabusTrackerScreen";
 import WeaknessVaultScreen from "./src/screens/WeaknessVaultScreen";
 import CheatSheetScreen from "./src/screens/CheatSheetScreen";
 import SubscriptionScreen from "./src/screens/SubscriptionScreen";
+import NotificationScreen from "./src/screens/NotificationScreen";
 
 // Type definitions for navigation
 export type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
+  NotificationScreen: undefined;
   ExamHomeScreen: { exam?: string } | undefined;
   QuizScreen: {
     topicId?: string;
@@ -143,6 +145,7 @@ export default function App() {
           <Stack.Screen name="PYQScreen" component={PYQScreen} />
           <Stack.Screen name="ChapterScreen" component={ChapterScreen} />
           <Stack.Screen name="SubscriptionScreen" component={SubscriptionScreen} />
+          <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
         </Stack.Navigator>
         </NavigationContainer>
       </AuthProvider>

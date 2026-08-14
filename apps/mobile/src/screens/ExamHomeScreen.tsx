@@ -213,7 +213,7 @@ const ListItemCard = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS 
               <Ionicons name="person-outline" size={20} color={COLORS.accent} />
             </TouchableOpacity>
             <View style={styles.headerRight}>
-              <TouchableOpacity style={styles.headerIcon}>
+              <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate("NotificationScreen")}>
                 <Ionicons name="notifications-outline" size={22} color={COLORS.accent} />
               </TouchableOpacity>
             </View>
