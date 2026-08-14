@@ -14,9 +14,11 @@ import {
   useColorScheme,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { apiGet } from "../services/apiClient";
 import { Ionicons } from "@expo/vector-icons";
 import { WebView } from "react-native-webview";
 import { BlurView } from "expo-blur";
+import { ListSkeleton } from "../components/SkeletonLoader";
 
 const API_KEY = "4044ce8f82934ef4b96ac2ccc0b9869f";
 const QUERY =
@@ -135,12 +137,7 @@ export default function NewsScreen() {
 
           {/* LOADING */}
           {loading ? (
-            <View style={styles.center}>
-              <ActivityIndicator size="large" color={COLORS.accent} />
-              <Text style={[styles.loading, { color: COLORS.sub }]}>
-                Fetching news...
-              </Text>
-            </View>
+            <ListSkeleton />
           ) : (
             news.map((item, index) => (
               <TouchableOpacity

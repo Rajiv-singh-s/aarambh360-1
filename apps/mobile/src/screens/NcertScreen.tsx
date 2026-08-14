@@ -16,6 +16,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useColorScheme } from "react-native";
 import { BlurView } from "expo-blur";
+import { ListSkeleton } from "../components/SkeletonLoader";
 import { useNcert } from "../hooks/useContent";
 
 const { height } = Dimensions.get("window");
@@ -54,11 +55,17 @@ export default function NcertScreen() {
   /* LOADING SCREEN */
   if (loading) {
     return (
-      <LinearGradient colors={COLORS.bg} style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.accent} />
-        <Text style={[styles.loading, { color: COLORS.sub }]}>
-          Loading NCERT Resources...
-        </Text>
+      <LinearGradient colors={COLORS.bg} style={styles.background}>
+        <View style={styles.header}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={24} color={COLORS.accent} />
+            </TouchableOpacity>
+            <Text style={[styles.title, { color: COLORS.text }]}>NCERT Resources</Text>
+            <Ionicons name="search" size={24} color="transparent" />
+          </View>
+        </View>
+        <ListSkeleton />
       </LinearGradient>
     );
   }

@@ -1,4 +1,5 @@
-import SafeContainer from '../components/SafeContainer';
+import SafeContainer from "../components/SafeContainer";
+import { ListSkeleton } from "../components/SkeletonLoader";
 // src/screens/pyqScreen.tsx
 import React, { useEffect, useRef } from "react";
 import {
@@ -48,11 +49,15 @@ export default function PYQScreen({ navigation }: any) {
 
   if (loading) {
     return (
-      <LinearGradient colors={COLORS.bg} style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.accent} />
-        <Text style={[styles.loadingText, { color: COLORS.sub }]}>
-          Fetching PYQs…
-        </Text>
+      <LinearGradient colors={COLORS.bg} style={{ flex: 1 }}>
+        <StatusBar translucent backgroundColor="transparent" />
+        <View style={[styles.headerBlur, { backgroundColor: isDark ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.85)' }]}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.accent} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: COLORS.text }]}>PYQs - GS1 ({year})</Text>
+        </View>
+        <ListSkeleton />
       </LinearGradient>
     );
   }

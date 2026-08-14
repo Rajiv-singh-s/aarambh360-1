@@ -1,4 +1,5 @@
 import SafeContainer from '../components/SafeContainer';
+import { ListSkeleton } from '../components/SkeletonLoader';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -82,7 +83,7 @@ export default function SubscriptionScreen({ navigation }: any) {
         </View>
 
         {loading ? (
-          <ActivityIndicator color="#06b6d4" style={{ marginTop: 40 }} />
+          <ListSkeleton />
         ) : (
           <ScrollView contentContainerStyle={styles.content}>
             {entitlements ? (

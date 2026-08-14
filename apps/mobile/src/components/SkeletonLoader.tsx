@@ -125,3 +125,58 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
 });
+
+export function ListSkeleton() {
+  return (
+    <View style={{ flex: 1, padding: 16 }}>
+      {Array.from({ length: 7 }).map((_, i) => (
+        <View key={i} style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
+          <SkeletonBox width={48} height={48} borderRadius={12} style={{ marginRight: 16 }} />
+          <View style={{ flex: 1 }}>
+            <SkeletonBox width="80%" height={16} style={{ marginBottom: 8 }} />
+            <SkeletonBox width="50%" height={12} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+export function ProfileSkeleton() {
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={{ alignItems: "center", marginTop: 40, marginBottom: 30 }}>
+        <SkeletonBox width={100} height={100} borderRadius={50} style={{ marginBottom: 16 }} />
+        <SkeletonBox width={150} height={20} style={{ marginBottom: 8 }} />
+        <SkeletonBox width={100} height={14} />
+      </View>
+      <View style={{ paddingHorizontal: 16 }}>
+        <SkeletonBox width="100%" height={56} borderRadius={12} style={{ marginBottom: 12 }} />
+        <SkeletonBox width="100%" height={56} borderRadius={12} style={{ marginBottom: 12 }} />
+        <SkeletonBox width="100%" height={56} borderRadius={12} style={{ marginBottom: 12 }} />
+        <SkeletonBox width="100%" height={56} borderRadius={12} />
+      </View>
+    </View>
+  );
+}
+
+export function QuizSkeleton() {
+  return (
+    <View style={{ flex: 1, padding: 16 }}>
+      {/* Header info */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 30 }}>
+        <SkeletonBox width={80} height={20} />
+        <SkeletonBox width={60} height={20} />
+      </View>
+      
+      {/* Question */}
+      <SkeletonBox width="100%" height={120} borderRadius={16} style={{ marginBottom: 30 }} />
+      
+      {/* Options */}
+      <SkeletonBox width="100%" height={60} borderRadius={12} style={{ marginBottom: 16 }} />
+      <SkeletonBox width="100%" height={60} borderRadius={12} style={{ marginBottom: 16 }} />
+      <SkeletonBox width="100%" height={60} borderRadius={12} style={{ marginBottom: 16 }} />
+      <SkeletonBox width="100%" height={60} borderRadius={12} />
+    </View>
+  );
+}

@@ -1,4 +1,5 @@
 import SafeContainer from '../components/SafeContainer';
+import { ListSkeleton } from "../components/SkeletonLoader";
 // src/screens/NoteScreen.tsx
 import React from "react";
 import {
@@ -23,9 +24,8 @@ export default function NotesScreen({ navigation }: any) {
 
   if (loading) {
     return (
-      <LinearGradient colors={THEME.bg} style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={THEME.accent} />
-        <Text style={{ color: THEME.text2, marginTop: 10 }}>Loading…</Text>
+      <LinearGradient colors={THEME.bg} style={{ flex: 1 }}>
+        <ListSkeleton />
       </LinearGradient>
     );
   }

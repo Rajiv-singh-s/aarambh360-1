@@ -1,4 +1,5 @@
-import SafeContainer from '../components/SafeContainer';
+import SafeContainer from "../components/SafeContainer";
+import { ProfileSkeleton } from "../components/SkeletonLoader";
 // src/screens/ProfileScreen.tsx
 import React, { useState, useEffect } from "react";
 import {
@@ -139,10 +140,14 @@ export default function ProfileScreen({ navigation }: any) {
   if (loading || !userData) {
     return (
       <LinearGradient colors={COLORS.bg} style={styles.loadingScreen}>
-        <ActivityIndicator size="large" color={COLORS.accent} />
-        <Text style={[styles.loadingText, { color: COLORS.sub }]}>
-          Loading profile…
-        </Text>
+        <SafeContainer style={{ flex: 1 }}>
+          <View style={[styles.header, { backgroundColor: isDark ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.85)' }]}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
+              <Ionicons name="arrow-back" size={24} color={COLORS.accent} />
+            </TouchableOpacity>
+          </View>
+          <ProfileSkeleton />
+        </SafeContainer>
       </LinearGradient>
     );
   }

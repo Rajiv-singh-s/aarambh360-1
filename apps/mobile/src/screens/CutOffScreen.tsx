@@ -1,4 +1,5 @@
 import SafeContainer from '../components/SafeContainer';
+import { ListSkeleton } from "../components/SkeletonLoader";
 // src/screens/CutOffScreen.tsx
 import React, { useState, useRef } from "react";
 import {
@@ -105,12 +106,7 @@ export default function CutOffScreen({ navigation }: any) {
 
           {/* CONTENT */}
           {loading ? (
-            <View style={styles.loadingBox}>
-              <ActivityIndicator size="large" color={COLORS.accent} />
-              <Text style={[styles.loadingText, { color: COLORS.sub }]}>
-                Loading cut-off data…
-              </Text>
-            </View>
+            <ListSkeleton />
           ) : cutoffData.length === 0 ? (
             <Text style={[styles.noData, { color: COLORS.accent }]}>
               No cut-off data found for {selectedYear}

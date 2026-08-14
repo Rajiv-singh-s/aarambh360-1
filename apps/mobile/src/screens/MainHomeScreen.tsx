@@ -19,6 +19,10 @@ import {
   Entypo,
 } from "@expo/vector-icons";
 
+import { getRecommendations } from "../services/analyticsService";
+import type { RecommendationDto } from "@aarambh360/types";
+import { HomeScreenSkeleton } from "../components/SkeletonLoader";
+
 import { auth } from "../firebaseConfig";
 import { useAuth } from "../hooks/useAuth";
 import AdBanner from "../components/AdBanner";
@@ -84,10 +88,11 @@ export default function MainHomeScreen({ navigation }: any) {
 
   if (loading || !userData) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#06b6d4" />
-        <Text style={styles.loadingText}>Preparing your dashboard…</Text>
-      </View>
+      <LinearGradient colors={[COLORS.bg[0], COLORS.bg[1]]} style={styles.safe}>
+        <SafeContainer style={{ flex: 1 }} disableBottom={true}>
+          <HomeScreenSkeleton />
+        </SafeContainer>
+      </LinearGradient>
     );
   }
 

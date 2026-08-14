@@ -17,6 +17,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import type { SubjectSummaryDto, TopicSummaryDto } from "@aarambh360/types";
 import { useSubjects } from "../hooks/useContent";
+import { ListSkeleton } from "../components/SkeletonLoader";
 import { apiGet } from "../services/apiClient";
 
 const mcqCounts = [10, 20, 25, 50];
@@ -93,9 +94,7 @@ export default function MCQScreen({ navigation }: any) {
         </View>
 
         {loading ? (
-          <View style={styles.centered}>
-            <ActivityIndicator size="large" color={COLORS.accent} />
-          </View>
+          <ListSkeleton />
         ) : (
           <ScrollView contentContainerStyle={styles.scrollContainer}>
             {subjects.map((subject) => (

@@ -16,6 +16,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SafeContainer from "../components/SafeContainer";
+import { ListSkeleton } from "../components/SkeletonLoader";
 import { LinearGradient } from "expo-linear-gradient";
 import { auth } from "../firebaseConfig";
 import { useProgress } from "../hooks/useProgress";
@@ -125,12 +126,18 @@ export default function StreakScreen({ navigation }: any) {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.accent} />
-        <Text style={[styles.loadingText, { color: COLORS.sub }]}>
-          Loading your streak...
-        </Text>
-      </View>
+      <LinearGradient colors={[COLORS.bg[0], COLORS.bg[1]]} style={{ flex: 1 }}>
+        <SafeContainer>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
+              <Ionicons name="arrow-back" size={24} color={COLORS.accent} />
+            </TouchableOpacity>
+            <Text style={[styles.headerTitle, { color: COLORS.text }]}>My Streak</Text>
+            <Ionicons name="share-social-outline" size={24} color="transparent" />
+          </View>
+          <ListSkeleton />
+        </SafeContainer>
+      </LinearGradient>
     );
   }
 

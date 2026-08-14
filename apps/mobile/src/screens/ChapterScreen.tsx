@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useStudyMaterials } from "../hooks/useContent";
 import { trackLearningEvent } from "../services/analyticsService";
+import { ListSkeleton } from "../components/SkeletonLoader";
 
 export default function ChapterScreen({ route, navigation }: any) {
   const { subject, chapter, materialId } = route.params || {};
@@ -53,8 +54,18 @@ export default function ChapterScreen({ route, navigation }: any) {
 
   if (loading) {
     return (
-      <LinearGradient colors={COLORS.bg} style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={COLORS.accent} />
+      <LinearGradient colors={COLORS.bg} style={{ flex: 1 }}>
+        <SafeContainer style={{ flex: 1 }}>
+          <View style={{ padding: 16, flexDirection: "row", alignItems: "center" }}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={22} color={COLORS.accent} />
+            </TouchableOpacity>
+            <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: "700", marginLeft: 12 }}>
+              {subject ?? "Chapter"}
+            </Text>
+          </View>
+          <ListSkeleton />
+        </SafeContainer>
       </LinearGradient>
     );
   }

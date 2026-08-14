@@ -1,4 +1,5 @@
-import SafeContainer from '../components/SafeContainer';
+import SafeContainer from "../components/SafeContainer";
+import { ListSkeleton } from "../components/SkeletonLoader";
 // src/screens/MainScreen.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { useColorScheme,
@@ -425,9 +426,15 @@ export default function MainScreen() {
   if (loading)
     return (
       <LinearGradient colors={[COLORS.bgTop, COLORS.bgBottom]} style={styles.flex}>
-        <SafeContainer style={styles.center}>
-          <ActivityIndicator size="large" color={COLORS.blue} />
-          <Text style={styles.info}>Loading…</Text>
+        <SafeContainer style={{ flex: 1 }}>
+          <View style={[styles.header, { paddingTop: NOTCH_TOP }]}>
+            <TouchableOpacity onPress={() => nav.goBack()}>
+              <Ionicons name="chevron-back" size={26} color={COLORS.blue} />
+            </TouchableOpacity>
+            <Text style={styles.hTitle}>Daily Mains</Text>
+            <View style={styles.seeBtn}><Text style={styles.seeTxt}>All</Text></View>
+          </View>
+          <ListSkeleton />
         </SafeContainer>
       </LinearGradient>
     );

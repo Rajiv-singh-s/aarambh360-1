@@ -17,6 +17,7 @@ import { useColorScheme } from "react-native";
 import { useQuizEngine } from "../hooks/useQuizEngine";
 import { apiPost } from "../services/apiClient";
 import { trackLearningEvent } from "../services/analyticsService";
+import { QuizSkeleton } from "../components/SkeletonLoader";
 
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -413,10 +414,9 @@ export default function QuizScreen() {
   if (loading) {
     return (
       <LinearGradient colors={COLORS.bg} style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.accent} />
-        <Text style={[styles.loadingText, { color: COLORS.sub }]}>
-          Loading quiz...
-        </Text>
+        <SafeContainer style={{ flex: 1, width: "100%" }}>
+          <QuizSkeleton />
+        </SafeContainer>
       </LinearGradient>
     );
   }
