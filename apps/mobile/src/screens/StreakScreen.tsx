@@ -33,7 +33,9 @@ export default function StreakScreen({ navigation }: any) {
     
     // Aggressively fill in missing days if we have an active streak but backend missed them
     if (mcqStreak?.lastActivityDate && streakCount > 0) {
-      const lastDate = new Date(mcqStreak.lastActivityDate);
+      const [year, month, day] = mcqStreak.lastActivityDate.split('-').map(Number);
+      const lastDate = new Date(year, month - 1, day);
+      
       for (let i = 0; i < streakCount; i++) {
         const d = new Date(lastDate);
         d.setDate(d.getDate() - i);
