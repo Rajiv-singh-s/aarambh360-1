@@ -96,6 +96,9 @@ importers:
       class-validator:
         specifier: ^0.14.1
         version: 0.14.4
+      express:
+        specifier: ^5.2.1
+        version: 5.2.1
       firebase-admin:
         specifier: ^13.4.0
         version: 13.10.0(@firebase/app-compat@0.5.16)(@firebase/app@0.16.0)
