@@ -174,15 +174,28 @@ const PremiumCard = ({ icon, color, title, desc, onPress, IconLib = Ionicons }: 
   );
 };
 
-const ListItem = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS }: any) => (
-  <TouchableOpacity style={styles.listItem} onPress={onPress} activeOpacity={0.7}>
-    <View style={[styles.listIconBox, { backgroundColor: color + "15" }]}>
-      <IconLib name={icon} size={20} color={color} />
-    </View>
-    <Text style={[styles.listText, { color: COLORS.text }]}>{title}</Text>
-    <Ionicons name="chevron-forward" size={18} color={COLORS.sub} />
-  </TouchableOpacity>
-);
+const ListItemCard = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS }: any) => {
+  const isDark = color === "#fff" || COLORS.bg[0] === "#0f172a"; // Simple heuristic for dark mode
+  return (
+    <TouchableOpacity 
+      style={[
+        styles.listItemCard, 
+        { 
+          backgroundColor: COLORS.card, 
+          borderColor: isDark ? "#334155" : "#cbd5e1" 
+        }
+      ]} 
+      onPress={onPress} 
+      activeOpacity={0.7}
+    >
+      <View style={[styles.listIconBox, { backgroundColor: color + "15" }]}>
+        <IconLib name={icon} size={20} color={color} />
+      </View>
+      <Text style={[styles.listText, { color: COLORS.text }]}>{title}</Text>
+      <Ionicons name="chevron-forward" size={18} color={COLORS.sub} />
+    </TouchableOpacity>
+  );
+};
 
   return (
     <LinearGradient colors={COLORS.bg} style={styles.safe}>
@@ -278,39 +291,26 @@ const ListItem = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS }: a
 
           {/* Core Practice */}
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Core Practice</Text>
-          <View style={[styles.listGroup, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
-            <ListItem icon="quiz" IconLib={MaterialIcons} color={COLORS.accent} title="Daily MCQs" onPress={() => navigation.navigate("MCQScreen")} COLORS={COLORS} />
-            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="create-outline" color={COLORS.accent} title="Mains Answer Writing" onPress={() => navigation.navigate("MainScreen")} COLORS={COLORS} />
-            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="clipboard-list" IconLib={FontAwesome5} color={COLORS.accent} title="Previous Year Papers" onPress={() => navigation.navigate("PYQScreen")} COLORS={COLORS} />
-          </View>
+          <ListItemCard icon="quiz" IconLib={MaterialIcons} color={COLORS.accent} title="Daily MCQs" onPress={() => navigation.navigate("MCQScreen")} COLORS={COLORS} />
+          <ListItemCard icon="create-outline" color={COLORS.accent} title="Mains Answer Writing" onPress={() => navigation.navigate("MainScreen")} COLORS={COLORS} />
+          <ListItemCard icon="clipboard-list" IconLib={FontAwesome5} color={COLORS.accent} title="Previous Year Papers" onPress={() => navigation.navigate("PYQScreen")} COLORS={COLORS} />
 
           {/* Study Materials */}
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Study Materials</Text>
-          <View style={[styles.listGroup, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
-            <ListItem icon="book-open" IconLib={FontAwesome5} color={COLORS.accent} title="NCERT Books" onPress={() => navigation.navigate("NcertScreen")} COLORS={COLORS} />
-            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="document-text-outline" color={COLORS.accent} title="Revision Notes" onPress={() => navigation.navigate("NotesScreen")} COLORS={COLORS} />
-            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="document-text-outline" color={COLORS.accent} title="Cheat Sheet" onPress={() => navigation.navigate("CheatSheetScreen")} COLORS={COLORS} />
-            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="bar-chart-outline" color={COLORS.accent} title="Syllabus Tracker" onPress={() => navigation.navigate("SyllabusTrackerScreen")} COLORS={COLORS} />
-          </View>
+          <ListItemCard icon="book-open" IconLib={FontAwesome5} color={COLORS.accent} title="NCERT Books" onPress={() => navigation.navigate("NcertScreen")} COLORS={COLORS} />
+          <ListItemCard icon="document-text-outline" color={COLORS.accent} title="Revision Notes" onPress={() => navigation.navigate("NotesScreen")} COLORS={COLORS} />
+          <ListItemCard icon="document-text-outline" color={COLORS.accent} title="Cheat Sheet" onPress={() => navigation.navigate("CheatSheetScreen")} COLORS={COLORS} />
+          <ListItemCard icon="bar-chart-outline" color={COLORS.accent} title="Syllabus Tracker" onPress={() => navigation.navigate("SyllabusTrackerScreen")} COLORS={COLORS} />
 
           {/* Resources & Strategy */}
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Resources & Strategy</Text>
-          <View style={[styles.listGroup, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
-            <ListItem icon="warning-outline" color="#ef4444" title="Mistake Vault" onPress={() => navigation.navigate("WeaknessVaultScreen")} COLORS={COLORS} />
-            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="list-alt" IconLib={FontAwesome5} color={COLORS.accent} title="Syllabus PDF" onPress={() => navigation.navigate("SyllabusScreen")} COLORS={COLORS} />
-            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="light-bulb" IconLib={Entypo} color={COLORS.accent} title="Strategy" onPress={() => navigation.navigate("StrategyScreen")} COLORS={COLORS} />
-            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="stats-chart" color={COLORS.accent} title="Cut-Offs" onPress={() => navigation.navigate("CutOffScreen")} COLORS={COLORS} />
-            <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="information-circle-outline" color={COLORS.accent} title="Exam Info" onPress={() => navigation.navigate("ExamInfoScreen")} COLORS={COLORS} />
-          </View>
+          <ListItemCard icon="warning-outline" color="#ef4444" title="Mistake Vault" onPress={() => navigation.navigate("WeaknessVaultScreen")} COLORS={COLORS} />
+          <ListItemCard icon="list-alt" IconLib={FontAwesome5} color={COLORS.accent} title="Syllabus PDF" onPress={() => navigation.navigate("SyllabusScreen")} COLORS={COLORS} />
+          <ListItemCard icon="light-bulb" IconLib={Entypo} color={COLORS.accent} title="Strategy" onPress={() => navigation.navigate("StrategyScreen")} COLORS={COLORS} />
+          <ListItemCard icon="stats-chart" color={COLORS.accent} title="Cut-Offs" onPress={() => navigation.navigate("CutOffScreen")} COLORS={COLORS} />
+          <ListItemCard icon="information-circle-outline" color={COLORS.accent} title="Exam Info" onPress={() => navigation.navigate("ExamInfoScreen")} COLORS={COLORS} />
+
+
 
           <View style={{ height: 100 }} />
         </ScrollView>
@@ -433,20 +433,14 @@ const styles = StyleSheet.create({
   premiumCardTitle: { fontSize: 14, fontWeight: "700", marginBottom: 2 },
   premiumCardDesc: { fontSize: 10, fontWeight: "500" },
 
-  listGroup: {
-    marginHorizontal: 16,
-    borderRadius: 16,
-    borderWidth: 0,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-  },
-  listItem: {
+  listItemCard: {
     flexDirection: "row",
     alignItems: "center",
     padding: 14,
+    marginHorizontal: 16,
+    marginBottom: 10,
+    borderRadius: 16,
+    borderWidth: 1.5,
   },
   listIconBox: {
     width: 32,
@@ -460,10 +454,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     flex: 1,
-  },
-  divider: {
-    height: 1,
-    marginLeft: 58, // aligns with text
   },
 
   recCard: {
