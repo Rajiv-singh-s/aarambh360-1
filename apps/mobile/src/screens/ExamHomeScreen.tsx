@@ -405,8 +405,32 @@ export default function ExamHomeScreen({ navigation, route }: any) {
               style={[styles.quickCard, { backgroundColor: COLORS.card }]}
               onPress={() => navigation.navigate("SyllabusTrackerScreen")}
             >
+              <Ionicons name="bar-chart-outline" size={26} color={COLORS.accent} />
+              <Text style={styles.quickText}>Tracker</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.quickGrid}>
+            <TouchableOpacity
+              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
+              onPress={() => navigation.navigate("SyllabusScreen")}
+            >
               <FontAwesome5 name="list-alt" size={24} color={COLORS.accent} />
               <Text style={styles.quickText}>Syllabus</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
+              onPress={() => navigation.navigate("ExamInfoScreen")}
+            >
+              <Ionicons name="information-circle-outline" size={26} color={COLORS.accent} />
+              <Text style={styles.quickText}>Exam Info</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickCard, { backgroundColor: COLORS.card }]}
+              onPress={() => navigation.navigate("CutOffScreen")}
+            >
+              <Ionicons name="stats-chart" size={26} color={COLORS.accent} />
+              <Text style={styles.quickText}>Cut-Offs</Text>
             </TouchableOpacity>
           </View>
 
