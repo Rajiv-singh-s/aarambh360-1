@@ -175,14 +175,12 @@ const PremiumCard = ({ icon, color, title, desc, onPress, IconLib = Ionicons }: 
 };
 
 const ListItemCard = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS }: any) => {
-  const isDark = color === "#fff" || COLORS.bg[0] === "#0f172a"; // Simple heuristic for dark mode
   return (
     <TouchableOpacity 
       style={[
         styles.listItemCard, 
         { 
           backgroundColor: COLORS.card, 
-          borderColor: isDark ? "#334155" : "#cbd5e1" 
         }
       ]} 
       onPress={onPress} 
@@ -221,7 +219,6 @@ const ListItemCard = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS 
           </View>
 
           {/* Daily Goals */}
-          {/* Daily Goals */}
           <View style={styles.progressContainer}>
             <View style={[styles.progressCardNew, { backgroundColor: COLORS.card, shadowColor: COLORS.border }]}>
               <Ionicons name="book-outline" size={20} color={COLORS.accent} />
@@ -251,7 +248,7 @@ const ListItemCard = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS 
                 {recommendations.map((rec, index) => (
                   <TouchableOpacity 
                     key={index} 
-                    style={[styles.recCard, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}
+                    style={[styles.recCard, { backgroundColor: COLORS.card }]}
                     onPress={() => {
                       if (rec.type === "QUIZ") {
                         navigation.navigate("MCQScreen");
@@ -401,10 +398,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 12,
     alignItems: "center",
-    elevation: 1,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    borderColor: "#1e293b", // Very dark border
   },
   progressValueNew: { fontSize: 15, fontWeight: "800", marginTop: 2 },
   progressLabelNew: { fontSize: 10, fontWeight: "500", marginTop: 1 },
@@ -415,7 +411,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 14,
     marginRight: 10,
-    borderWidth: 0, // removed border
+    borderWidth: 1.5, // Added dark border back
+    borderColor: "#1e293b",
     justifyContent: "center",
     elevation: 6,
     shadowOffset: { width: 0, height: 4 },
@@ -441,6 +438,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 16,
     borderWidth: 1.5,
+    borderColor: "#1e293b", // Distinctly dark border
   },
   listIconBox: {
     width: 32,
@@ -460,7 +458,8 @@ const styles = StyleSheet.create({
     width: 240,
     padding: 12,
     borderRadius: 12,
-    borderWidth: 1,
+    borderWidth: 1.5,
+    borderColor: "#1e293b", // Distinctly dark border
     marginRight: 10,
   },
   recCardTitle: { fontSize: 13, fontWeight: "700", marginBottom: 4 },
