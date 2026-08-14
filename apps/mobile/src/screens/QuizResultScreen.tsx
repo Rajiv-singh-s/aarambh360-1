@@ -223,6 +223,25 @@ export default function QuizResultScreen() {
                     {q.explanation || "No explanation provided."}
                   </Text>
                 </View>
+
+                {/* AI EXPLAIN BUTTON */}
+                <TouchableOpacity 
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "rgba(6,182,212,0.15)",
+                    borderWidth: 1,
+                    borderColor: "#06b6d4",
+                    padding: 12,
+                    borderRadius: 12,
+                    marginTop: 16
+                  }}
+                  onPress={() => navigation.navigate("AiMentorScreen")}
+                >
+                  <Ionicons name="sparkles" size={18} color="#06b6d4" />
+                  <Text style={{ color: "#06b6d4", fontWeight: "700", marginLeft: 8 }}>Ask AI to Explain</Text>
+                </TouchableOpacity>
               </View>
             )}
           </ScrollView>

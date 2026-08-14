@@ -210,6 +210,37 @@ export default function ExamHomeScreen({ navigation, route }: any) {
             </Text>
           </View>
 
+          {/* AI MENTOR BANNER */}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate("AiMentorScreen")}
+            style={{
+              marginHorizontal: 16,
+              marginTop: 16,
+              borderRadius: 16,
+              padding: 16,
+              backgroundColor: COLORS.card,
+              borderWidth: 1,
+              borderColor: COLORS.accent,
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <View style={{ backgroundColor: isDark ? "rgba(6,182,212,0.15)" : "#e0f2fe", padding: 12, borderRadius: 12, marginRight: 12 }}>
+              <Ionicons name="sparkles" size={24} color={COLORS.accent} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text style={{ fontSize: 16, fontWeight: "700", color: COLORS.text, marginRight: 6 }}>Ask UPSC Mentor</Text>
+                <View style={{ backgroundColor: "#ef4444", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                  <Text style={{ color: "#fff", fontSize: 9, fontWeight: "900" }}>BETA</Text>
+                </View>
+              </View>
+              <Text style={{ fontSize: 12, color: COLORS.sub, marginTop: 2 }}>Resolve your doubts instantly with AI</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={COLORS.sub} />
+          </TouchableOpacity>
+
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Your Progress</Text>
           <View style={styles.progressContainer}>
             <View style={[styles.progressCardNew, { backgroundColor: COLORS.card }]}>
