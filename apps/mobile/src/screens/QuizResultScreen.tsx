@@ -246,6 +246,30 @@ export default function QuizResultScreen() {
             )}
           </ScrollView>
 
+          {/* FLOATING AI BUTTON IN REVIEW MODE */}
+          <TouchableOpacity
+            style={{
+              position: "absolute",
+              bottom: 90,
+              right: 20,
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "#06b6d4",
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              borderRadius: 30,
+              elevation: 5,
+              shadowColor: "#06b6d4",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+            }}
+            onPress={() => navigation.navigate("AiMentorScreen")}
+          >
+            <Ionicons name="sparkles" size={20} color="#fff" />
+            <Text style={{ color: "#fff", fontWeight: "800", marginLeft: 8 }}>Ask AI</Text>
+          </TouchableOpacity>
+
           <View style={styles.bottomNav}>
             <TouchableOpacity
               style={[styles.navBtn, currentIndex === 0 && { opacity: 0.4 }]}
@@ -330,6 +354,25 @@ export default function QuizResultScreen() {
               <Text style={styles.btnText}>Continue</Text>
             </TouchableOpacity>
           </View>
+
+          <TouchableOpacity
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(6,182,212,0.15)",
+              borderWidth: 1,
+              borderColor: "#06b6d4",
+              paddingVertical: 12,
+              paddingHorizontal: 20,
+              borderRadius: 12,
+              marginTop: 16
+            }}
+            onPress={() => navigation.navigate("AiMentorScreen")}
+          >
+            <Ionicons name="sparkles" size={18} color="#06b6d4" />
+            <Text style={{ color: "#06b6d4", fontWeight: "700", marginLeft: 8 }}>Have Doubts? Ask AI</Text>
+          </TouchableOpacity>
         </View>
 
         {/* STREAK POPUP */}
