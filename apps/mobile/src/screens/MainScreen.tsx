@@ -1,7 +1,8 @@
 import SafeContainer from '../components/SafeContainer';
 // src/screens/MainScreen.tsx
 import React, { useEffect, useRef, useState } from "react";
-import {
+import { useColorScheme,
+
   View,
   Text,
   TouchableOpacity,
@@ -40,17 +41,27 @@ import {
 import { trackLearningEvent } from "../services/analyticsService";
 import type { MainsSubmissionDto, MainsEvaluationDto } from "@aarambh360/types";
 
-// UI Colors
-const BG_TOP = "#0b1220";
-const BG_BOTTOM = "#111b2e";
-const CARD_BG = "#1e293b";
-const TEXT_LIGHT = "#94a3b8";
-const BLUE = "#06b6d4";
+// UI Colors removed, using dynamic theme now
 
 const NOTCH_TOP = Platform.OS === "ios" ? 70 : StatusBar.currentHeight || 24;
 
 export default function MainScreen() {
   const nav = useNavigation<any>();
+
+  const isDark = useColorScheme() === "dark";
+  const COLORS = {
+    bgTop: isDark ? "#0b1220" : "#e9f0ff",
+    bgBottom: isDark ? "#111b2e" : "#ffffff",
+    cardBg: isDark ? "rgba(255,255,255,0.05)" : "#ffffff",
+    cardDim: isDark ? "rgba(255,255,255,0.03)" : "#f1f5f9",
+    border: isDark ? "rgba(255,255,255,0.1)" : "#e2e8f0",
+    textLight: isDark ? "#94a3b8" : "#475569",
+    textPrimary: isDark ? "#ffffff" : "#0f172a",
+    blue: isDark ? "#06b6d4" : "#0284c7",
+    danger: "#ef4444",
+  };
+  const styles = getStyles(COLORS, isDark);
+
 
   // DATA
   const [question, setQuestion] = useState<any>(null);
@@ -413,21 +424,21 @@ export default function MainScreen() {
   // LOADING UI
   if (loading)
     return (
-      <LinearGradient colors={[BG_TOP, BG_BOTTOM]} style={styles.flex}>
+      <LinearGradient colors={[COLORS.bgTop, COLORS.bgBottom]} style={styles.flex}>
         <SafeContainer style={styles.center}>
-          <ActivityIndicator size="large" color={BLUE} />
+          <ActivityIndicator size="large" color={COLORS.blue} />
           <Text style={styles.info}>Loading…</Text>
         </SafeContainer>
       </LinearGradient>
     );
 
   return (
-    <LinearGradient colors={[BG_TOP, BG_BOTTOM]} style={styles.flex}>
+    <LinearGradient colors={[COLORS.bgTop, COLORS.bgBottom]} style={styles.flex}>
       <SafeContainer style={{ flex: 1 }}>
         {/* HEADER */}
         <View style={[styles.header, { paddingTop: NOTCH_TOP }]}>
           <TouchableOpacity onPress={() => nav.goBack()}>
-            <Ionicons name="chevron-back" size={26} color={BLUE} />
+            <Ionicons name="chevron-back" size={26} color={COLORS.blue} />
           </TouchableOpacity>
 
           <Text style={styles.hTitle}>Daily Mains</Text>
@@ -440,7 +451,7 @@ export default function MainScreen() {
             }}
           >
             <Text style={styles.seeTxt}>See All</Text>
-            <Ionicons name="chevron-forward" size={18} color={BLUE} />
+            <Ionicons name="chevron-forward" size={18} color={COLORS.blue} />
           </TouchableOpacity>
         </View>
 
@@ -475,11 +486,11 @@ export default function MainScreen() {
 
         {/* ATTEMPT MODAL */}
         <Modal visible={attemptModal} animationType="slide">
-          <LinearGradient colors={[BG_TOP, BG_BOTTOM]} style={styles.flex}>
+          <LinearGradient colors={[COLORS.bgTop, COLORS.bgBottom]} style={styles.flex}>
             <SafeContainer>
               <View style={[styles.header, { paddingTop: NOTCH_TOP }]}>
                 <TouchableOpacity onPress={() => setAttemptModal(false)}>
-                  <Ionicons name="close" size={26} color={BLUE} />
+                  <Ionicons name="close" size={26} color={COLORS.blue} />
                 </TouchableOpacity>
                 <Text style={styles.hTitle}>Attempt Question</Text>
                 <View style={{ width: 26 }} />
@@ -507,7 +518,7 @@ export default function MainScreen() {
 
         {/* WRITE ANSWER MODAL */}
         <Modal visible={timerModal} animationType="slide">
-          <LinearGradient colors={[BG_TOP, BG_BOTTOM]} style={styles.flex}>
+          <LinearGradient colors={[COLORS.bgTop, COLORS.bgBottom]} style={styles.flex}>
             <SafeContainer style={{ flex: 1 }}>
               <KeyboardAvoidingView
                 style={{ flex: 1 }}
@@ -520,7 +531,7 @@ export default function MainScreen() {
                       setTimerModal(false);
                     }}
                   >
-                    <Ionicons name="close" size={26} color={BLUE} />
+                    <Ionicons name="close" size={26} color={COLORS.blue} />
                   </TouchableOpacity>
 
                   <Text style={styles.hTitle}>Write Answer</Text>
@@ -569,7 +580,7 @@ export default function MainScreen() {
                     {/* UPLOADING STATE */}
                     {flowState === 'UPLOADING' && (
                       <View style={styles.statusBox}>
-                        <ActivityIndicator size="large" color={BLUE} />
+                        <ActivityIndicator size="large" color={COLORS.blue} />
                         <Text style={styles.statusTitle}>Uploading Pages</Text>
                         <Text style={styles.statusDesc}>Your handwritten answer sheets are being uploaded to R2 cloud storage...</Text>
                       </View>
@@ -578,7 +589,7 @@ export default function MainScreen() {
                     {/* PROCESSING OCR STATE */}
                     {flowState === 'PROCESSING_OCR' && (
                       <View style={styles.statusBox}>
-                        <ActivityIndicator size="large" color={BLUE} />
+                        <ActivityIndicator size="large" color={COLORS.blue} />
                         <Text style={styles.statusTitle}>Processing OCR</Text>
                         <Text style={styles.statusDesc}>Extracting text from your answer sheets. This may take up to 30 seconds...</Text>
                       </View>
@@ -588,7 +599,7 @@ export default function MainScreen() {
                     {flowState === 'OCR_FAILED' && (
                       <View style={styles.statusBox}>
                         <Ionicons name="alert-circle" size={48} color="#ef4444" />
-                        <Text style={[styles.statusTitle, { color: '#ef4444' }]}>OCR Extraction Failed</Text>
+                        <Text style={[styles.statusTitle, { color: COLORS.danger }]}>OCR Extraction Failed</Text>
                         <Text style={styles.statusDesc}>{ocrError || "We couldn't extract text from the uploaded images. Please ensure the handwriting is clear."}</Text>
                         
                         <View style={styles.btnRow}>
@@ -617,7 +628,7 @@ export default function MainScreen() {
                           editor={rich}
                           style={styles.toolbar}
                           iconTint="#fff"
-                          selectedIconTint={BLUE}
+                          selectedIconTint={COLORS.blue}
                           actions={[
                             actions.setBold,
                             actions.setItalic,
@@ -631,8 +642,8 @@ export default function MainScreen() {
                           ref={rich}
                           initialContentHTML={answerText.replace(/\n/g, "<br/>")}
                           editorStyle={{
-                            backgroundColor: CARD_BG,
-                            color: "#fff",
+                            backgroundColor: COLORS.cardBg,
+                            color: COLORS.textPrimary,
                             placeholderColor: "#667085",
                           }}
                           placeholder="Your answer"
@@ -650,7 +661,7 @@ export default function MainScreen() {
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                          style={[styles.oBtn, { marginTop: 10, borderColor: '#ef4444' }]}
+                          style={[styles.oBtn, { marginTop: 10, borderColor: COLORS.danger }]}
                           onPress={() => {
                             Alert.alert(
                               "Discard Extracted Text?",
@@ -671,7 +682,7 @@ export default function MainScreen() {
                             );
                           }}
                         >
-                          <Text style={[styles.oTxt, { color: '#ef4444' }]}>Re-upload Images</Text>
+                          <Text style={[styles.oTxt, { color: COLORS.danger }]}>Re-upload Images</Text>
                         </TouchableOpacity>
                       </View>
                     )}
@@ -679,7 +690,7 @@ export default function MainScreen() {
                     {/* SUBMITTING STATE */}
                     {flowState === 'SUBMITTING' && (
                       <View style={styles.statusBox}>
-                        <ActivityIndicator size="large" color={BLUE} />
+                        <ActivityIndicator size="large" color={COLORS.blue} />
                         <Text style={styles.statusTitle}>Submitting Answer</Text>
                         <Text style={styles.statusDesc}>Enqueuing answer text for AI evaluation...</Text>
                       </View>
@@ -688,7 +699,7 @@ export default function MainScreen() {
                     {/* EVALUATING STATE */}
                     {flowState === 'EVALUATING' && (
                       <View style={styles.statusBox}>
-                        <ActivityIndicator size="large" color={BLUE} />
+                        <ActivityIndicator size="large" color={COLORS.blue} />
                         <Text style={styles.statusTitle}>Evaluating Answer</Text>
                         <Text style={styles.statusDesc}>AI is checking your answer against the official syllabus, model answer, and RAG sources...</Text>
                       </View>
@@ -698,7 +709,7 @@ export default function MainScreen() {
                     {flowState === 'EVAL_FAILED' && (
                       <View style={styles.statusBox}>
                         <Ionicons name="alert-circle" size={48} color="#ef4444" />
-                        <Text style={[styles.statusTitle, { color: '#ef4444' }]}>AI Evaluation Failed</Text>
+                        <Text style={[styles.statusTitle, { color: COLORS.danger }]}>AI Evaluation Failed</Text>
                         <Text style={styles.statusDesc}>{evalError || "Something went wrong while evaluating your answer. Please try again."}</Text>
                         
                         <View style={styles.btnRow}>
@@ -785,7 +796,7 @@ export default function MainScreen() {
                           (evalResult.feedback?.sources ?? []).map((src: any, idx: number) => (
                             <View key={`src-${idx}`} style={styles.srcCard}>
                               <View style={styles.srcRow}>
-                                <Ionicons name="document-text" size={16} color={BLUE} />
+                                <Ionicons name="document-text" size={16} color={COLORS.blue} />
                                 <Text style={styles.srcTitle} numberOfLines={1}>
                                   {src.title}
                                 </Text>
@@ -857,11 +868,11 @@ export default function MainScreen() {
 
         {/* ALL QUESTIONS MODAL */}
         <Modal visible={allModal} animationType="slide">
-          <LinearGradient colors={[BG_TOP, BG_BOTTOM]} style={styles.flex}>
+          <LinearGradient colors={[COLORS.bgTop, COLORS.bgBottom]} style={styles.flex}>
             <SafeContainer style={{ paddingTop: NOTCH_TOP }}>
               <View style={[styles.header]}>
                 <TouchableOpacity onPress={() => setAllModal(false)}>
-                  <Ionicons name="close" size={26} color={BLUE} />
+                  <Ionicons name="close" size={26} color={COLORS.blue} />
                 </TouchableOpacity>
                 <Text style={styles.hTitle}>All Questions</Text>
                 <View style={{ width: 26 }} />
@@ -883,12 +894,12 @@ export default function MainScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (COLORS: any, isDark: boolean) => StyleSheet.create({
   flex: { flex: 1 },
 
   center: { justifyContent: "center", alignItems: "center" },
 
-  info: { color: TEXT_LIGHT },
+  info: { color: COLORS.textLight },
 
   header: {
     paddingHorizontal: 16,
@@ -898,71 +909,71 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
-  hTitle: { color: "#fff", fontWeight: "800", fontSize: 20 },
+  hTitle: { color: COLORS.textPrimary, fontWeight: "800", fontSize: 20 },
 
   seeBtn: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: BLUE,
+    borderColor: COLORS.blue,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 16,
   },
 
-  seeTxt: { color: BLUE, marginRight: 4 },
+  seeTxt: { color: COLORS.blue, marginRight: 4 },
 
   card: {
-    backgroundColor: CARD_BG,
+    backgroundColor: COLORS.cardBg,
     padding: 16,
     borderRadius: 14,
     marginBottom: 16,
   },
 
   cHead: {
-    color: BLUE,
+    color: COLORS.blue,
     fontWeight: "700",
     marginBottom: 8,
     fontSize: 15,
   },
 
-  qText: { color: TEXT_LIGHT, lineHeight: 22, fontSize: 15 },
+  qText: { color: COLORS.textLight, lineHeight: 22, fontSize: 15 },
 
   tagRow: { flexDirection: "row", marginTop: 12 },
 
   tag: {
     backgroundColor: "#0f172a",
     borderWidth: 1,
-    borderColor: BLUE,
+    borderColor: COLORS.blue,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 14,
   },
-  tagT: { color: BLUE, fontSize: 12 },
+  tagT: { color: COLORS.blue, fontSize: 12 },
 
   ml: { marginLeft: 8 },
 
   pBtn: {
-    backgroundColor: BLUE,
+    backgroundColor: COLORS.blue,
     padding: 14,
     borderRadius: 12,
     alignItems: "center",
     marginTop: 10,
   },
-  pTxt: { color: "#fff", fontWeight: "800" },
+  pTxt: { color: COLORS.textPrimary, fontWeight: "800" },
 
   oBtn: {
     borderWidth: 1,
-    borderColor: BLUE,
+    borderColor: COLORS.blue,
     padding: 14,
     borderRadius: 12,
     alignItems: "center",
   },
-  oTxt: { color: BLUE, fontWeight: "700" },
+  oTxt: { color: COLORS.blue, fontWeight: "700" },
 
   time: {
     textAlign: "center",
-    color: BLUE,
+    color: COLORS.blue,
     fontSize: 36,
     fontWeight: "800",
     marginVertical: 10,
@@ -985,23 +996,23 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: CARD_BG,
+    backgroundColor: COLORS.cardBg,
     padding: 20,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
   },
 
-  uTitle: { color: "#fff", fontSize: 18, fontWeight: "700", marginBottom: 10 },
+  uTitle: { color: COLORS.textPrimary, fontSize: 18, fontWeight: "700", marginBottom: 10 },
 
-  cancelTxt: { color: TEXT_LIGHT, textAlign: "center", marginTop: 10 },
+  cancelTxt: { color: COLORS.textLight, textAlign: "center", marginTop: 10 },
 
   evalCardContainer: {
-    backgroundColor: CARD_BG,
+    backgroundColor: COLORS.cardBg,
     borderRadius: 14,
   },
 
   instructionText: {
-    color: TEXT_LIGHT,
+    color: COLORS.textLight,
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 14,
@@ -1013,62 +1024,62 @@ const styles = StyleSheet.create({
   },
 
   scoreBig: {
-    color: '#fff',
+    color: COLORS.textPrimary,
     fontSize: 32,
     fontWeight: '900',
   },
 
   scoreLabel: {
-    color: BLUE,
+    color: COLORS.blue,
     fontSize: 14,
     fontWeight: '600',
     marginTop: 4,
   },
 
   relevanceBox: {
-    backgroundColor: '#0f172a',
+    backgroundColor: COLORS.cardDim,
     padding: 12,
     borderRadius: 10,
     marginVertical: 10,
   },
 
   relevanceTitle: {
-    color: '#fff',
+    color: COLORS.textPrimary,
     fontSize: 14,
     fontWeight: '700',
   },
 
   relevanceBarBg: {
-    backgroundColor: '#334155',
+    backgroundColor: COLORS.border,
     height: 8,
     borderRadius: 4,
     marginVertical: 8,
   },
 
   relevanceBarActive: {
-    backgroundColor: BLUE,
+    backgroundColor: COLORS.blue,
     height: '100%',
     borderRadius: 4,
   },
 
   relevanceText: {
-    color: TEXT_LIGHT,
+    color: COLORS.textLight,
     fontSize: 12,
   },
 
   sectionHeader: {
-    color: '#fff',
+    color: COLORS.textPrimary,
     fontSize: 16,
     fontWeight: '800',
     marginTop: 20,
     marginBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
+    borderBottomColor: COLORS.border,
     paddingBottom: 4,
   },
 
   dimCard: {
-    backgroundColor: '#0f172a',
+    backgroundColor: COLORS.cardDim,
     padding: 12,
     borderRadius: 10,
     marginBottom: 8,
@@ -1081,19 +1092,19 @@ const styles = StyleSheet.create({
   },
 
   dimName: {
-    color: '#fff',
+    color: COLORS.textPrimary,
     fontWeight: '700',
     fontSize: 14,
   },
 
   dimScore: {
-    color: BLUE,
+    color: COLORS.blue,
     fontWeight: '700',
     fontSize: 14,
   },
 
   dimFeedback: {
-    color: TEXT_LIGHT,
+    color: COLORS.textLight,
     fontSize: 13,
     lineHeight: 18,
   },
@@ -1106,7 +1117,7 @@ const styles = StyleSheet.create({
   },
 
   bulletText: {
-    color: TEXT_LIGHT,
+    color: COLORS.textLight,
     fontSize: 14,
     marginLeft: 8,
     lineHeight: 20,
@@ -1114,19 +1125,19 @@ const styles = StyleSheet.create({
   },
 
   conclusionBox: {
-    backgroundColor: '#0f172a',
+    backgroundColor: COLORS.cardDim,
     padding: 12,
     borderRadius: 10,
   },
 
   conclusionText: {
-    color: TEXT_LIGHT,
+    color: COLORS.textLight,
     fontSize: 14,
     lineHeight: 20,
   },
 
   srcCard: {
-    backgroundColor: '#0f172a',
+    backgroundColor: COLORS.cardDim,
     padding: 10,
     borderRadius: 8,
     marginBottom: 6,
@@ -1138,7 +1149,7 @@ const styles = StyleSheet.create({
   },
 
   srcTitle: {
-    color: '#fff',
+    color: COLORS.textPrimary,
     fontSize: 13,
     fontWeight: '600',
     marginLeft: 6,
@@ -1153,18 +1164,18 @@ const styles = StyleSheet.create({
   },
 
   srcType: {
-    color: TEXT_LIGHT,
+    color: COLORS.textLight,
     fontSize: 11,
   },
 
   srcScore: {
-    color: BLUE,
+    color: COLORS.blue,
     fontSize: 11,
     fontWeight: '600',
   },
 
   noSourcesText: {
-    color: TEXT_LIGHT,
+    color: COLORS.textLight,
     fontSize: 13,
     fontStyle: 'italic',
   },
@@ -1173,13 +1184,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: '#0f172a',
+    backgroundColor: COLORS.cardDim,
     borderRadius: 14,
     marginVertical: 20,
   },
 
   statusTitle: {
-    color: '#fff',
+    color: COLORS.textPrimary,
     fontSize: 18,
     fontWeight: '700',
     marginTop: 16,
@@ -1187,7 +1198,7 @@ const styles = StyleSheet.create({
   },
 
   statusDesc: {
-    color: TEXT_LIGHT,
+    color: COLORS.textLight,
     fontSize: 14,
     lineHeight: 20,
     textAlign: 'center',
@@ -1201,7 +1212,7 @@ const styles = StyleSheet.create({
   },
 
   actionBtn: {
-    backgroundColor: BLUE,
+    backgroundColor: COLORS.blue,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -1211,7 +1222,7 @@ const styles = StyleSheet.create({
   },
 
   actionBtnText: {
-    color: '#fff',
+    color: COLORS.textPrimary,
     fontWeight: '700',
     fontSize: 14,
   },
@@ -1219,23 +1230,23 @@ const styles = StyleSheet.create({
   btnOutline: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: BLUE,
+    borderColor: COLORS.blue,
   },
 
   actionBtnTextOutline: {
-    color: BLUE,
+    color: COLORS.blue,
     fontWeight: '700',
     fontSize: 14,
   },
 
   aCard: {
-    backgroundColor: CARD_BG,
+    backgroundColor: COLORS.cardBg,
     padding: 16,
     borderRadius: 14,
     marginBottom: 14,
   },
 
-  aDate: { color: BLUE, fontWeight: "700", marginBottom: 4 },
+  aDate: { color: COLORS.blue, fontWeight: "700", marginBottom: 4 },
 
-  aQ: { color: TEXT_LIGHT, lineHeight: 20 },
+  aQ: { color: COLORS.textLight, lineHeight: 20 },
 });
