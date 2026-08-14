@@ -376,7 +376,13 @@ export default function ExamHomeScreen({ navigation, route }: any) {
               <Ionicons name="clipboard" size={28} color="#8b5cf6" />
               <Text style={[styles.quickText, { fontWeight: "800" }]}>Test Series</Text>
             </TouchableOpacity>
-            <View style={{ width: "30%" }} />
+            <TouchableOpacity
+              style={[styles.quickCard, { backgroundColor: COLORS.card, borderColor: "#f59e0b", borderWidth: 1 }]}
+              onPress={() => navigation.navigate("MapPracticeScreen")}
+            >
+              <Ionicons name="map" size={28} color="#f59e0b" />
+              <Text style={[styles.quickText, { fontWeight: "800" }]}>Map Game</Text>
+            </TouchableOpacity>
           </View>
 
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Study Tools</Text>
@@ -397,7 +403,7 @@ export default function ExamHomeScreen({ navigation, route }: any) {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("SyllabusScreen")}
+              onPress={() => navigation.navigate("SyllabusTrackerScreen")}
             >
               <FontAwesome5 name="list-alt" size={24} color={COLORS.accent} />
               <Text style={styles.quickText}>Syllabus</Text>
@@ -414,17 +420,17 @@ export default function ExamHomeScreen({ navigation, route }: any) {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("ExamInfoScreen")}
+              onPress={() => navigation.navigate("WeaknessVaultScreen")}
             >
-              <Ionicons name="information-circle-outline" size={26} color={COLORS.accent} />
-              <Text style={styles.quickText}>Exam Info</Text>
+              <Ionicons name="warning-outline" size={26} color={COLORS.accent} />
+              <Text style={styles.quickText}>Mistakes</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.quickCard, { backgroundColor: COLORS.card }]}
-              onPress={() => navigation.navigate("CutOffScreen")}
+              onPress={() => navigation.navigate("CheatSheetScreen")}
             >
-              <Ionicons name="stats-chart" size={26} color={COLORS.accent} />
-              <Text style={styles.quickText}>Cut-Offs</Text>
+              <Ionicons name="document-text-outline" size={26} color={COLORS.accent} />
+              <Text style={styles.quickText}>Cheat Sheet</Text>
             </TouchableOpacity>
           </View>
 

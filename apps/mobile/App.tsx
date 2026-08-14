@@ -32,6 +32,10 @@ import LeaderboardScreen from "./src/screens/LeaderboardScreen";
 import StudyRoomScreen from "./src/screens/StudyRoomScreen";
 import TestSeriesHubScreen from "./src/screens/TestSeriesHubScreen";
 import ActiveMockTestScreen from "./src/screens/ActiveMockTestScreen";
+import MapPracticeScreen from "./src/screens/MapPracticeScreen";
+import SyllabusTrackerScreen from "./src/screens/SyllabusTrackerScreen";
+import WeaknessVaultScreen from "./src/screens/WeaknessVaultScreen";
+import CheatSheetScreen from "./src/screens/CheatSheetScreen";
 import SubscriptionScreen from "./src/screens/SubscriptionScreen";
 
 // Type definitions for navigation
@@ -83,6 +87,10 @@ export type RootStackParamList = {
   StudyRoomScreen: undefined;
   TestSeriesHubScreen: undefined;
   ActiveMockTestScreen: undefined;
+  MapPracticeScreen: undefined;
+  SyllabusTrackerScreen: undefined;
+  WeaknessVaultScreen: undefined;
+  CheatSheetScreen: undefined;
   SubscriptionScreen: undefined;
   ChapterScreen: { subject: string; chapter: string };
 };
@@ -114,6 +122,10 @@ export default function App() {
           <Stack.Screen name="StudyRoomScreen" component={StudyRoomScreen} />
           <Stack.Screen name="TestSeriesHubScreen" component={TestSeriesHubScreen} />
           <Stack.Screen name="ActiveMockTestScreen" component={ActiveMockTestScreen} />
+          <Stack.Screen name="MapPracticeScreen" component={MapPracticeScreen} />
+          <Stack.Screen name="SyllabusTrackerScreen" component={SyllabusTrackerScreen} />
+          <Stack.Screen name="WeaknessVaultScreen" component={WeaknessVaultScreen} />
+          <Stack.Screen name="CheatSheetScreen" component={CheatSheetScreen} />
           <Stack.Screen name="ExamHomeScreen" component={ExamHomeScreen} />
           <Stack.Screen name="QuizScreen" component={QuizScreen} />
           <Stack.Screen name="QuizResultScreen" component={QuizResultScreen} />
