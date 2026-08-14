@@ -191,7 +191,7 @@ const ListItem = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS }: a
           </View>
 
           {/* Daily Goals */}
-          <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Today's Mission</Text>
+          {/* Daily Goals */}
           <View style={styles.progressContainer}>
             <View style={[styles.progressCardNew, { backgroundColor: COLORS.card, shadowColor: COLORS.border }]}>
               <Ionicons name="book-outline" size={20} color={COLORS.accent} />
@@ -219,10 +219,30 @@ const ListItem = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS }: a
               <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Recommended for You</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
                 {recommendations.map((rec, index) => (
-                  <View key={index} style={[styles.recCard, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
+                  <TouchableOpacity 
+                    key={index} 
+                    style={[styles.recCard, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}
+                    onPress={() => {
+                      if (rec.type === "QUIZ") {
+                        navigation.navigate("MCQScreen");
+                      } else if (rec.type === "MAINS") {
+                        navigation.navigate("MainScreen");
+                      } else if (rec.type === "TOPIC" || rec.type === "REVISION") {
+                        if (rec.topicId) {
+                          navigation.navigate("ChapterScreen", {
+                            materialId: rec.topicId,
+                            subject: "Recommended Topic",
+                            chapter: rec.title,
+                          });
+                        } else {
+                          navigation.navigate("NotesScreen");
+                        }
+                      }
+                    }}
+                  >
                     <Text style={[styles.recCardTitle, { color: COLORS.text }]} numberOfLines={2}>{rec.title}</Text>
                     <Text style={[styles.recCardReason, { color: COLORS.sub }]} numberOfLines={2}>{rec.reason}</Text>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </ScrollView>
             </>
@@ -337,7 +357,7 @@ const styles = StyleSheet.create({
   greetingBox: { marginHorizontal: 16, marginTop: 4, alignItems: "center" },
   greetTitle: { fontSize: 18, fontWeight: "800" },
   greetSub: { textAlign: "center", fontSize: 13, fontStyle: "italic", marginTop: 4 },
-  sectionTitle: { fontSize: 18, fontWeight: "800", marginTop: 24, marginBottom: 12, marginLeft: 16 },
+  sectionTitle: { fontSize: 15, fontWeight: "700", marginTop: 20, marginBottom: 10, marginLeft: 16 },
   
   aiMentorBanner: {
     marginHorizontal: 16,
@@ -357,78 +377,79 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginHorizontal: 16,
+    marginTop: 10,
   },
   progressCardNew: {
     width: "31%",
-    paddingVertical: 14,
-    borderRadius: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
     alignItems: "center",
-    elevation: 2,
-    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
-    shadowRadius: 3,
+    shadowRadius: 2,
   },
-  progressValueNew: { fontSize: 18, fontWeight: "900", marginTop: 4 },
-  progressLabelNew: { fontSize: 11, fontWeight: "600", marginTop: 2 },
+  progressValueNew: { fontSize: 15, fontWeight: "800", marginTop: 2 },
+  progressLabelNew: { fontSize: 10, fontWeight: "500", marginTop: 1 },
 
   premiumCard: {
-    width: 140,
-    height: 140,
-    borderRadius: 20,
-    padding: 16,
-    marginRight: 12,
+    width: 130,
+    height: 130,
+    borderRadius: 16,
+    padding: 14,
+    marginRight: 10,
     borderWidth: 1,
     justifyContent: "center",
   },
   premiumIconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    marginBottom: 10,
   },
-  premiumCardTitle: { fontSize: 15, fontWeight: "800", marginBottom: 4 },
-  premiumCardDesc: { fontSize: 11, fontWeight: "500" },
+  premiumCardTitle: { fontSize: 14, fontWeight: "700", marginBottom: 2 },
+  premiumCardDesc: { fontSize: 10, fontWeight: "500" },
 
   listGroup: {
     marginHorizontal: 16,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
     overflow: "hidden",
   },
   listItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    padding: 14,
   },
   listIconBox: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
   },
   listText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "600",
     flex: 1,
   },
   divider: {
     height: 1,
-    marginLeft: 64, // aligns with text
+    marginLeft: 58, // aligns with text
   },
 
   recCard: {
-    width: 280,
-    padding: 16,
-    borderRadius: 16,
+    width: 240,
+    padding: 12,
+    borderRadius: 12,
     borderWidth: 1,
-    marginRight: 12,
+    marginRight: 10,
   },
-  recCardTitle: { fontSize: 15, fontWeight: "700", marginBottom: 6 },
-  recCardReason: { fontSize: 13, lineHeight: 18 },
+  recCardTitle: { fontSize: 13, fontWeight: "700", marginBottom: 4 },
+  recCardReason: { fontSize: 11, lineHeight: 16 },
 
   bottomBar: {
     position: "absolute",
