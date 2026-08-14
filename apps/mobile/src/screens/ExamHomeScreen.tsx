@@ -173,8 +173,9 @@ const ListItem = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS }: a
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Header */}
           <View style={styles.headerRow}>
-            <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }]}>
-              <Text style={[styles.greetTitle, { color: COLORS.text }]}>{getGreeting()}, {userData.name}!</Text>
+            <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', flexDirection: 'row' }]}>
+              <Text style={[styles.dateText, { color: COLORS.sub }]}>{formattedDate}   •   </Text>
+              <Text style={[styles.timeText, { color: COLORS.accent }]}>{formattedTime}</Text>
             </View>
             <TouchableOpacity
               style={[styles.avatarCircle, { backgroundColor: COLORS.card }]}
@@ -188,34 +189,6 @@ const ListItem = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS }: a
               </TouchableOpacity>
             </View>
           </View>
-
-          <View style={styles.dateTimeBox}>
-            <Text style={[styles.dateText, { color: COLORS.sub }]}>{formattedDate}   •   </Text>
-            <Text style={[styles.timeText, { color: COLORS.accent }]}>{formattedTime}</Text>
-          </View>
-
-          <View style={styles.greetingBox}>
-            <Text style={[styles.greetSub, { color: COLORS.sub }]}>💡 {dailyTip}</Text>
-          </View>
-
-          {/* AI Mentor */}
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => navigation.navigate("AiMentorScreen")}
-            style={[styles.aiMentorBanner, { backgroundColor: COLORS.card, borderColor: COLORS.accent }]}
-          >
-            <View style={[styles.aiIconBox, { backgroundColor: isDark ? "rgba(6,182,212,0.15)" : "#e0f2fe" }]}>
-              <Ionicons name="sparkles" size={24} color={COLORS.accent} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <Text style={[styles.aiBannerTitle, { color: COLORS.text }]}>Ask UPSC Mentor</Text>
-                <View style={styles.betaBadge}><Text style={styles.betaText}>BETA</Text></View>
-              </View>
-              <Text style={{ fontSize: 12, color: COLORS.sub, marginTop: 2 }}>Resolve your doubts instantly with AI</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.sub} />
-          </TouchableOpacity>
 
           {/* Daily Goals */}
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Today's Mission</Text>
