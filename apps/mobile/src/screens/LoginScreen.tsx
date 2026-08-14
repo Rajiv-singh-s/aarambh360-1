@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/LoginScreen.tsx
 import React, { useState, useEffect } from "react";
 import {
@@ -54,12 +55,14 @@ export default function LoginScreen() {
           const token = await user.getIdToken();
           const profile = await loginWithFirebaseToken(token);
           if (profile.user.profileCompleted) {
-            navigation.replace("MainHomeScreen");
+            navigation.replace("ExamHomeScreen", { exam: "UPSC" });
           } else {
             navigation.replace("Signup");
           }
-        } catch {
-          navigation.replace("Signup");
+        } catch (err: any) {
+          console.error("Session restore error:", err);
+          // If the backend fails (e.g. timeout or 500), sign out of Firebase so they aren't stuck
+          auth.signOut();
           setRestoringSession(false);
         }
       } else {
@@ -80,7 +83,8 @@ export default function LoginScreen() {
 
   const handleAuth = async () => {
     if (!email.includes("@") || password.length < 6) {
-      Alert.alert("Invalid Input", "Enter a valid email & password (6+ chars)");
+      if (Platform.OS === 'web') alert("Enter a valid email & password (6+ chars)");
+      else Alert.alert("Invalid Input", "Enter a valid email & password (6+ chars)");
       return;
     }
 
@@ -93,7 +97,7 @@ export default function LoginScreen() {
       const profile = await loginWithFirebaseToken(token);
 
       if (profile.user.profileCompleted) {
-        navigation.replace("MainHomeScreen");
+        navigation.replace("ExamHomeScreen", { exam: "UPSC" });
       } else {
         navigation.replace("Signup");
       }
@@ -101,21 +105,29 @@ export default function LoginScreen() {
       // Firebase 2024+ sometimes throws invalid-credential instead of user-not-found
       if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential") {
         try {
+          console.log("Attempting signup for new user...");
           const newUser = await createUserWithEmailAndPassword(auth, email, password);
           const token = await newUser.user.getIdToken();
           await loginWithFirebaseToken(token);
           navigation.replace("Signup");
         } catch (signupErr: any) {
-          Alert.alert("Signup Error", signupErr.message);
+          console.error("Signup Error:", signupErr);
+          if (Platform.OS === 'web') alert(`Signup Error: ${signupErr.message}`);
+          else Alert.alert("Signup Error", signupErr.message);
         }
       } else if (err.code === "auth/wrong-password") {
-        Alert.alert("Incorrect Password", "Please check your password and try again.");
+        if (Platform.OS === 'web') alert("Incorrect Password");
+        else Alert.alert("Incorrect Password", "Please check your password and try again.");
       } else if (err.code === "auth/invalid-email") {
-        Alert.alert("Invalid Email", "Please enter a valid email address.");
+        if (Platform.OS === 'web') alert("Invalid Email");
+        else Alert.alert("Invalid Email", "Please enter a valid email address.");
       } else if (err.code === "auth/too-many-requests") {
-        Alert.alert("Too Many Attempts", "Please try again later.");
+        if (Platform.OS === 'web') alert("Too Many Attempts");
+        else Alert.alert("Too Many Attempts", "Please try again later.");
       } else {
-        Alert.alert("Login Error", err.message);
+        console.error("Login Error:", err);
+        if (Platform.OS === 'web') alert(`Login Error: ${err.message}`);
+        else Alert.alert("Login Error", err.message);
       }
     } finally {
       setLoading(false);

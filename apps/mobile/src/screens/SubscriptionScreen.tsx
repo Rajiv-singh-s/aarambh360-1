@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -9,7 +10,6 @@ import {
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import type { PlanDto, UserEntitlementsDto } from '@aarambh360/types';
 import {
   cancelSubscription,
@@ -72,7 +72,7 @@ export default function SubscriptionScreen({ navigation }: any) {
 
   return (
     <LinearGradient colors={['#0b1220', '#111b2e']} style={styles.flex}>
-      <SafeAreaView style={styles.flex}>
+      <SafeContainer style={styles.flex}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.back}>Back</Text>
@@ -125,7 +125,7 @@ export default function SubscriptionScreen({ navigation }: any) {
             ) : null}
           </ScrollView>
         )}
-      </SafeAreaView>
+      </SafeContainer>
     </LinearGradient>
   );
 }

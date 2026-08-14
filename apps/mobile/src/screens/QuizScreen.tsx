@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/QuizScreen.tsx
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -6,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
-  SafeAreaView,
   Animated,
   Modal,
   TextInput,
@@ -439,7 +439,7 @@ export default function QuizScreen() {
 
     return (
       <LinearGradient colors={COLORS.bg} style={styles.safe}>
-        <SafeAreaView style={styles.resultBox}>
+        <SafeContainer style={styles.resultBox}>
           {showConfetti && (
             <ConfettiCannon count={120} origin={{ x: 180, y: 0 }} fadeOut />
           )}
@@ -663,7 +663,7 @@ export default function QuizScreen() {
               )}
             </View>
           </Modal>
-        </SafeAreaView>
+        </SafeContainer>
       </LinearGradient>
     );
   }
@@ -674,7 +674,7 @@ export default function QuizScreen() {
 
     return (
       <LinearGradient colors={COLORS.bg} style={styles.safe}>
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeContainer style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
             <View style={styles.header}>
               <TouchableOpacity
@@ -796,7 +796,7 @@ export default function QuizScreen() {
               </LinearGradient>
             </TouchableOpacity>
           </View>
-        </SafeAreaView>
+        </SafeContainer>
       </LinearGradient>
     );
   }
@@ -806,7 +806,7 @@ export default function QuizScreen() {
 
   return (
     <LinearGradient colors={COLORS.bg} style={styles.safe}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeContainer style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
           {/* HEADER */}
           <View style={styles.header}>
@@ -1023,7 +1023,7 @@ export default function QuizScreen() {
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </SafeContainer>
 
       <Modal visible={showBookmarkPopup} transparent animationType="fade">
         <View style={styles.modalWrapper}>

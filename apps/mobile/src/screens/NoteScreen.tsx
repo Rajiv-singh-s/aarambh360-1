@@ -1,10 +1,10 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/NoteScreen.tsx
 import React from "react";
 import {
   View,
   Text,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   ActivityIndicator,
   Platform,
@@ -34,7 +34,7 @@ export default function NotesScreen({ navigation }: any) {
 
   return (
     <LinearGradient colors={THEME.bg} style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeContainer style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={{ padding: 16 }}>
             <Text style={{ color: THEME.text, fontSize: 24, fontWeight: "800" }}>
@@ -72,7 +72,7 @@ export default function NotesScreen({ navigation }: any) {
 
           <View style={{ height: 120 }} />
         </ScrollView>
-      </SafeAreaView>
+      </SafeContainer>
     </LinearGradient>
   );
 }

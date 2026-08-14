@@ -73,39 +73,43 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
 export default function App() {
   return (
-    <AuthProvider>
-      <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Login"
-        screenOptions={{
-          headerShown: false,
-          animation: "slide_from_right",
-        }}
-      >
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Signup" component={SignupScreen} />
-        <Stack.Screen name="MainHomeScreen" component={MainHomeScreen} />
-        <Stack.Screen name="ExamHomeScreen" component={ExamHomeScreen} />
-        <Stack.Screen name="QuizScreen" component={QuizScreen} />
-        <Stack.Screen name="QuizResultScreen" component={QuizResultScreen} />
-        <Stack.Screen name="MCQScreen" component={MCQScreen} />
-        <Stack.Screen name="SyllabusScreen" component={SyllabusScreen} />
-        <Stack.Screen name="NcertScreen" component={NcertScreen} />
-        <Stack.Screen name="ExamInfoScreen" component={ExamInfoScreen} />
-        <Stack.Screen name="NewsScreen" component={NewsScreen} />
-        <Stack.Screen name="StreakScreen" component={StreakScreen} />
-        <Stack.Screen name="MainScreen" component={MainScreen} />
-        <Stack.Screen name="CutOffScreen" component={CutOffScreen} />
-        <Stack.Screen name="StrategyScreen" component={StrategyScreen} />
-        <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-        <Stack.Screen name="NotesScreen" component={NotesScreen} />
-        <Stack.Screen name="PYQScreen" component={PYQScreen} />
-        <Stack.Screen name="ChapterScreen" component={ChapterScreen} />
-        <Stack.Screen name="SubscriptionScreen" component={SubscriptionScreen} />
-      </Stack.Navigator>
-      </NavigationContainer>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="Login"
+          screenOptions={{
+            headerShown: false,
+            animation: "slide_from_right",
+          }}
+        >
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Signup" component={SignupScreen} />
+          <Stack.Screen name="MainHomeScreen" component={MainHomeScreen} />
+          <Stack.Screen name="ExamHomeScreen" component={ExamHomeScreen} />
+          <Stack.Screen name="QuizScreen" component={QuizScreen} />
+          <Stack.Screen name="QuizResultScreen" component={QuizResultScreen} />
+          <Stack.Screen name="MCQScreen" component={MCQScreen} />
+          <Stack.Screen name="SyllabusScreen" component={SyllabusScreen} />
+          <Stack.Screen name="NcertScreen" component={NcertScreen} />
+          <Stack.Screen name="ExamInfoScreen" component={ExamInfoScreen} />
+          <Stack.Screen name="NewsScreen" component={NewsScreen} />
+          <Stack.Screen name="StreakScreen" component={StreakScreen} />
+          <Stack.Screen name="MainScreen" component={MainScreen} />
+          <Stack.Screen name="CutOffScreen" component={CutOffScreen} />
+          <Stack.Screen name="StrategyScreen" component={StrategyScreen} />
+          <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+          <Stack.Screen name="NotesScreen" component={NotesScreen} />
+          <Stack.Screen name="PYQScreen" component={PYQScreen} />
+          <Stack.Screen name="ChapterScreen" component={ChapterScreen} />
+          <Stack.Screen name="SubscriptionScreen" component={SubscriptionScreen} />
+        </Stack.Navigator>
+        </NavigationContainer>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

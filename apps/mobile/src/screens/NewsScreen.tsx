@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/NewsScreen.tsx
 import React, { useEffect, useState, useCallback } from "react";
 import {
@@ -15,7 +16,6 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { WebView } from "react-native-webview";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 
 const API_KEY = "4044ce8f82934ef4b96ac2ccc0b9869f";
@@ -77,7 +77,7 @@ export default function NewsScreen() {
   // WebView Mode
   if (selectedArticle) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.bg[0] }}>
+      <SafeContainer style={{ flex: 1, backgroundColor: COLORS.bg[0] }}>
         <BlurView
           intensity={40}
           tint={isDark ? "dark" : "light"}
@@ -104,14 +104,14 @@ export default function NewsScreen() {
           )}
           style={{ flex: 1 }}
         />
-      </SafeAreaView>
+      </SafeContainer>
     );
   }
 
   // Main UI
   return (
     <LinearGradient colors={COLORS.bg} style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeContainer style={{ flex: 1 }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -207,7 +207,7 @@ export default function NewsScreen() {
 
           <View style={{ height: 100 }} />
         </ScrollView>
-      </SafeAreaView>
+      </SafeContainer>
     </LinearGradient>
   );
 }

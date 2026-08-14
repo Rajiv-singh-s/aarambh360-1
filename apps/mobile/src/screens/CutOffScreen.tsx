@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/CutOffScreen.tsx
 import React, { useState, useRef } from "react";
 import {
@@ -7,7 +8,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  SafeAreaView,
   useColorScheme,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -45,7 +45,7 @@ export default function CutOffScreen({ navigation }: any) {
 
   return (
     <LinearGradient colors={COLORS.bg} style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeContainer style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false}>
           
           {/* HEADER */}
@@ -179,7 +179,7 @@ export default function CutOffScreen({ navigation }: any) {
 
           <View style={{ height: 120 }} />
         </ScrollView>
-      </SafeAreaView>
+      </SafeContainer>
     </LinearGradient>
   );
 }

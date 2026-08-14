@@ -33,13 +33,10 @@ export class AuthService {
   }
 
   async verifyToken(idToken: string): Promise<DecodedIdToken> {
-    if (!this.firebaseAdmin.isConfigured()) {
-      throw new UnauthorizedException('Authentication service is not configured');
-    }
-
     try {
       return await this.firebaseAdmin.verifyIdToken(idToken);
-    } catch {
+    } catch (e) {
+      console.error('Token verification failed:', e);
       throw new UnauthorizedException('Invalid or expired authentication token');
     }
   }

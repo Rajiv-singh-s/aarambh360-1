@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/StrategyScreen.tsx
 import React, { useState } from "react";
 import {
@@ -6,7 +7,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   LayoutAnimation,
   Platform,
   UIManager,
@@ -120,7 +120,7 @@ export default function StrategyScreen({ navigation }: any) {
 
   return (
     <LinearGradient colors={COLORS.bg} style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeContainer style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false}>
 
           {/* HEADER */}
@@ -178,7 +178,7 @@ export default function StrategyScreen({ navigation }: any) {
 
           <View style={{ height: 100 }} />
         </ScrollView>
-      </SafeAreaView>
+      </SafeContainer>
     </LinearGradient>
   );
 }

@@ -2,7 +2,7 @@ import type { AuthMeResponseDto, LoginResponseDto } from '@aarambh360/types';
 import { apiClient } from './apiClient';
 
 export async function loginWithFirebaseToken(token: string): Promise<LoginResponseDto> {
-  const response = await apiClient.post<LoginResponseDto>('/auth/login', null, {
+  const response = await apiClient.post<LoginResponseDto>('/auth/login', undefined, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;

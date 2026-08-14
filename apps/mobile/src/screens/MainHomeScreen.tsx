@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/MainHomeScreen.tsx
 import React, { useEffect, useState } from "react";
 import {
@@ -6,7 +7,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   ActivityIndicator,
   useColorScheme,
 } from "react-native";
@@ -96,7 +96,7 @@ export default function MainHomeScreen({ navigation }: any) {
       colors={[COLORS.bg[0], COLORS.bg[1]]}
       style={styles.safe}
     >
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeContainer style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false}>
 
           {/* HEADER */}
@@ -216,7 +216,7 @@ export default function MainHomeScreen({ navigation }: any) {
           <View style={{ height: 100 }} />
 
         </ScrollView>
-      </SafeAreaView>
+      </SafeContainer>
     </LinearGradient>
   );
 }

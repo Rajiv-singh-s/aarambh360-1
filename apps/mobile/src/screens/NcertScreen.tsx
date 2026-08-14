@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/NcertScreen.tsx
 import React, { useEffect, useState } from "react";
 import {

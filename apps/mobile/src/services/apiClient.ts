@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { auth } from '../firebaseConfig';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:4000';
+const API_BASE_URL = 'https://aarambh360-1.onrender.com';
 
 let onUnauthorized: (() => void) | null = null;
 
@@ -21,7 +21,7 @@ async function attachAuthToken(config: InternalAxiosRequestConfig) {
 function createClient(): AxiosInstance {
   const client = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 15_000,
+    timeout: 60_000,
     headers: { 'Content-Type': 'application/json' },
   });
 

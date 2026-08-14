@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/MCQScreen.tsx — subject/topic picker backed by NestJS API
 import React, { useEffect, useState, useRef } from "react";
 import {
@@ -7,7 +8,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   ScrollView,
-  SafeAreaView,
   Modal,
   Animated,
   useColorScheme,
@@ -83,7 +83,7 @@ export default function MCQScreen({ navigation }: any) {
 
   return (
     <LinearGradient colors={[COLORS.bg[0], COLORS.bg[1]]} style={styles.safe}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeContainer style={{ flex: 1 }}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={22} color={COLORS.accent} />
@@ -142,7 +142,7 @@ export default function MCQScreen({ navigation }: any) {
             </View>
           </View>
         </Modal>
-      </SafeAreaView>
+      </SafeContainer>
     </LinearGradient>
   );
 }

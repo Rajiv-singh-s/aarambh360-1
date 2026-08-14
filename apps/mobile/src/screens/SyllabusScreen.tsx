@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/SyllabusScreen.tsx
 import React, { useEffect, useState, useRef } from "react";
 import {
@@ -120,7 +121,7 @@ export default function SyllabusScreen() {
   return (
     <LinearGradient colors={COLORS.bg} style={{ flex: 1 }}>
       {/* HEADER */}
-      <BlurView intensity={40} tint={isDark ? "dark" : "light"} style={styles.header}>
+      <View style={[styles.header, { backgroundColor: isDark ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.85)', borderBottomColor: COLORS.border }]}>
         <View style={styles.headerRow}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -140,7 +141,7 @@ export default function SyllabusScreen() {
 
           <View style={{ width: 40 }} />
         </View>
-      </BlurView>
+      </View>
 
       {/* CONTENT */}
       <ScrollView

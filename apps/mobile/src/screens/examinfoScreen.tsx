@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/examinfoScreen.tsx
 import React, { useEffect, useState, useRef } from "react";
 import {
@@ -8,7 +9,6 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Animated,
-  SafeAreaView,
   StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -111,33 +111,20 @@ export default function ExamInfoScreen() {
   /* MAIN SCREEN */
   return (
     <LinearGradient colors={COLORS.bg} style={styles.gradient}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeContainer style={{ flex: 1 }}>
         <StatusBar
           barStyle={isDark ? "light-content" : "dark-content"}
           backgroundColor={COLORS.bg[0]}
         />
 
         {/* Header */}
-        <BlurView
-          intensity={40}
-          tint={isDark ? "dark" : "light"}
-          style={styles.headerBlur}
-        >
-          <View style={styles.headerRow}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={styles.backBtn}
-            >
-              <Ionicons name="arrow-back" size={24} color={COLORS.accent} />
-            </TouchableOpacity>
-
-            <Text style={[styles.headerTitle, { color: COLORS.accent }]}>
-              UPSC CSE 2026 Info
-            </Text>
-
-            <View style={{ width: 40 }} />
-          </View>
-        </BlurView>
+        <View style={[styles.headerBlur, { backgroundColor: isDark ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.85)' }]}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.accent} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: COLORS.text }]}>Exam Info</Text>
+          <View style={{ width: 24 }} />
+        </View>
 
         {/* Content */}
         <ScrollView
@@ -183,7 +170,7 @@ export default function ExamInfoScreen() {
             </View>
           </Animated.View>
         </ScrollView>
-      </SafeAreaView>
+      </SafeContainer>
     </LinearGradient>
   );
 }

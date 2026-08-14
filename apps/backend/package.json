@@ -4,7 +4,7 @@
   "private": true,
   "description": "Aarambh360 NestJS Backend API",
   "scripts": {
-    "build": "pnpm --filter @aarambh360/types build && nest build",
+    "build": "pnpm --filter @aarambh360/types build && prisma generate && prisma migrate deploy && nest build",
     "prestart:dev": "pnpm --filter @aarambh360/types build",
     "start": "pnpm --filter @aarambh360/types build && nest start",
     "start:dev": "pnpm --filter @aarambh360/types build && nest start --watch",

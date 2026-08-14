@@ -1,5 +1,5 @@
 -- DropIndex
-DROP INDEX "rag_embeddings_embedding_hnsw_idx";
+DROP INDEX IF EXISTS "rag_embeddings_embedding_hnsw_idx";
 
 -- CreateIndex
 CREATE INDEX "mains_submissions_user_id_status_idx" ON "mains_submissions"("user_id", "status");

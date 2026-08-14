@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/MainScreen.tsx
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -18,7 +19,6 @@ import {
 } from "react-native";
 
 import { LinearGradient } from "expo-linear-gradient";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 
@@ -414,16 +414,16 @@ export default function MainScreen() {
   if (loading)
     return (
       <LinearGradient colors={[BG_TOP, BG_BOTTOM]} style={styles.flex}>
-        <SafeAreaView style={styles.center}>
+        <SafeContainer style={styles.center}>
           <ActivityIndicator size="large" color={BLUE} />
           <Text style={styles.info}>Loading…</Text>
-        </SafeAreaView>
+        </SafeContainer>
       </LinearGradient>
     );
 
   return (
     <LinearGradient colors={[BG_TOP, BG_BOTTOM]} style={styles.flex}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeContainer style={{ flex: 1 }}>
         {/* HEADER */}
         <View style={[styles.header, { paddingTop: NOTCH_TOP }]}>
           <TouchableOpacity onPress={() => nav.goBack()}>
@@ -476,7 +476,7 @@ export default function MainScreen() {
         {/* ATTEMPT MODAL */}
         <Modal visible={attemptModal} animationType="slide">
           <LinearGradient colors={[BG_TOP, BG_BOTTOM]} style={styles.flex}>
-            <SafeAreaView>
+            <SafeContainer>
               <View style={[styles.header, { paddingTop: NOTCH_TOP }]}>
                 <TouchableOpacity onPress={() => setAttemptModal(false)}>
                   <Ionicons name="close" size={26} color={BLUE} />
@@ -501,14 +501,14 @@ export default function MainScreen() {
                   </TouchableOpacity>
                 </View>
               </ScrollView>
-            </SafeAreaView>
+            </SafeContainer>
           </LinearGradient>
         </Modal>
 
         {/* WRITE ANSWER MODAL */}
         <Modal visible={timerModal} animationType="slide">
           <LinearGradient colors={[BG_TOP, BG_BOTTOM]} style={styles.flex}>
-            <SafeAreaView style={{ flex: 1 }}>
+            <SafeContainer style={{ flex: 1 }}>
               <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -851,14 +851,14 @@ export default function MainScreen() {
                   </Animated.View>
                 )}
               </KeyboardAvoidingView>
-            </SafeAreaView>
+            </SafeContainer>
           </LinearGradient>
         </Modal>
 
         {/* ALL QUESTIONS MODAL */}
         <Modal visible={allModal} animationType="slide">
           <LinearGradient colors={[BG_TOP, BG_BOTTOM]} style={styles.flex}>
-            <SafeAreaView style={{ paddingTop: NOTCH_TOP }}>
+            <SafeContainer style={{ paddingTop: NOTCH_TOP }}>
               <View style={[styles.header]}>
                 <TouchableOpacity onPress={() => setAllModal(false)}>
                   <Ionicons name="close" size={26} color={BLUE} />
@@ -875,10 +875,10 @@ export default function MainScreen() {
                   </View>
                 ))}
               </ScrollView>
-            </SafeAreaView>
+            </SafeContainer>
           </LinearGradient>
         </Modal>
-      </SafeAreaView>
+      </SafeContainer>
     </LinearGradient>
   );
 }

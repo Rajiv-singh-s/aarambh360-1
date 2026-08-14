@@ -33,6 +33,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         message = (body.message as string | string[]) ?? message;
         error = (body.error as string) ?? exception.name;
       }
+      this.logger.error(`HttpException on ${request.method} ${request.url}: ${status} - ${JSON.stringify(message)}`);
     } else if (exception instanceof Error) {
       this.logger.error(`Unhandled error on ${request.method} ${request.url}`, exception.stack);
       message = 'Internal server error';

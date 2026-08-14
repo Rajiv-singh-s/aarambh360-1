@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/ProfileScreen.tsx
 import React, { useState, useEffect } from "react";
 import {
@@ -6,7 +7,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   Image,
   Modal,
   TextInput,
@@ -151,19 +151,19 @@ export default function ProfileScreen({ navigation }: any) {
 
   return (
     <LinearGradient colors={COLORS.bg} style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeContainer style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false}>
 
-          {/* GLASS HEADER */}
-          <BlurView tint={isDark ? "dark" : "light"} intensity={40} style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
+          {/* GLASS HEADER (Fixed for Android touch) */}
+          <View style={[styles.header, { backgroundColor: isDark ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.85)' }]}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
               <Ionicons name="arrow-back" size={24} color={COLORS.accent} />
             </TouchableOpacity>
 
             <Text style={[styles.headerTitle, { color: COLORS.text }]}>Profile</Text>
 
             <Ionicons name="settings-outline" size={24} color={COLORS.accent} />
-          </BlurView>
+          </View>
 
           {/* PROFILE SECTION */}
           <View style={styles.profileSection}>
@@ -268,8 +268,13 @@ export default function ProfileScreen({ navigation }: any) {
             </TouchableOpacity>
           </View>
 
-          {/* LOGOUT */}
-          <TouchableOpacity style={styles.logoutBtn} onPress={() => auth.signOut()}>
+          <TouchableOpacity 
+            style={styles.logoutBtn} 
+            onPress={async () => {
+              await auth.signOut();
+              navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+            }}
+          >
             <Ionicons name="log-out-outline" size={22} color="#ef4444" />
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
@@ -424,7 +429,7 @@ export default function ProfileScreen({ navigation }: any) {
           </View>
         </Modal>
 
-      </SafeAreaView>
+      </SafeContainer>
     </LinearGradient>
   );
 }

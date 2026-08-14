@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/pyqScreen.tsx
 import React, { useEffect, useRef } from "react";
 import {
@@ -6,7 +7,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   ActivityIndicator,
   StatusBar,
   Animated,
@@ -59,27 +59,17 @@ export default function PYQScreen({ navigation }: any) {
 
   return (
     <LinearGradient colors={COLORS.bg} style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeContainer style={{ flex: 1 }}>
         <StatusBar translucent backgroundColor="transparent" />
 
         {/* HEADER */}
-        <BlurView
-          intensity={40}
-          tint={isDark ? "dark" : "light"}
-          style={styles.headerBlur}
-        >
-          <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={26} color={COLORS.accent} />
-            </TouchableOpacity>
-
-            <Text style={[styles.headerTitle, { color: COLORS.text }]}>
-              PYQs - GS1 ({year})
-            </Text>
-
-            <View style={{ width: 26 }} />
-          </View>
-        </BlurView>
+        <View style={[styles.headerBlur, { backgroundColor: isDark ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.85)' }]}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.accent} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: COLORS.text }]}>PYQs - GS1 ({year})</Text>
+          <View style={{ width: 24 }} />
+        </View>
 
         {/* BODY */}
         <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
@@ -154,7 +144,7 @@ export default function PYQScreen({ navigation }: any) {
             <View style={{ height: 140 }} />
           </ScrollView>
         </Animated.View>
-      </SafeAreaView>
+      </SafeContainer>
     </LinearGradient>
   );
 }

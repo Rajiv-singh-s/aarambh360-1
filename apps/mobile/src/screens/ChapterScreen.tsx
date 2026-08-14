@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // Simplified chapter reader — loads study material content from API when materialId is passed
 import React from "react";
 import {
@@ -5,7 +6,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   ActivityIndicator,
   useColorScheme,
 } from "react-native";
@@ -61,7 +61,7 @@ export default function ChapterScreen({ route, navigation }: any) {
 
   return (
     <LinearGradient colors={COLORS.bg} style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeContainer style={{ flex: 1 }}>
         <View style={{ padding: 16, flexDirection: "row", alignItems: "center" }}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={22} color={COLORS.accent} />
@@ -83,7 +83,7 @@ export default function ChapterScreen({ route, navigation }: any) {
             </Text>
           ) : null}
         </ScrollView>
-      </SafeAreaView>
+      </SafeContainer>
     </LinearGradient>
   );
 }

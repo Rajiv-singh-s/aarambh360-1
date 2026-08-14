@@ -10,7 +10,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
-  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @Throttle({ default: { limit: 100, ttl: 60000 } }) // Increased for QA testing
   @Post('login')
   async login(@Headers('authorization') authorization?: string): Promise<LoginResponseDto> {
     const token = this.authService.extractBearerToken(authorization);

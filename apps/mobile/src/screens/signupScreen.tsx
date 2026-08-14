@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/signupScreen.tsx
 import React, { useState } from "react";
 import {
@@ -64,7 +65,7 @@ export default function SignupScreen() {
         await refreshProfile();
 
         Alert.alert("🎉 Profile Saved", `Welcome aboard, ${name}!`);
-        navigation.replace("MainHomeScreen");
+        navigation.replace("ExamHomeScreen", { exam: "UPSC" });
       } else {
         Alert.alert("Session Expired", "Please log in again.");
         navigation.replace("Login");

@@ -1,10 +1,10 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/QuizResultScreen.tsx
 import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   Modal,
   StyleSheet,
@@ -172,7 +172,7 @@ export default function QuizResultScreen() {
 
     return (
       <LinearGradient colors={["#0b1220", "#111b2e"]} style={styles.safe}>
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeContainer style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
             <View style={styles.header}>
               <TouchableOpacity onPress={() => setReviewMode(false)}>
@@ -249,7 +249,7 @@ export default function QuizResultScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-        </SafeAreaView>
+        </SafeContainer>
       </LinearGradient>
     );
   }
@@ -259,7 +259,7 @@ export default function QuizResultScreen() {
   --------------------------------------------- */
   return (
     <LinearGradient colors={["#0b1220", "#111b2e"]} style={styles.safe}>
-      <SafeAreaView style={styles.resultBox}>
+      <SafeContainer style={styles.resultBox}>
         {showConfetti && <ConfettiCannon count={120} origin={{ x: 180, y: 0 }} fadeOut />}
 
         <View style={styles.resultCard}>
@@ -354,7 +354,7 @@ export default function QuizResultScreen() {
             </Animated.View>
           </View>
         </Modal>
-      </SafeAreaView>
+      </SafeContainer>
     </LinearGradient>
   );
 }

@@ -4,15 +4,18 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   Share,
   Animated,
   useColorScheme,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import SafeContainer from "../components/SafeContainer";
 import { LinearGradient } from "expo-linear-gradient";
 import { auth } from "../firebaseConfig";
 import { useProgress } from "../hooks/useProgress";
@@ -23,8 +26,10 @@ export default function StreakScreen({ navigation }: any) {
   const streakCount = mcqStreak?.currentCount ?? 0;
   const streakDates = mcqStreak?.lastActivityDate ? [mcqStreak.lastActivityDate] : [];
   const [currentMonth, setCurrentMonth] = useState(new Date());
+
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const isDark = useColorScheme() === "dark";
+  const insets = useSafeAreaInsets();
 
   // Dynamic Colors
   const COLORS = {
@@ -131,7 +136,7 @@ export default function StreakScreen({ navigation }: any) {
 
   return (
     <LinearGradient colors={[COLORS.bg[0], COLORS.bg[1]]} style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeContainer>
 
         {/* Header */}
         <View style={styles.header}>
@@ -311,7 +316,7 @@ export default function StreakScreen({ navigation }: any) {
             </Text>
           </TouchableOpacity>
         </ScrollView>
-      </SafeAreaView>
+      </SafeContainer>
     </LinearGradient>
   );
 }

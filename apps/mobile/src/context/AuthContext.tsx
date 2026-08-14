@@ -37,10 +37,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    if (registeredToken) {
+    const tokenToDeactivate = registeredToken;
+    setRegisteredToken(null); // Clear immediately to prevent infinite loop
+    setProfile(null);
+
+    if (tokenToDeactivate) {
       try {
         await deactivateDeviceToken({
-          token: registeredToken,
+          token: tokenToDeactivate,
           platform: Platform.OS === 'ios' ? 'ios' : 'android',
         });
       } catch (err) {
@@ -48,8 +52,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     await signOut(auth);
-    setProfile(null);
-    setRegisteredToken(null);
   }, [registeredToken]);
 
   useEffect(() => {

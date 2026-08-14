@@ -1,3 +1,4 @@
+import SafeContainer from '../components/SafeContainer';
 // src/screens/ExamHomeScreen.tsx
 import React, { useEffect, useState } from "react";
 import {
@@ -6,10 +7,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   ActivityIndicator,
   useColorScheme,
+  Platform,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { Ionicons, MaterialIcons, FontAwesome5, Entypo } from "@expo/vector-icons";
@@ -26,7 +28,9 @@ export default function ExamHomeScreen({ navigation, route }: any) {
   const { streaks, stats, loading: progressLoading } = useProgress();
   const [dailyTip, setDailyTip] = useState("");
   const [dateTime, setDateTime] = useState(new Date());
+  const [timeOffset, setTimeOffset] = useState(0);
   const isDark = useColorScheme() === "dark";
+  const insets = useSafeAreaInsets();
 
   const mcqStreak = streaks.find((item) => item.streakType === "MCQ");
   const userData = {
@@ -86,14 +90,34 @@ export default function ExamHomeScreen({ navigation, route }: any) {
     return "Good Evening";
   };
 
+
   useEffect(() => {
     if (!auth.currentUser) {
       navigation.replace("Login");
       return;
     }
-    const timer = setInterval(() => setDateTime(new Date()), 1000);
+
+    // Fetch strict IST time from a public time API to calculate offset
+    const fetchRealTime = async () => {
+      try {
+        // Use worldtimeapi for reliable unix timestamp to avoid Hermes ISO-8601 parsing errors
+        const response = await fetch("https://worldtimeapi.org/api/timezone/Asia/Kolkata");
+        const data = await response.json();
+        const serverTime = data.unixtime * 1000;
+        const localTime = Date.now();
+        setTimeOffset(serverTime - localTime);
+      } catch (err) {
+        console.warn("Failed to fetch server time, falling back to device time", err);
+      }
+    };
+
+    fetchRealTime();
+
+    const timer = setInterval(() => {
+      setDateTime(new Date(Date.now() + timeOffset));
+    }, 1000);
     return () => clearInterval(timer);
-  }, [navigation]);
+  }, [navigation, timeOffset]);
 
   useEffect(() => {
     if (profile) {
@@ -102,11 +126,13 @@ export default function ExamHomeScreen({ navigation, route }: any) {
   }, [profile]);
 
   const formattedDate = dateTime.toLocaleDateString("en-IN", {
+    timeZone: "Asia/Kolkata",
     weekday: "long",
     day: "numeric",
     month: "long",
   });
   const formattedTime = dateTime.toLocaleTimeString("en-IN", {
+    timeZone: "Asia/Kolkata",
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -122,7 +148,7 @@ export default function ExamHomeScreen({ navigation, route }: any) {
 
   if (exam !== "UPSC") {
     return (
-      <SafeAreaView style={styles.centered}>
+      <SafeContainer style={styles.centered}>
         <Text style={{ fontSize: 25, fontWeight: "800", color: COLORS.text }}>
           {exam} Section
         </Text>
@@ -141,13 +167,13 @@ export default function ExamHomeScreen({ navigation, route }: any) {
         >
           <Text style={{ color: "#fff", fontWeight: "700" }}>Go Back</Text>
         </TouchableOpacity>
-      </SafeAreaView>
+      </SafeContainer>
     );
   }
 
   return (
     <LinearGradient colors={COLORS.bg} style={styles.safe}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeContainer style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.headerRow}>
             <TouchableOpacity
@@ -373,7 +399,7 @@ export default function ExamHomeScreen({ navigation, route }: any) {
 
         <LinearGradient
           colors={isDark ? ["#0f172a", "#1e293b"] : ["#ffffff", "#f1f5f9"]}
-          style={styles.bottomBar}
+          style={[styles.bottomBar, { paddingBottom: Platform.OS === 'android' ? Math.max(insets.bottom, 24) : insets.bottom, height: 72 + (Platform.OS === 'android' ? Math.max(insets.bottom, 24) : insets.bottom) }]}
         >
           <TouchableOpacity style={styles.tab}>
             <Ionicons name="home" size={22} color={COLORS.accent} />
@@ -392,7 +418,7 @@ export default function ExamHomeScreen({ navigation, route }: any) {
             <Text style={[styles.tabLabel, { color: COLORS.sub }]}>Profile</Text>
           </TouchableOpacity>
         </LinearGradient>
-      </SafeAreaView>
+      </SafeContainer>
     </LinearGradient>
   );
 }
