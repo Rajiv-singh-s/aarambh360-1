@@ -31,9 +31,9 @@
     "seed": "ts-node --transpile-only prisma/seed.ts"
   },
   "dependencies": {
+    "@aarambh360/types": "workspace:*",
     "@aws-sdk/client-s3": "^3.787.0",
     "@aws-sdk/s3-request-presigner": "^3.787.0",
-    "@aarambh360/types": "workspace:*",
     "@nestjs/cache-manager": "^3.1.3",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
@@ -45,6 +45,7 @@
     "cache-manager": "^7.2.9",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "express": "^5.2.1",
     "firebase-admin": "^13.4.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
