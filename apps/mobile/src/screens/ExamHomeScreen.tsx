@@ -143,29 +143,29 @@ export default function ExamHomeScreen({ navigation, route }: any) {
     );
   }
 
-  const PremiumCard = ({ icon, color, title, desc, onPress, IconLib = Ionicons }: any) => (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      style={[styles.premiumCard, { borderColor: color, backgroundColor: COLORS.card }]}
-      onPress={onPress}
-    >
-      <View style={[styles.premiumIconBox, { backgroundColor: color + "15" }]}>
-        <IconLib name={icon} size={32} color={color} />
-      </View>
-      <Text style={[styles.premiumCardTitle, { color: COLORS.text }]}>{title}</Text>
-      <Text style={[styles.premiumCardDesc, { color: COLORS.sub }]}>{desc}</Text>
-    </TouchableOpacity>
-  );
+const PremiumCard = ({ icon, color, title, desc, onPress, IconLib = Ionicons, COLORS }: any) => (
+  <TouchableOpacity
+    activeOpacity={0.9}
+    style={[styles.premiumCard, { borderColor: color, backgroundColor: COLORS.card }]}
+    onPress={onPress}
+  >
+    <View style={[styles.premiumIconBox, { backgroundColor: color + "15" }]}>
+      <IconLib name={icon} size={32} color={color} />
+    </View>
+    <Text style={[styles.premiumCardTitle, { color: COLORS.text }]}>{title}</Text>
+    <Text style={[styles.premiumCardDesc, { color: COLORS.sub }]}>{desc}</Text>
+  </TouchableOpacity>
+);
 
-  const ListItem = ({ icon, color, title, onPress, IconLib = Ionicons }: any) => (
-    <TouchableOpacity style={styles.listItem} onPress={onPress}>
-      <View style={[styles.listIconBox, { backgroundColor: color + "10" }]}>
-        <IconLib name={icon} size={20} color={color} />
-      </View>
-      <Text style={[styles.listText, { color: COLORS.text }]}>{title}</Text>
-      <Ionicons name="chevron-forward" size={18} color={COLORS.sub} />
-    </TouchableOpacity>
-  );
+const ListItem = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS }: any) => (
+  <TouchableOpacity style={styles.listItem} onPress={onPress}>
+    <View style={[styles.listIconBox, { backgroundColor: color + "10" }]}>
+      <IconLib name={icon} size={20} color={color} />
+    </View>
+    <Text style={[styles.listText, { color: COLORS.text }]}>{title}</Text>
+    <Ionicons name="chevron-forward" size={18} color={COLORS.sub} />
+  </TouchableOpacity>
+);
 
   return (
     <LinearGradient colors={COLORS.bg} style={styles.safe}>
@@ -258,48 +258,48 @@ export default function ExamHomeScreen({ navigation, route }: any) {
           {/* Premium Features Carousel */}
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Premium Features</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 10 }}>
-            <PremiumCard icon="clipboard" color="#8b5cf6" title="Test Series" desc="Full mock exams" onPress={() => navigation.navigate("TestSeriesHubScreen")} />
-            <PremiumCard icon="map" color="#f59e0b" title="Map Game" desc="Geography practice" onPress={() => navigation.navigate("MapPracticeScreen")} />
-            <PremiumCard icon="play-circle" color="#f43f5e" title="News Reels" desc="Daily 60s shorts" onPress={() => navigation.navigate("NewsReelsScreen")} />
-            <PremiumCard icon="albums" color="#06b6d4" title="Flashcards" desc="Spaced repetition" onPress={() => navigation.navigate("FlashcardsScreen")} />
-            <PremiumCard icon="headset" color="#10b981" title="Study Room" desc="Focus timer" onPress={() => navigation.navigate("StudyRoomScreen")} />
-            <PremiumCard icon="trophy" color="#ef4444" title="Leaderboard" desc="All-India ranks" onPress={() => navigation.navigate("LeaderboardScreen")} />
+            <PremiumCard icon="clipboard" color="#8b5cf6" title="Test Series" desc="Full mock exams" onPress={() => navigation.navigate("TestSeriesHubScreen")} COLORS={COLORS} />
+            <PremiumCard icon="map" color="#f59e0b" title="Map Game" desc="Geography practice" onPress={() => navigation.navigate("MapPracticeScreen")} COLORS={COLORS} />
+            <PremiumCard icon="play-circle" color="#f43f5e" title="News Reels" desc="Daily 60s shorts" onPress={() => navigation.navigate("NewsReelsScreen")} COLORS={COLORS} />
+            <PremiumCard icon="albums" color="#06b6d4" title="Flashcards" desc="Spaced repetition" onPress={() => navigation.navigate("FlashcardsScreen")} COLORS={COLORS} />
+            <PremiumCard icon="headset" color="#10b981" title="Study Room" desc="Focus timer" onPress={() => navigation.navigate("StudyRoomScreen")} COLORS={COLORS} />
+            <PremiumCard icon="trophy" color="#ef4444" title="Leaderboard" desc="All-India ranks" onPress={() => navigation.navigate("LeaderboardScreen")} COLORS={COLORS} />
           </ScrollView>
 
           {/* Core Practice */}
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Core Practice</Text>
           <View style={[styles.listGroup, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
-            <ListItem icon="quiz" IconLib={MaterialIcons} color={COLORS.accent} title="Daily MCQs" onPress={() => navigation.navigate("MCQScreen")} />
+            <ListItem icon="quiz" IconLib={MaterialIcons} color={COLORS.accent} title="Daily MCQs" onPress={() => navigation.navigate("MCQScreen")} COLORS={COLORS} />
             <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="create-outline" color={COLORS.accent} title="Mains Answer Writing" onPress={() => navigation.navigate("MainScreen")} />
+            <ListItem icon="create-outline" color={COLORS.accent} title="Mains Answer Writing" onPress={() => navigation.navigate("MainScreen")} COLORS={COLORS} />
             <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="clipboard-list" IconLib={FontAwesome5} color={COLORS.accent} title="Previous Year Papers" onPress={() => navigation.navigate("PYQScreen")} />
+            <ListItem icon="clipboard-list" IconLib={FontAwesome5} color={COLORS.accent} title="Previous Year Papers" onPress={() => navigation.navigate("PYQScreen")} COLORS={COLORS} />
           </View>
 
           {/* Study Materials */}
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Study Materials</Text>
           <View style={[styles.listGroup, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
-            <ListItem icon="book-open" IconLib={FontAwesome5} color={COLORS.accent} title="NCERT Books" onPress={() => navigation.navigate("NcertScreen")} />
+            <ListItem icon="book-open" IconLib={FontAwesome5} color={COLORS.accent} title="NCERT Books" onPress={() => navigation.navigate("NcertScreen")} COLORS={COLORS} />
             <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="document-text-outline" color={COLORS.accent} title="Revision Notes" onPress={() => navigation.navigate("NotesScreen")} />
+            <ListItem icon="document-text-outline" color={COLORS.accent} title="Revision Notes" onPress={() => navigation.navigate("NotesScreen")} COLORS={COLORS} />
             <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="document-text-outline" color={COLORS.accent} title="Cheat Sheet" onPress={() => navigation.navigate("CheatSheetScreen")} />
+            <ListItem icon="document-text-outline" color={COLORS.accent} title="Cheat Sheet" onPress={() => navigation.navigate("CheatSheetScreen")} COLORS={COLORS} />
             <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="bar-chart-outline" color={COLORS.accent} title="Syllabus Tracker" onPress={() => navigation.navigate("SyllabusTrackerScreen")} />
+            <ListItem icon="bar-chart-outline" color={COLORS.accent} title="Syllabus Tracker" onPress={() => navigation.navigate("SyllabusTrackerScreen")} COLORS={COLORS} />
           </View>
 
           {/* Resources & Strategy */}
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Resources & Strategy</Text>
           <View style={[styles.listGroup, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
-            <ListItem icon="warning-outline" color="#ef4444" title="Mistake Vault" onPress={() => navigation.navigate("WeaknessVaultScreen")} />
+            <ListItem icon="warning-outline" color="#ef4444" title="Mistake Vault" onPress={() => navigation.navigate("WeaknessVaultScreen")} COLORS={COLORS} />
             <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="list-alt" IconLib={FontAwesome5} color={COLORS.accent} title="Syllabus PDF" onPress={() => navigation.navigate("SyllabusScreen")} />
+            <ListItem icon="list-alt" IconLib={FontAwesome5} color={COLORS.accent} title="Syllabus PDF" onPress={() => navigation.navigate("SyllabusScreen")} COLORS={COLORS} />
             <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="light-bulb" IconLib={Entypo} color={COLORS.accent} title="Strategy" onPress={() => navigation.navigate("StrategyScreen")} />
+            <ListItem icon="light-bulb" IconLib={Entypo} color={COLORS.accent} title="Strategy" onPress={() => navigation.navigate("StrategyScreen")} COLORS={COLORS} />
             <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="stats-chart" color={COLORS.accent} title="Cut-Offs" onPress={() => navigation.navigate("CutOffScreen")} />
+            <ListItem icon="stats-chart" color={COLORS.accent} title="Cut-Offs" onPress={() => navigation.navigate("CutOffScreen")} COLORS={COLORS} />
             <View style={[styles.divider, { backgroundColor: COLORS.border }]} />
-            <ListItem icon="information-circle-outline" color={COLORS.accent} title="Exam Info" onPress={() => navigation.navigate("ExamInfoScreen")} />
+            <ListItem icon="information-circle-outline" color={COLORS.accent} title="Exam Info" onPress={() => navigation.navigate("ExamInfoScreen")} COLORS={COLORS} />
           </View>
 
           <View style={{ height: 100 }} />
