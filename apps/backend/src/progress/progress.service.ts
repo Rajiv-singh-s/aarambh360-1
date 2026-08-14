@@ -13,12 +13,22 @@ export class ProgressService {
       orderBy: { streakType: 'asc' },
     });
 
-    return streaks.map((streak) => ({
-      streakType: streak.streakType,
-      currentCount: streak.currentCount,
-      longestCount: streak.longestCount,
-      lastActivityDate: streak.lastActivityDate?.toISOString().slice(0, 10) ?? null,
-    }));
+    return streaks.map((streak) => {
+      let dateStr = null;
+      if (streak.lastActivityDate) {
+        const d = streak.lastActivityDate;
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        dateStr = `${year}-${month}-${day}`;
+      }
+      return {
+        streakType: streak.streakType,
+        currentCount: streak.currentCount,
+        longestCount: streak.longestCount,
+        lastActivityDate: dateStr,
+      };
+    });
   }
 
   async getStats(userId: string): Promise<ProgressStatsDto> {
@@ -77,7 +87,26 @@ export class ProgressService {
     const activityDatesSet = new Set<string>();
     quizzes.forEach((q) => {
       if (q.completedAt) {
-        activityDatesSet.add(q.completedAt.toISOString().slice(0, 10));
+        const d = q.completedAt;
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        activityDatesSet.add(`${year}-${month}-${day}`);
+      }
+    });
+
+    const dailyActivities = await this.prisma.dailyActivity.findMany({
+      where: { userId },
+      select: { activityDate: true }
+    });
+    
+    dailyActivities.forEach((da) => {
+      if (da.activityDate) {
+        const d = da.activityDate;
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        activityDatesSet.add(`${year}-${month}-${day}`);
       }
     });
 

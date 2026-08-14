@@ -28,9 +28,25 @@ export default function StreakScreen({ navigation }: any) {
   const mcqStreak = streaks.find((item) => item.streakType === "MCQ");
   const streakCount = mcqStreak?.currentCount ?? 0;
   
-  const streakDates = stats?.activityDates || [];
+  const streakDates = React.useMemo(() => {
+    const dates = new Set<string>(stats?.activityDates || []);
+    
+    // Aggressively fill in missing days if we have an active streak but backend missed them
+    if (mcqStreak?.lastActivityDate && streakCount > 0) {
+      const lastDate = new Date(mcqStreak.lastActivityDate);
+      for (let i = 0; i < streakCount; i++) {
+        const d = new Date(lastDate);
+        d.setDate(d.getDate() - i);
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        dates.add(dateStr);
+      }
+    }
+    
+    return Array.from(dates);
+  }, [stats?.activityDates, mcqStreak?.lastActivityDate, streakCount]);
+  
   const longestStreak = stats?.longestStreak || 0;
-  const totalStudyDays = streakDates.length;
+  const totalStudyDays = Math.max(streakDates.length, stats?.activityDates?.length || 0);
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const isDark = useColorScheme() === "dark";
