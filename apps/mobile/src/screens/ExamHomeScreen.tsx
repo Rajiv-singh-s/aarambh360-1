@@ -399,8 +399,12 @@ export default function ExamHomeScreen({ navigation, route }: any) {
             <Ionicons name="home" size={22} color={COLORS.accent} />
             <Text style={[styles.tabLabel, { color: COLORS.accent }]}>Home</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.tab} onPress={() => navigation.navigate("LearnScreen")}>
+            <Ionicons name="library-outline" size={22} color={COLORS.sub} />
+            <Text style={[styles.tabLabel, { color: COLORS.sub }]}>Learn</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.tab} onPress={() => navigation.navigate("MCQScreen")}>
-            <Ionicons name="book-outline" size={22} color={COLORS.sub} />
+            <Ionicons name="document-text-outline" size={22} color={COLORS.sub} />
             <Text style={[styles.tabLabel, { color: COLORS.sub }]}>Prelims</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.tab} onPress={() => navigation.navigate("MainScreen")}>

@@ -24,6 +24,7 @@ import NotesScreen from "./src/screens/NoteScreen";
 import PYQScreen from "./src/screens/pyqScreen";
 import MainHomeScreen from "./src/screens/MainHomeScreen";
 import ChapterScreen from "./src/screens/ChapterScreen";
+import LearnScreen from "./src/screens/LearnScreen";
 import SubscriptionScreen from "./src/screens/SubscriptionScreen";
 
 // Type definitions for navigation
@@ -67,6 +68,7 @@ export type RootStackParamList = {
   NotesScreen: undefined;
   PYQScreen: undefined;
   MainHomeScreen: undefined;
+  LearnScreen: undefined;
   SubscriptionScreen: undefined;
   ChapterScreen: { subject: string; chapter: string };
 };
@@ -90,6 +92,7 @@ export default function App() {
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="MainHomeScreen" component={MainHomeScreen} />
+          <Stack.Screen name="LearnScreen" component={LearnScreen} />
           <Stack.Screen name="ExamHomeScreen" component={ExamHomeScreen} />
           <Stack.Screen name="QuizScreen" component={QuizScreen} />
           <Stack.Screen name="QuizResultScreen" component={QuizResultScreen} />
