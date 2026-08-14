@@ -360,6 +360,18 @@ export default function ExamHomeScreen({ navigation, route }: any) {
               <Text style={[styles.quickText, { fontWeight: "800" }]}>Study Room</Text>
             </TouchableOpacity>
           </View>
+          
+          <View style={styles.quickGrid}>
+            <TouchableOpacity
+              style={[styles.quickCard, { backgroundColor: COLORS.card, borderColor: "#ef4444", borderWidth: 1 }]}
+              onPress={() => navigation.navigate("LeaderboardScreen")}
+            >
+              <Ionicons name="trophy" size={28} color="#ef4444" />
+              <Text style={[styles.quickText, { fontWeight: "800" }]}>Leaderboard</Text>
+            </TouchableOpacity>
+            <View style={{ width: "30%" }} />
+            <View style={{ width: "30%" }} />
+          </View>
 
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Study Tools</Text>
           <View style={styles.quickGrid}>
