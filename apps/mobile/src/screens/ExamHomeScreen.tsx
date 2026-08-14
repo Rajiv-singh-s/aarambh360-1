@@ -108,7 +108,7 @@ export default function ExamHomeScreen({ navigation, route }: any) {
         const localTime = Date.now();
         setTimeOffset(serverTime - localTime);
       } catch (err) {
-        console.warn("Failed to fetch server time, falling back to device time", err);
+        // Silently fallback to device time if API fails (e.g. rate limit, offline)
       }
     };
 

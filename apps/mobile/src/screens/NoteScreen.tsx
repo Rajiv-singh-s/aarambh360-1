@@ -15,9 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../theme";
 import { useStudyMaterials } from "../hooks/useContent";
 
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+
 
 export default function NotesScreen({ navigation }: any) {
   const THEME = useTheme();

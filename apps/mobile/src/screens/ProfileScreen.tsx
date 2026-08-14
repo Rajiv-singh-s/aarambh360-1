@@ -31,9 +31,7 @@ import { getEntitlements } from "../services/subscriptionService";
 import type { PreparationLevel, UserEntitlementsDto, UpdateProfileRequestDto } from "@aarambh360/types";
 
 // Enable animation for Android
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+
 
 export default function ProfileScreen({ navigation }: any) {
   const { profile, loading: authLoading, refreshProfile } = useAuth();

@@ -18,9 +18,7 @@ import { BlurView } from "expo-blur";
 
 // Enable smooth animation on Android
 if (Platform.OS === "android") {
-  if (UIManager.setLayoutAnimationEnabledExperimental) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-  }
+
 }
 
 export default function StrategyScreen({ navigation }: any) {

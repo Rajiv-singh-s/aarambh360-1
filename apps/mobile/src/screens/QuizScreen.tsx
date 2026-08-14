@@ -323,20 +323,6 @@ export default function QuizScreen() {
         useNativeDriver: false,
       }).start();
 
-      navigation.navigate("QuizResultScreen", {
-        sessionId: result.sessionId,
-        correctCount: result.correctCount,
-        incorrectCount: result.incorrectCount,
-        totalQuestions: result.totalQuestions,
-        accuracy: result.accuracy,
-        timeTakenSeconds: result.timeTakenSeconds,
-        subject,
-        subjectKey,
-        classKey,
-        questions,
-        answers,
-        timeTaken: formatSeconds(result.timeTakenSeconds),
-      });
     } catch (err) {
       console.log("Complete session error:", err);
       setQuizCompleted(true);
