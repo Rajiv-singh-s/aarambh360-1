@@ -286,6 +286,46 @@ export default function StreakScreen({ navigation }: any) {
             ))}
           </View>
 
+          {/* Milestones */}
+          <Text style={[styles.sectionTitle, { color: COLORS.text }]}>Milestones</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
+            <View style={[styles.milestoneCard, { backgroundColor: COLORS.card, borderColor: COLORS.accent }]}>
+              <Ionicons name="shield-checkmark" size={32} color="#f59e0b" />
+              <Text style={[styles.milestoneText, { color: COLORS.text }]}>7-Day Scholar</Text>
+              <Text style={[styles.milestoneSub, { color: COLORS.accent }]}>Achieved</Text>
+            </View>
+            <View style={[styles.milestoneCard, { backgroundColor: COLORS.card, opacity: 0.5 }]}>
+              <Ionicons name="shield-outline" size={32} color={COLORS.sub} />
+              <Text style={[styles.milestoneText, { color: COLORS.text }]}>30-Day Master</Text>
+              <Text style={[styles.milestoneSub, { color: COLORS.sub }]}>Locked</Text>
+            </View>
+            <View style={[styles.milestoneCard, { backgroundColor: COLORS.card, opacity: 0.5 }]}>
+              <Ionicons name="trophy-outline" size={32} color={COLORS.sub} />
+              <Text style={[styles.milestoneText, { color: COLORS.text }]}>100-Day Legend</Text>
+              <Text style={[styles.milestoneSub, { color: COLORS.sub }]}>Locked</Text>
+            </View>
+          </ScrollView>
+
+          {/* Lifetime Stats */}
+          <Text style={[styles.sectionTitle, { color: COLORS.text }]}>Lifetime Stats</Text>
+          <View style={styles.statsGrid}>
+            <View style={[styles.statBox, { backgroundColor: COLORS.card }]}>
+              <Ionicons name="trending-up" size={24} color="#10b981" />
+              <Text style={[styles.statValue, { color: COLORS.text }]}>14</Text>
+              <Text style={[styles.statLabel, { color: COLORS.sub }]}>Longest Streak</Text>
+            </View>
+            <View style={[styles.statBox, { backgroundColor: COLORS.card }]}>
+              <Ionicons name="calendar-outline" size={24} color="#06b6d4" />
+              <Text style={[styles.statValue, { color: COLORS.text }]}>42</Text>
+              <Text style={[styles.statLabel, { color: COLORS.sub }]}>Total Study Days</Text>
+            </View>
+            <View style={[styles.statBox, { backgroundColor: COLORS.card }]}>
+              <Ionicons name="medal-outline" size={24} color="#fbbf24" />
+              <Text style={[styles.statValue, { color: COLORS.text }]}>1</Text>
+              <Text style={[styles.statLabel, { color: COLORS.sub }]}>Milestones</Text>
+            </View>
+          </View>
+
           {/* Tip Card */}
           <LinearGradient
             colors={
@@ -385,6 +425,68 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
     width: 30,
+    textAlign: "center",
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    marginLeft: 16,
+    marginTop: 24,
+    marginBottom: 12,
+  },
+  milestoneCard: {
+    width: 120,
+    padding: 16,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: "transparent",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  milestoneText: {
+    fontSize: 13,
+    fontWeight: "700",
+    textAlign: "center",
+    marginTop: 8,
+  },
+  milestoneSub: {
+    fontSize: 11,
+    fontWeight: "600",
+    marginTop: 4,
+  },
+  statsGrid: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    justifyContent: "space-between",
+  },
+  statBox: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+    borderRadius: 16,
+    marginHorizontal: 4,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: "800",
+    marginTop: 8,
+  },
+  statLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    marginTop: 4,
     textAlign: "center",
   },
 
