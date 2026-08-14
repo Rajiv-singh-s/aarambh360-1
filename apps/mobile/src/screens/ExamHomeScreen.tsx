@@ -369,7 +369,13 @@ export default function ExamHomeScreen({ navigation, route }: any) {
               <Ionicons name="trophy" size={28} color="#ef4444" />
               <Text style={[styles.quickText, { fontWeight: "800" }]}>Leaderboard</Text>
             </TouchableOpacity>
-            <View style={{ width: "30%" }} />
+            <TouchableOpacity
+              style={[styles.quickCard, { backgroundColor: COLORS.card, borderColor: "#8b5cf6", borderWidth: 1 }]}
+              onPress={() => navigation.navigate("TestSeriesHubScreen")}
+            >
+              <Ionicons name="clipboard" size={28} color="#8b5cf6" />
+              <Text style={[styles.quickText, { fontWeight: "800" }]}>Test Series</Text>
+            </TouchableOpacity>
             <View style={{ width: "30%" }} />
           </View>
 
