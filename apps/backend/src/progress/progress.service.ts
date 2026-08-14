@@ -68,8 +68,22 @@ export class ProgressService {
       subjectMap.set(subjectId, existing);
     }
 
-    const totalQuizzesTaken = await this.prisma.quizAttempt.count({
+    const quizzes = await this.prisma.quizAttempt.findMany({
       where: { userId, status: 'COMPLETED' },
+      select: { id: true, completedAt: true },
+    });
+    const totalQuizzesTaken = quizzes.length;
+
+    const activityDatesSet = new Set<string>();
+    quizzes.forEach((q) => {
+      if (q.completedAt) {
+        activityDatesSet.add(q.completedAt.toISOString().slice(0, 10));
+      }
+    });
+
+    const userStreak = await this.prisma.userStreak.findFirst({
+      where: { userId, streakType: 'MCQ' },
+      select: { longestCount: true },
     });
 
     return {
@@ -78,6 +92,8 @@ export class ProgressService {
       totalCorrect,
       accuracy: Math.round(accuracy * 100) / 100,
       subjectBreakdown: Array.from(subjectMap.values()),
+      activityDates: Array.from(activityDatesSet),
+      longestStreak: userStreak?.longestCount ?? 0,
     };
   }
 

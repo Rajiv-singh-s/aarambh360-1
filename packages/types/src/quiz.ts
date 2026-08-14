@@ -74,6 +74,8 @@ export interface ProgressStatsDto {
     attempted: number;
     correct: number;
   }>;
+  activityDates: string[];
+  longestStreak: number;
 }
 
 export interface MistakeDto {
