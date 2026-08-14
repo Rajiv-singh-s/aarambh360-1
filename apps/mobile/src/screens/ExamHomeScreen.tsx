@@ -19,6 +19,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { getRecommendations } from "../services/analyticsService";
 import type { RecommendationDto } from "@aarambh360/types";
 import SafeContainer from "../components/SafeContainer";
+import { HomeScreenSkeleton } from "../components/SkeletonLoader";
 
 export default function ExamHomeScreen({ navigation, route }: any) {
   const exam = route?.params?.exam || "UPSC";
@@ -136,30 +137,46 @@ export default function ExamHomeScreen({ navigation, route }: any) {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#06b6d4" />
-        <Text style={styles.loadingText}>Loading your dashboard…</Text>
-      </View>
+      <LinearGradient colors={COLORS.bg} style={styles.safe}>
+        <SafeContainer style={{ flex: 1 }} disableBottom={true}>
+          <HomeScreenSkeleton />
+        </SafeContainer>
+      </LinearGradient>
     );
   }
 
-const PremiumCard = ({ icon, color, title, desc, onPress, IconLib = Ionicons, COLORS }: any) => (
-  <TouchableOpacity
-    activeOpacity={0.9}
-    style={[styles.premiumCard, { borderColor: color, backgroundColor: COLORS.card }]}
-    onPress={onPress}
-  >
-    <View style={[styles.premiumIconBox, { backgroundColor: color + "15" }]}>
-      <IconLib name={icon} size={32} color={color} />
-    </View>
-    <Text style={[styles.premiumCardTitle, { color: COLORS.text }]}>{title}</Text>
-    <Text style={[styles.premiumCardDesc, { color: COLORS.sub }]}>{desc}</Text>
-  </TouchableOpacity>
-);
+const PREMIUM_GRADIENTS: Record<string, [string, string]> = {
+  "#8b5cf6": ["#8b5cf6", "#6d28d9"],
+  "#f59e0b": ["#fbb86c", "#d97706"],
+  "#f43f5e": ["#fb7185", "#be123c"],
+  "#06b6d4": ["#22d3ee", "#0369a1"],
+  "#10b981": ["#34d399", "#047857"],
+  "#ef4444": ["#f87171", "#b91c1c"],
+};
+
+const PremiumCard = ({ icon, color, title, desc, onPress, IconLib = Ionicons }: any) => {
+  const gradientColors = PREMIUM_GRADIENTS[color] || [color, color];
+  return (
+    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={{ paddingBottom: 12 }}>
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.premiumCard, { shadowColor: color }]}
+      >
+        <View style={[styles.premiumIconBox, { backgroundColor: "rgba(255,255,255,0.25)" }]}>
+          <IconLib name={icon} size={32} color="#fff" />
+        </View>
+        <Text style={[styles.premiumCardTitle, { color: "#fff" }]}>{title}</Text>
+        <Text style={[styles.premiumCardDesc, { color: "rgba(255,255,255,0.85)" }]}>{desc}</Text>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+};
 
 const ListItem = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS }: any) => (
-  <TouchableOpacity style={styles.listItem} onPress={onPress}>
-    <View style={[styles.listIconBox, { backgroundColor: color + "10" }]}>
+  <TouchableOpacity style={styles.listItem} onPress={onPress} activeOpacity={0.7}>
+    <View style={[styles.listIconBox, { backgroundColor: color + "15" }]}>
       <IconLib name={icon} size={20} color={color} />
     </View>
     <Text style={[styles.listText, { color: COLORS.text }]}>{title}</Text>
@@ -395,11 +412,15 @@ const styles = StyleSheet.create({
   premiumCard: {
     width: 130,
     height: 130,
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 14,
     marginRight: 10,
-    borderWidth: 1,
+    borderWidth: 0, // removed border
     justifyContent: "center",
+    elevation: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
   premiumIconBox: {
     width: 40,
@@ -414,9 +435,13 @@ const styles = StyleSheet.create({
 
   listGroup: {
     marginHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    overflow: "hidden",
+    borderRadius: 16,
+    borderWidth: 0,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
   },
   listItem: {
     flexDirection: "row",
