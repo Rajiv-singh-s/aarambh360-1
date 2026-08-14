@@ -181,6 +181,7 @@ const ListItemCard = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS 
         styles.listItemCard, 
         { 
           backgroundColor: COLORS.card, 
+          borderColor: COLORS.border
         }
       ]} 
       onPress={onPress} 
@@ -220,18 +221,18 @@ const ListItemCard = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS 
 
           {/* Daily Goals */}
           <View style={styles.progressContainer}>
-            <View style={[styles.progressCardNew, { backgroundColor: COLORS.card, shadowColor: COLORS.border }]}>
+            <View style={[styles.progressCardNew, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
               <Ionicons name="book-outline" size={20} color={COLORS.accent} />
               <Text style={[styles.progressValueNew, { color: COLORS.text }]}>{userData.quizzesTaken}</Text>
               <Text style={[styles.progressLabelNew, { color: COLORS.sub }]}>Quizzes</Text>
             </View>
-            <View style={[styles.progressCardNew, { backgroundColor: COLORS.card, shadowColor: COLORS.border }]}>
+            <View style={[styles.progressCardNew, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
               <Ionicons name="stats-chart-outline" size={20} color="#10B981" />
               <Text style={[styles.progressValueNew, { color: COLORS.text }]}>{userData.accuracyRate}%</Text>
               <Text style={[styles.progressLabelNew, { color: COLORS.sub }]}>Accuracy</Text>
             </View>
             <TouchableOpacity
-              style={[styles.progressCardNew, { backgroundColor: COLORS.card, shadowColor: COLORS.border }]}
+              style={[styles.progressCardNew, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}
               onPress={() => navigation.navigate("StreakScreen")}
             >
               <Ionicons name="flame" size={20} color="#F59E0B" />
@@ -248,7 +249,7 @@ const ListItemCard = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS 
                 {recommendations.map((rec, index) => (
                   <TouchableOpacity 
                     key={index} 
-                    style={[styles.recCard, { backgroundColor: COLORS.card }]}
+                    style={[styles.recCard, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}
                     onPress={() => {
                       if (rec.type === "QUIZ") {
                         navigation.navigate("MCQScreen");
@@ -400,7 +401,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "transparent",
     borderWidth: 1.5,
-    borderColor: "#1e293b", // Very dark border
   },
   progressValueNew: { fontSize: 15, fontWeight: "800", marginTop: 2 },
   progressLabelNew: { fontSize: 10, fontWeight: "500", marginTop: 1 },
@@ -411,8 +411,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 14,
     marginRight: 10,
-    borderWidth: 1.5, // Added dark border back
-    borderColor: "#1e293b",
+    borderWidth: 0,
     justifyContent: "center",
     elevation: 6,
     shadowOffset: { width: 0, height: 4 },
@@ -438,7 +437,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: "#1e293b", // Distinctly dark border
   },
   listIconBox: {
     width: 32,
@@ -459,7 +457,6 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: "#1e293b", // Distinctly dark border
     marginRight: 10,
   },
   recCardTitle: { fontSize: 13, fontWeight: "700", marginBottom: 4 },
