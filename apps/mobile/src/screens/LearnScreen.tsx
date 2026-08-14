@@ -116,6 +116,16 @@ export default function LearnScreen() {
             ))}
           </Animated.View>
         </ScrollView>
+
+        {/* AI MENTOR FAB */}
+        <TouchableOpacity
+          activeOpacity={0.9}
+          style={[styles.fab, { backgroundColor: COLORS.accent, shadowColor: COLORS.accent }]}
+          onPress={() => navigation.navigate("AiMentorScreen")}
+        >
+          <Ionicons name="sparkles" size={24} color="#fff" />
+          <Text style={styles.fabText}>Ask AI</Text>
+        </TouchableOpacity>
       </SafeContainer>
     </LinearGradient>
   );
@@ -203,5 +213,25 @@ const styles = StyleSheet.create({
   cardSub: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  fab: {
+    position: "absolute",
+    bottom: 24,
+    right: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 30,
+    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  fabText: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: 16,
+    marginLeft: 8,
   },
 });
