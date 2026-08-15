@@ -40,6 +40,8 @@ import SubscriptionScreen from "./src/screens/SubscriptionScreen";
 import NotificationScreen from "./src/screens/NotificationScreen";
 import BookmarksScreen from "./src/screens/BookmarksScreen";
 import ReportsScreen from "./src/screens/ReportsScreen";
+import DailyChallengeHubScreen from "./src/screens/DailyChallengeHubScreen";
+import ActiveDailyChallengeScreen from "./src/screens/ActiveDailyChallengeScreen";
 
 // Type definitions for navigation
 export type RootStackParamList = {
@@ -99,6 +101,8 @@ export type RootStackParamList = {
   CheatSheetScreen: undefined;
   SubscriptionScreen: undefined;
   ChapterScreen: { subject: string; chapter: string };
+  DailyChallengeHubScreen: undefined;
+  ActiveDailyChallengeScreen: { challengeId: string; paperType: "PRELIMS_1" | "PRELIMS_2" | "MAINS"; timeLimitMinutes: number };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -152,6 +156,8 @@ export default function App() {
           <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
           <Stack.Screen name="BookmarksScreen" component={BookmarksScreen} />
           <Stack.Screen name="ReportsScreen" component={ReportsScreen} />
+          <Stack.Screen name="DailyChallengeHubScreen" component={DailyChallengeHubScreen} />
+          <Stack.Screen name="ActiveDailyChallengeScreen" component={ActiveDailyChallengeScreen} />
         </Stack.Navigator>
         </NavigationContainer>
       </AuthProvider>

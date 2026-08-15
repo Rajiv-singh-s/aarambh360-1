@@ -16,6 +16,7 @@ export * from './notifications';
 export * from './analytics';
 export * from './subscriptions';
 export * from './ads';
+export * from './daily-challenge';
 
 /**
  * Standard API health response contract.
@@ -60,3 +61,4 @@ export interface PaginatedResponse<T> {
   data: T[];
   meta: PaginationMeta;
 }
+

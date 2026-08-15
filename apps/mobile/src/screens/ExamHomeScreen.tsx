@@ -241,6 +241,30 @@ const ListItemCard = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS 
             </TouchableOpacity>
           </View>
 
+          {/* Daily Challenge Banner */}
+          <TouchableOpacity 
+            activeOpacity={0.9} 
+            style={styles.dailyChallengeBanner}
+            onPress={() => navigation.navigate("DailyChallengeHubScreen")}
+          >
+            <LinearGradient
+              colors={["#f59e0b", "#d97706"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.dailyChallengeGradient}
+            >
+              <View style={styles.dcContent}>
+                <View>
+                  <Text style={styles.dcTitle}>🎯 Daily Challenge</Text>
+                  <Text style={styles.dcSub}>Compete with peers • Win Streaks</Text>
+                </View>
+                <View style={styles.dcPlayBtn}>
+                  <Ionicons name="play" size={20} color="#d97706" />
+                </View>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+
           {/* Recommended */}
           {recommendations.length > 0 && (
             <>
@@ -409,6 +433,45 @@ const styles = StyleSheet.create({
   },
   progressValueNew: { fontSize: 15, fontWeight: "800", marginTop: 2 },
   progressLabelNew: { fontSize: 10, fontWeight: "500", marginTop: 1 },
+
+  dailyChallengeBanner: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 16,
+    shadowColor: "#f59e0b",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  dailyChallengeGradient: {
+    borderRadius: 16,
+    padding: 16,
+  },
+  dcContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  dcTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "900",
+  },
+  dcSub: {
+    color: "rgba(255,255,255,0.9)",
+    fontSize: 13,
+    fontWeight: "600",
+    marginTop: 4,
+  },
+  dcPlayBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
   premiumCard: {
     width: 130,
