@@ -11,13 +11,13 @@ export class ReportsController {
   async create(
     @CurrentUser() user: AuthUserContext,
     @Body() payload: CreateReportRequestDto,
-  ): Promise<ReportDto> {
-    return this.reportsService.create(user.id, payload);
+  ) {
+    return { data: await this.reportsService.create(user.id, payload) };
   }
 
   @Get()
-  async list(@CurrentUser() user: AuthUserContext): Promise<ReportDto[]> {
-    return this.reportsService.list(user.id);
+  async list(@CurrentUser() user: AuthUserContext) {
+    return { data: await this.reportsService.list(user.id) };
   }
 }
 

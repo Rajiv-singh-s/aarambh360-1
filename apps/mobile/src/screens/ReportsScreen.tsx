@@ -32,9 +32,10 @@ export default function ReportsScreen() {
     try {
       setLoading(true);
       const data = await apiGet<ReportDto[]>("/reports");
-      setReports(data);
+      setReports(data || []);
     } catch (err) {
       console.error("Failed to fetch reports:", err);
+      setReports([]);
     } finally {
       setLoading(false);
     }
@@ -154,16 +155,18 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: COLORS.card,
     alignItems: "center",
     justifyContent: "center",
+    borderBottomWidth: 3,
+    borderColor: "#0f172a",
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: "800",
+    fontSize: 22,
+    fontWeight: "900",
     color: COLORS.text,
   },
   center: {
@@ -174,16 +177,16 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: COLORS.text,
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 20,
+    fontWeight: "900",
     marginTop: 16,
   },
   emptySub: {
     color: COLORS.sub,
-    fontSize: 14,
+    fontSize: 15,
     textAlign: "center",
     marginTop: 8,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   listContainer: {
     padding: 20,
@@ -191,24 +194,26 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 20,
+    padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: "rgba(255,255,255,0.05)",
+    borderBottomWidth: 5,
+    borderBottomColor: "#0f172a",
   },
   cardHeader: {
     flexDirection: "row",
     alignItems: "flex-start",
   },
   iconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#ef44441a",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#ef444422",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: 14,
   },
   statusBadge: {
     flexDirection: "row",
@@ -216,69 +221,73 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
   },
   statusText: {
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: 13,
+    fontWeight: "900",
+    textTransform: "uppercase",
   },
   questionText: {
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "700",
     color: COLORS.text,
-    lineHeight: 22,
+    lineHeight: 24,
   },
   expandedContent: {
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: "rgba(255,255,255,0.05)",
   },
   reasonBox: {
-    backgroundColor: COLORS.bg,
-    padding: 14,
-    borderRadius: 12,
+    backgroundColor: "#0f172a",
+    padding: 16,
+    borderRadius: 16,
     marginBottom: 12,
   },
   reasonTitle: {
     color: COLORS.sub,
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "800",
     textTransform: "uppercase",
-    marginBottom: 6,
+    marginBottom: 8,
   },
   reasonText: {
     color: COLORS.text,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: "500",
   },
   adminNotesBox: {
     backgroundColor: "#16a34a1a",
-    padding: 14,
-    borderRadius: 12,
+    padding: 16,
+    borderRadius: 16,
     marginBottom: 12,
-    borderLeftWidth: 3,
+    borderLeftWidth: 4,
     borderLeftColor: COLORS.success,
   },
   adminNotesTitle: {
     color: COLORS.success,
     fontSize: 12,
-    fontWeight: "800",
+    fontWeight: "900",
     textTransform: "uppercase",
-    marginBottom: 6,
+    marginBottom: 8,
   },
   adminNotesText: {
     color: COLORS.text,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: "500",
   },
   dateText: {
     color: COLORS.sub,
-    fontSize: 12,
+    fontSize: 13,
     textAlign: "right",
-    marginTop: 4,
+    marginTop: 6,
+    fontWeight: "600",
   },
 });
