@@ -1,9 +1,11 @@
 // QuizScreen.styles.ts
-import { StyleSheet } from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
+
+const { width } = Dimensions.get("window");
 
 export default StyleSheet.create({
   /* ROOT */
-  safe: { flex: 1 },
+  safe: { flex: 1, backgroundColor: "transparent" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadingText: { marginTop: 12 },
 
@@ -12,90 +14,93 @@ export default StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginHorizontal: 16,
-    marginTop: 12,
+    marginHorizontal: 20,
+    marginTop: 16,
+    marginBottom: 8,
   },
-  headerTitle: { fontSize: 18, fontWeight: "700" },
-  timer: { fontSize: 14 },
+  headerTitle: { fontSize: 16, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1 },
+  timer: { fontSize: 14, fontWeight: "700" },
 
-  /* PROGRESS DOTS */
-  progressRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+  /* PROGRESS BAR (Gamified) */
+  progressContainer: {
+    height: 8,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 4,
+    marginHorizontal: 20,
+    marginVertical: 12,
+    overflow: "hidden",
   },
-  progressDot: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    marginHorizontal: 6,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
+  progressBarFill: {
+    height: "100%",
+    borderRadius: 4,
   },
-  dotText: { fontSize: 13, fontWeight: "700" },
 
-  /* TOP INFO CARD */
-  topInfoCard: {
+  /* HUD STATS (Gamified Pills) */
+  hudRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    borderRadius: 18,
+    marginHorizontal: 20,
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  hudPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+  },
+  hudText: { fontSize: 13, fontWeight: "800", marginLeft: 6 },
+
+  /* MAIN QUESTION CARD (Glass/Modern) */
+  card: {
+    borderRadius: 24,
+    marginHorizontal: 20,
+    padding: 24,
+    marginTop: 8,
+    borderWidth: 1,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 8 },
+  },
+  question: { fontSize: 17, fontWeight: "700", marginBottom: 20, lineHeight: 26 },
+
+  /* OPTION CARD (Gamified Buttons) */
+  optionWrapper: {
+    marginBottom: 12,
+  },
+  optionCard: {
+    borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    marginHorizontal: 16,
-    marginTop: 12,
-    elevation: 5,
-    borderWidth: 1,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    borderWidth: 2,
+    flexDirection: "row",
+    alignItems: "center",
   },
-  infoItem: { flex: 1, alignItems: "center" },
-  infoLabel: { fontSize: 12, fontWeight: "600", opacity: 0.7 },
-  infoValue: { marginTop: 3, fontSize: 17, fontWeight: "800" },
-
-  /* MAIN QUESTION CARD */
-  card: {
-    borderRadius: 18,
-    marginHorizontal: 16,
-    padding: 20,
-    marginTop: 16,
-    elevation: 6,
-    borderWidth: 1,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  question: { fontSize: 16, fontWeight: "600", marginBottom: 14 },
-
-  /* OPTION CARD */
-  optionCard: {
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    marginVertical: 6,
-    borderWidth: 1.5,
-  },
-  optionText: { fontSize: 15, fontWeight: "500" },
+  optionText: { fontSize: 15, fontWeight: "600", lineHeight: 22 },
 
   /* EXPLANATION */
   explanationBox: {
-    marginTop: 16,
-    borderRadius: 14,
-    padding: 12,
+    marginTop: 20,
+    borderRadius: 16,
+    padding: 16,
     borderLeftWidth: 4,
   },
-  explanationTitle: { fontWeight: "700", fontSize: 15, marginBottom: 4 },
-  explanationText: { lineHeight: 20, fontSize: 14 },
+  explanationTitle: { fontWeight: "800", fontSize: 13, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 },
+  explanationText: { lineHeight: 22, fontSize: 14, fontWeight: "500" },
 
   /* ACTION ICONS */
   actionRow: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginTop: 18,
+    alignItems: "center",
+    marginTop: 24,
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(150, 150, 150, 0.2)",
   },
 
   /* BOTTOM NAV */
@@ -103,175 +108,87 @@ export default StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingVertical: 14,
-    marginBottom: 10,
+    paddingVertical: 16,
+    backgroundColor: "transparent",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   navBtn: {
     flex: 1,
-    marginHorizontal: 6,
-    borderRadius: 30,
+    marginHorizontal: 8,
+    borderRadius: 16,
     overflow: "hidden",
-    elevation: 5,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 4 },
   },
   navBtnInner: {
     paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
   },
-  navText: { fontSize: 15, fontWeight: "700", color: "#fff" },
+  navText: { fontSize: 15, fontWeight: "800", color: "#fff", letterSpacing: 0.5 },
 
   /* RESULT SCREEN */
   resultBox: { flex: 1, justifyContent: "center", alignItems: "center" },
   resultCard: {
-    borderRadius: 22,
-    padding: 26,
+    borderRadius: 32,
+    padding: 32,
     alignItems: "center",
-    width: "85%",
-    elevation: 8,
+    width: "90%",
+    elevation: 12,
+    shadowColor: "#0ea5e9",
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
   },
-  resultTitle: { fontSize: 20, fontWeight: "800", marginBottom: 12 },
-  resultPerc: { fontSize: 36, fontWeight: "900", marginTop: 10 },
+  resultTitle: { fontSize: 24, fontWeight: "900", marginBottom: 16, letterSpacing: 0.5 },
+  resultPerc: { fontSize: 42, fontWeight: "900", marginTop: 12, letterSpacing: -1 },
   resultButtons: {
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
-    marginTop: 20,
+    marginTop: 24,
   },
   btn: {
-    paddingVertical: 10,
+    paddingVertical: 14,
     paddingHorizontal: 24,
-    borderRadius: 12,
+    borderRadius: 16,
   },
-  btnText: { fontSize: 15, fontWeight: "800" },
+  btnText: { fontSize: 16, fontWeight: "800" },
 
   /* REVIEW */
   reviewCard: {
-    borderRadius: 18,
+    borderRadius: 24,
     marginHorizontal: 16,
-    padding: 20,
-    elevation: 6,
+    padding: 24,
+    elevation: 8,
     marginTop: 16,
   },
-  reviewQNo: { fontSize: 16, fontWeight: "700", marginBottom: 6 },
+  reviewQNo: { fontSize: 14, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 },
 
-  /* REPORT POPUP */
-  centeredModalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  backdrop: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  centeredReportCard: {
-    width: "85%",
-    borderRadius: 20,
-    padding: 20,
-    overflow: "hidden",
-  },
-  reportTitle: { fontSize: 17, fontWeight: "700", marginBottom: 10 },
-  reportInput: {
-    borderRadius: 12,
-    padding: 12,
-    height: 110,
-    textAlignVertical: "top",
-    fontSize: 14,
-    marginBottom: 16,
-  },
-  reportButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 8,
-  },
-
-  /* STREAK POPUP */
-  popupOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  popupCardBig: {
-    width: "85%",
-    borderRadius: 25,
-    paddingVertical: 34,
-    paddingHorizontal: 25,
-    alignItems: "center",
-    elevation: 20,
-  },
-  popupTextLarge: {
-    fontSize: 24,
-    fontWeight: "900",
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  popupSubText: {
-    fontSize: 15,
-    textAlign: "center",
-    marginBottom: 20,
-    lineHeight: 22,
-    opacity: 0.8,
-  },
-  streakBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginBottom: 12,
-  },
-  streakBadgeText: { fontWeight: "800", marginLeft: 6, fontSize: 16 },
-  okBtn: { paddingVertical: 12, paddingHorizontal: 40, borderRadius: 12 },
-  confettiLayer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 9999,
-    pointerEvents: "none",
-  },
-  fullscreenBlur: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  modalWrapper: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  reportPopupContainer: {
-    width: "85%",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 9999,
-  },
-
-  reportCard: {
-    width: "100%",
-    borderRadius: 20,
-    padding: 20,
-    overflow: "hidden",
-  },
-  bookmarkPopupCard: {
-    width: "80%",
-    backgroundColor: "rgba(255,255,255,0.95)",
-    padding: 24,
-    borderRadius: 20,
-    alignItems: "center",
-    zIndex: 9999,
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
-  },
+  /* POPUPS (Kept from before) */
+  centeredModalContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.6)" },
+  centeredReportCard: { width: "88%", borderRadius: 28, padding: 24, overflow: "hidden" },
+  reportTitle: { fontSize: 19, fontWeight: "800", marginBottom: 12 },
+  reportInput: { borderRadius: 16, padding: 16, height: 120, textAlignVertical: "top", fontSize: 15, marginBottom: 20 },
+  reportButtons: { flexDirection: "row", justifyContent: "space-between" },
+  popupOverlay: { flex: 1, justifyContent: "center", alignItems: "center" },
+  popupCardBig: { width: "88%", borderRadius: 32, paddingVertical: 40, paddingHorizontal: 28, alignItems: "center", elevation: 24 },
+  popupTextLarge: { fontSize: 28, fontWeight: "900", textAlign: "center", marginBottom: 12 },
+  popupSubText: { fontSize: 16, textAlign: "center", marginBottom: 24, lineHeight: 24, opacity: 0.8 },
+  streakBadge: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 8, borderRadius: 24, marginBottom: 16 },
+  streakBadgeText: { fontWeight: "900", marginLeft: 8, fontSize: 18 },
+  okBtn: { paddingVertical: 14, paddingHorizontal: 48, borderRadius: 16 },
+  confettiLayer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, pointerEvents: "none" },
+  fullscreenBlur: { ...StyleSheet.absoluteFillObject },
+  modalWrapper: { flex: 1, justifyContent: "center", alignItems: "center" },
+  reportPopupContainer: { width: "90%", justifyContent: "center", alignItems: "center", zIndex: 9999 },
+  reportCard: { width: "100%", borderRadius: 28, padding: 24, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  bookmarkPopupCard: { width: "85%", backgroundColor: "rgba(255,255,255,0.98)", padding: 28, borderRadius: 28, alignItems: "center", zIndex: 9999, elevation: 20, shadowColor: "#000", shadowOpacity: 0.25, shadowRadius: 15, shadowOffset: { width: 0, height: 10 } },
 });
