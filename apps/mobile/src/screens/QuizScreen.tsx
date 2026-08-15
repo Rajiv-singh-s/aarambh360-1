@@ -1008,44 +1008,49 @@ export default function QuizScreen() {
             activeOpacity={1}
             onPress={() => setShowBookmarkPopup(false)}
           />
-
-          <Animated.View style={styles.bookmarkPopupCard}>
-            <Text style={[styles.popupTextLarge, { color: COLORS.text }]}>
-              Bookmark this question?
+          <View style={[styles.popupCardBig, { backgroundColor: isDark ? "#1e293b" : "#ffffff", paddingVertical: 24, width: "90%" }]}>
+            <View style={{ backgroundColor: "#0ea5e91a", padding: 16, borderRadius: 40, marginBottom: 12 }}>
+              <Ionicons name="bookmark" size={36} color={COLORS.accent} />
+            </View>
+            <Text style={[styles.popupTextLarge, { color: COLORS.text, fontSize: 20 }]}>
+              Bookmark Question?
             </Text>
-
-            <View style={{ flexDirection: "row", marginTop: 20 }}>
+            <Text style={[styles.popupSubText, { color: COLORS.sub, fontSize: 14 }]}>
+              Save this question to review it later in your bookmarks.
+            </Text>
+            <View style={{ flexDirection: "row", marginTop: 10, width: "100%", justifyContent: "space-between" }}>
               <TouchableOpacity
-                style={[styles.btn, { backgroundColor: "#334155", marginRight: 10 }]}
+                style={[styles.btn, { backgroundColor: "transparent", borderWidth: 2, borderColor: COLORS.sub, flex: 1, marginRight: 8, alignItems: "center", borderRadius: 14 }]}
                 onPress={() => setShowBookmarkPopup(false)}
               >
-                <Text style={[styles.btnText, { color: "#fff" }]}>Cancel</Text>
+                <Text style={[styles.btnText, { color: COLORS.sub }]}>Cancel</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
-                style={[styles.btn, { backgroundColor: COLORS.accent }]}
+                style={[styles.btn, { backgroundColor: COLORS.accent, borderBottomWidth: 4, borderColor: "#0284c7", flex: 1, marginLeft: 8, alignItems: "center", borderRadius: 14 }]}
                 onPress={saveBookmark}
               >
-                <Text style={[styles.btnText, { color: "#fff" }]}>Yes</Text>
+                <Text style={[styles.btnText, { color: "#fff" }]}>Save</Text>
               </TouchableOpacity>
             </View>
-          </Animated.View>
+          </View>
         </View>
       </Modal>
 
       {/* REPORT POPUP */}
-      <Modal visible={showReportPopup} transparent animationType="none">
+      <Modal visible={showReportPopup} transparent animationType="fade">
         <View style={styles.modalWrapper}>
           <TouchableOpacity
             style={styles.backdrop}
             activeOpacity={1}
             onPress={closeReport}
           />
-
           <Animated.View
             style={[
-              styles.reportPopupContainer,
+              styles.popupCardBig,
               {
+                backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                paddingVertical: 24,
+                width: "90%",
                 transform: [
                   {
                     translateY: slideAnim.interpolate({
@@ -1057,46 +1062,49 @@ export default function QuizScreen() {
               },
             ]}
           >
-            <BlurView
-              intensity={50}
-              tint={isDark ? "dark" : "light"}
-              style={styles.reportCard}
-            >
-              <Text style={[styles.reportTitle, { color: COLORS.text }]}>
-                Why are you reporting this question?
-              </Text>
+            <View style={{ backgroundColor: "#ef44441a", padding: 16, borderRadius: 40, marginBottom: 12 }}>
+              <Ionicons name="flag" size={36} color="#ef4444" />
+            </View>
+            <Text style={[styles.popupTextLarge, { color: COLORS.text, fontSize: 20 }]}>
+              Report Question
+            </Text>
+            <Text style={[styles.popupSubText, { color: COLORS.sub, fontSize: 14, marginBottom: 12 }]}>
+              Found an error? Let us know.
+            </Text>
 
-              <TextInput
-                value={reportText}
-                onChangeText={setReportText}
-                placeholder="Type your reason (5–50 words)…"
-                placeholderTextColor={COLORS.sub}
-                multiline
-                style={[
-                  styles.reportInput,
-                  {
-                    backgroundColor: isDark ? "#1e293b" : "#e2e8f0",
-                    color: COLORS.text,
-                  },
-                ]}
-              />
+            <TextInput
+              value={reportText}
+              onChangeText={setReportText}
+              placeholder="Type your reason (5–50 words)…"
+              placeholderTextColor={COLORS.sub}
+              multiline
+              style={[
+                styles.reportInput,
+                {
+                  backgroundColor: isDark ? "#0f172a" : "#f8fafc",
+                  color: COLORS.text,
+                  width: "100%",
+                  borderWidth: 1,
+                  borderColor: isDark ? "#334155" : "#e2e8f0"
+                },
+              ]}
+            />
 
-              <View style={styles.reportButtons}>
-                <TouchableOpacity
-                  onPress={closeReport}
-                  style={[styles.btn, { backgroundColor: "#334155" }]}
-                >
-                  <Text style={[styles.btnText, { color: "#fff" }]}>Cancel</Text>
-                </TouchableOpacity>
+            <View style={{ flexDirection: "row", marginTop: 4, width: "100%", justifyContent: "space-between" }}>
+              <TouchableOpacity
+                onPress={closeReport}
+                style={[styles.btn, { backgroundColor: "transparent", borderWidth: 2, borderColor: COLORS.sub, flex: 1, marginRight: 8, alignItems: "center", borderRadius: 14 }]}
+              >
+                <Text style={[styles.btnText, { color: COLORS.sub }]}>Cancel</Text>
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                  onPress={submitReport}
-                  style={[styles.btn, { backgroundColor: COLORS.accent }]}
-                >
-                  <Text style={[styles.btnText, { color: "#fff" }]}>Submit</Text>
-                </TouchableOpacity>
-              </View>
-            </BlurView>
+              <TouchableOpacity
+                onPress={submitReport}
+                style={[styles.btn, { backgroundColor: "#ef4444", borderBottomWidth: 4, borderColor: "#b91c1c", flex: 1, marginLeft: 8, alignItems: "center", borderRadius: 14 }]}
+              >
+                <Text style={[styles.btnText, { color: "#fff" }]}>Submit</Text>
+              </TouchableOpacity>
+            </View>
           </Animated.View>
         </View>
       </Modal>
