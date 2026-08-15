@@ -1,25 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, useColorScheme } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import SafeContainer from "../components/SafeContainer";
 import { apiGet } from "../services/apiClient";
 import type { ReportDto } from "@aarambh360/types";
 import { Ionicons } from "@expo/vector-icons";
 
-const COLORS = {
-  bg: "#0f172a",
-  card: "#1e293b",
-  text: "#f8fafc",
-  sub: "#94a3b8",
-  accent: "#0284c7",
+const getColors = (isDark: boolean) => ({
+  bg: isDark ? "#0f172a" : "#f1f5f9",
+  card: isDark ? "#1e293b" : "#ffffff",
+  text: isDark ? "#f8fafc" : "#0f172a",
+  sub: isDark ? "#94a3b8" : "#64748b",
+  accent: "#0ea5e9",
   success: "#16a34a",
-  border: "#334155",
-  danger: "#ef4444",
-  warning: "#f59e0b",
-};
+  border: isDark ? "#334155" : "#e2e8f0",
+  shadow: isDark ? "#0f172a" : "#cbd5e1",
+});
 
 export default function ReportsScreen() {
   const navigation = useNavigation();
+  const isDark = useColorScheme() === "dark";
+  const COLORS = getColors(isDark);
+  
   const [reports, setReports] = useState<ReportDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -47,15 +49,16 @@ export default function ReportsScreen() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "RESOLVED":
-        return COLORS.success;
       case "OPEN":
-      case "IN_REVIEW":
-        return COLORS.warning;
-      case "DISMISSED":
-        return COLORS.sub;
+        return "#eab308";
+      case "IN_PROGRESS":
+        return "#3b82f6";
+      case "RESOLVED":
+        return "#22c55e";
+      case "CLOSED":
+        return "#94a3b8";
       default:
-        return COLORS.sub;
+        return "#94a3b8";
     }
   };
 
@@ -63,23 +66,24 @@ export default function ReportsScreen() {
     const isExpanded = expandedId === item.id;
     const q = item.question;
     const statusColor = getStatusColor(item.status);
+    const date = new Date(item.createdAt).toLocaleDateString();
 
     return (
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: COLORS.card, borderColor: COLORS.border, borderBottomColor: COLORS.shadow }]}>
         <TouchableOpacity
           activeOpacity={0.7}
           style={styles.cardHeader}
           onPress={() => toggleExpand(item.id)}
         >
-          <View style={styles.iconContainer}>
-            <Ionicons name="flag" size={20} color={COLORS.danger} />
+          <View style={[styles.iconContainer, { backgroundColor: isDark ? "#ef444422" : "#fee2e2" }]}>
+            <Ionicons name="flag" size={20} color="#ef4444" />
           </View>
           <View style={{ flex: 1 }}>
             <View style={styles.statusBadge}>
               <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
               <Text style={[styles.statusText, { color: statusColor }]}>{item.status}</Text>
             </View>
-            <Text style={styles.questionText} numberOfLines={isExpanded ? undefined : 2}>
+            <Text style={[styles.questionText, { color: COLORS.text }]} numberOfLines={isExpanded ? undefined : 2}>
               {q?.text || "Question data unavailable"}
             </Text>
           </View>
@@ -92,22 +96,20 @@ export default function ReportsScreen() {
         </TouchableOpacity>
 
         {isExpanded && (
-          <View style={styles.expandedContent}>
-            <View style={styles.reasonBox}>
+          <View style={[styles.expandedContent, { borderTopColor: COLORS.border }]}>
+            <View style={[styles.reasonBox, { backgroundColor: isDark ? "#0f172a" : "#f1f5f9" }]}>
               <Text style={styles.reasonTitle}>Your Report Reason:</Text>
-              <Text style={styles.reasonText}>{item.reason}</Text>
+              <Text style={[styles.reasonText, { color: COLORS.text }]}>{item.reason}</Text>
             </View>
-
+            
             {item.adminNotes && (
-              <View style={styles.adminNotesBox}>
+              <View style={[styles.adminNotesBox, { backgroundColor: isDark ? "#16a34a1a" : "#dcfce3" }]}>
                 <Text style={styles.adminNotesTitle}>Admin Response:</Text>
-                <Text style={styles.adminNotesText}>{item.adminNotes}</Text>
+                <Text style={[styles.adminNotesText, { color: COLORS.text }]}>{item.adminNotes}</Text>
               </View>
             )}
 
-            <Text style={styles.dateText}>
-              Reported on: {new Date(item.createdAt).toLocaleDateString()}
-            </Text>
+            <Text style={[styles.dateText, { color: COLORS.sub }]}>Reported on {date}</Text>
           </View>
         )}
       </View>
@@ -117,10 +119,10 @@ export default function ReportsScreen() {
   return (
     <SafeContainer>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: COLORS.card, borderBottomColor: COLORS.shadow }]} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Reports</Text>
+        <Text style={[styles.headerTitle, { color: COLORS.text }]}>My Reports</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -131,8 +133,8 @@ export default function ReportsScreen() {
       ) : reports.length === 0 ? (
         <View style={styles.center}>
           <Ionicons name="flag-outline" size={60} color={COLORS.border} />
-          <Text style={styles.emptyText}>No reports yet</Text>
-          <Text style={styles.emptySub}>Questions you report for errors will appear here.</Text>
+          <Text style={[styles.emptyText, { color: COLORS.text }]}>No reports yet</Text>
+          <Text style={[styles.emptySub, { color: COLORS.sub }]}>Questions you report for errors will appear here so you can track their status.</Text>
         </View>
       ) : (
         <FlatList
@@ -158,16 +160,13 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: COLORS.card,
     alignItems: "center",
     justifyContent: "center",
     borderBottomWidth: 3,
-    borderColor: "#0f172a",
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: "900",
-    color: COLORS.text,
   },
   center: {
     flex: 1,
@@ -176,13 +175,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   emptyText: {
-    color: COLORS.text,
     fontSize: 20,
     fontWeight: "900",
     marginTop: 16,
   },
   emptySub: {
-    color: COLORS.sub,
     fontSize: 15,
     textAlign: "center",
     marginTop: 8,
@@ -193,14 +190,11 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
   card: {
-    backgroundColor: COLORS.card,
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
     borderBottomWidth: 5,
-    borderBottomColor: "#0f172a",
   },
   cardHeader: {
     flexDirection: "row",
@@ -210,7 +204,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#ef444422",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 14,
@@ -234,57 +227,50 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: 16,
     fontWeight: "700",
-    color: COLORS.text,
     lineHeight: 24,
   },
   expandedContent: {
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.05)",
   },
   reasonBox: {
-    backgroundColor: "#0f172a",
     padding: 16,
     borderRadius: 16,
     marginBottom: 12,
   },
   reasonTitle: {
-    color: COLORS.sub,
+    color: "#0ea5e9",
     fontSize: 12,
     fontWeight: "800",
     textTransform: "uppercase",
     marginBottom: 8,
   },
   reasonText: {
-    color: COLORS.text,
     fontSize: 15,
     lineHeight: 22,
     fontWeight: "500",
   },
   adminNotesBox: {
-    backgroundColor: "#16a34a1a",
     padding: 16,
     borderRadius: 16,
     marginBottom: 12,
     borderLeftWidth: 4,
-    borderLeftColor: COLORS.success,
+    borderLeftColor: "#16a34a",
   },
   adminNotesTitle: {
-    color: COLORS.success,
+    color: "#16a34a",
     fontSize: 12,
     fontWeight: "900",
     textTransform: "uppercase",
     marginBottom: 8,
   },
   adminNotesText: {
-    color: COLORS.text,
     fontSize: 15,
     lineHeight: 22,
     fontWeight: "500",
   },
   dateText: {
-    color: COLORS.sub,
     fontSize: 13,
     textAlign: "right",
     marginTop: 6,

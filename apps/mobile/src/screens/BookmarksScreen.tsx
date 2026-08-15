@@ -1,23 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, useColorScheme } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import SafeContainer from "../components/SafeContainer";
 import { apiGet } from "../services/apiClient";
 import type { BookmarkDto } from "@aarambh360/types";
 import { Ionicons } from "@expo/vector-icons";
 
-const COLORS = {
-  bg: "#0f172a",
-  card: "#1e293b",
-  text: "#f8fafc",
-  sub: "#94a3b8",
-  accent: "#0284c7",
+const getColors = (isDark: boolean) => ({
+  bg: isDark ? "#0f172a" : "#f1f5f9",
+  card: isDark ? "#1e293b" : "#ffffff",
+  text: isDark ? "#f8fafc" : "#0f172a",
+  sub: isDark ? "#94a3b8" : "#64748b",
+  accent: "#0ea5e9",
   success: "#16a34a",
-  border: "#334155",
-};
+  border: isDark ? "#334155" : "#e2e8f0",
+  shadow: isDark ? "#0f172a" : "#cbd5e1",
+});
 
 export default function BookmarksScreen() {
   const navigation = useNavigation();
+  const isDark = useColorScheme() === "dark";
+  const COLORS = getColors(isDark);
+  
   const [bookmarks, setBookmarks] = useState<BookmarkDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -49,23 +53,23 @@ export default function BookmarksScreen() {
 
     if (!q) {
       return (
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: COLORS.card, borderColor: COLORS.border, borderBottomColor: COLORS.shadow }]}>
           <Text style={{ color: COLORS.sub }}>Question data unavailable.</Text>
         </View>
       );
     }
 
     return (
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: COLORS.card, borderColor: COLORS.border, borderBottomColor: COLORS.shadow }]}>
         <TouchableOpacity
           activeOpacity={0.7}
           style={styles.cardHeader}
           onPress={() => toggleExpand(item.id)}
         >
-          <View style={styles.iconContainer}>
+          <View style={[styles.iconContainer, { backgroundColor: isDark ? "#0ea5e922" : "#e0f2fe" }]}>
             <Ionicons name="bookmark" size={20} color={COLORS.accent} />
           </View>
-          <Text style={styles.questionText} numberOfLines={isExpanded ? undefined : 2}>
+          <Text style={[styles.questionText, { color: COLORS.text }]} numberOfLines={isExpanded ? undefined : 2}>
             {q.text}
           </Text>
           <Ionicons
@@ -77,34 +81,41 @@ export default function BookmarksScreen() {
         </TouchableOpacity>
 
         {isExpanded && (
-          <View style={styles.expandedContent}>
-            {q.options?.map((opt, idx) => {
-              const isCorrect = q.correctOptionId === opt.id;
-              return (
-                <View
-                  key={opt.id}
-                  style={[
-                    styles.optionRow,
-                    isCorrect && styles.correctOptionRow,
-                  ]}
-                >
-                  <View style={[styles.optionLetter, isCorrect && styles.correctOptionLetter]}>
-                    <Text style={[styles.optionLetterText, isCorrect && { color: "#fff" }]}>
-                      {String.fromCharCode(65 + idx)}
+          <View style={[styles.expandedContent, { borderTopColor: COLORS.border }]}>
+            {q.options && q.options.length > 0 ? (
+              q.options.map((opt, idx) => {
+                const isCorrect = q.correctOptionId === opt.id;
+                return (
+                  <View
+                    key={opt.id}
+                    style={[
+                      styles.optionRow,
+                      { backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "#f8fafc", borderColor: COLORS.border },
+                      isCorrect && { backgroundColor: isDark ? "#16a34a1a" : "#dcfce3", borderColor: COLORS.success, borderWidth: 2 },
+                    ]}
+                  >
+                    <View style={[styles.optionLetter, { backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "#e2e8f0" }, isCorrect && { backgroundColor: COLORS.success }]}>
+                      <Text style={[styles.optionLetterText, { color: isDark ? "#f8fafc" : "#334155" }, isCorrect && { color: "#ffffff" }]}>
+                        {String.fromCharCode(65 + idx)}
+                      </Text>
+                    </View>
+                    <Text style={[styles.optionText, { color: COLORS.text }, isCorrect && { color: COLORS.success, fontWeight: "700" }]}>
+                      {opt.text}
                     </Text>
+                    {isCorrect && <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />}
                   </View>
-                  <Text style={[styles.optionText, isCorrect && { color: COLORS.success, fontWeight: "600" }]}>
-                    {opt.text}
-                  </Text>
-                  {isCorrect && <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />}
-                </View>
-              );
-            })}
+                );
+              })
+            ) : (
+              <Text style={{ color: COLORS.sub, fontStyle: 'italic', marginBottom: 10 }}>
+                No options available for this question type.
+              </Text>
+            )}
 
             {q.explanation && (
-              <View style={styles.explanationBox}>
+              <View style={[styles.explanationBox, { backgroundColor: isDark ? "#0f172a" : "#f1f5f9" }]}>
                 <Text style={styles.explanationTitle}>Explanation:</Text>
-                <Text style={styles.explanationText}>{q.explanation}</Text>
+                <Text style={[styles.explanationText, { color: COLORS.sub }]}>{q.explanation}</Text>
               </View>
             )}
           </View>
@@ -116,10 +127,10 @@ export default function BookmarksScreen() {
   return (
     <SafeContainer>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={[styles.backBtn, { backgroundColor: COLORS.card, borderBottomColor: COLORS.shadow }]} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Bookmarks</Text>
+        <Text style={[styles.headerTitle, { color: COLORS.text }]}>My Bookmarks</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -130,8 +141,8 @@ export default function BookmarksScreen() {
       ) : bookmarks.length === 0 ? (
         <View style={styles.center}>
           <Ionicons name="bookmarks-outline" size={60} color={COLORS.border} />
-          <Text style={styles.emptyText}>No bookmarks yet</Text>
-          <Text style={styles.emptySub}>Questions you bookmark during quizzes will appear here.</Text>
+          <Text style={[styles.emptyText, { color: COLORS.text }]}>No bookmarks yet</Text>
+          <Text style={[styles.emptySub, { color: COLORS.sub }]}>Questions you bookmark during quizzes will appear here.</Text>
         </View>
       ) : (
         <FlatList
@@ -157,16 +168,13 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: COLORS.card,
     alignItems: "center",
     justifyContent: "center",
     borderBottomWidth: 3,
-    borderColor: "#0f172a",
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: "900",
-    color: COLORS.text,
   },
   center: {
     flex: 1,
@@ -175,13 +183,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   emptyText: {
-    color: COLORS.text,
     fontSize: 20,
     fontWeight: "900",
     marginTop: 16,
   },
   emptySub: {
-    color: COLORS.sub,
     fontSize: 15,
     textAlign: "center",
     marginTop: 8,
@@ -192,14 +198,11 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
   card: {
-    backgroundColor: COLORS.card,
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
     borderBottomWidth: 5,
-    borderBottomColor: "#0f172a",
   },
   cardHeader: {
     flexDirection: "row",
@@ -209,7 +212,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#0ea5e922",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 14,
@@ -218,7 +220,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: "700",
-    color: COLORS.text,
     lineHeight: 24,
     paddingTop: 2,
   },
@@ -226,43 +227,29 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.05)",
   },
   optionRow: {
     flexDirection: "row",
     alignItems: "center",
     padding: 14,
     borderRadius: 16,
-    backgroundColor: "rgba(255,255,255,0.03)",
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
-  },
-  correctOptionRow: {
-    backgroundColor: "#16a34a1a",
-    borderColor: COLORS.success,
-    borderWidth: 2,
   },
   optionLetter: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "rgba(255,255,255,0.1)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
   },
-  correctOptionLetter: {
-    backgroundColor: COLORS.success,
-  },
   optionLetterText: {
-    color: COLORS.text,
     fontSize: 14,
     fontWeight: "900",
   },
   optionText: {
     flex: 1,
-    color: COLORS.text,
     fontSize: 15,
     lineHeight: 22,
     fontWeight: "500",
@@ -270,20 +257,18 @@ const styles = StyleSheet.create({
   explanationBox: {
     marginTop: 16,
     padding: 16,
-    backgroundColor: "#0f172a",
     borderRadius: 16,
     borderLeftWidth: 4,
-    borderLeftColor: COLORS.accent,
+    borderLeftColor: "#0ea5e9",
   },
   explanationTitle: {
-    color: COLORS.accent,
+    color: "#0ea5e9",
     fontSize: 13,
     fontWeight: "900",
     textTransform: "uppercase",
     marginBottom: 8,
   },
   explanationText: {
-    color: COLORS.sub,
     fontSize: 14,
     lineHeight: 24,
     fontWeight: "500",
