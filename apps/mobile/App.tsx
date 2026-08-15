@@ -42,6 +42,7 @@ import BookmarksScreen from "./src/screens/BookmarksScreen";
 import ReportsScreen from "./src/screens/ReportsScreen";
 import DailyChallengeHubScreen from "./src/screens/DailyChallengeHubScreen";
 import ActiveDailyChallengeScreen from "./src/screens/ActiveDailyChallengeScreen";
+import DailyChallengeResultScreen from "./src/screens/DailyChallengeResultScreen";
 
 // Type definitions for navigation
 export type RootStackParamList = {
@@ -159,6 +160,7 @@ export default function App() {
           <Stack.Screen name="ReportsScreen" component={ReportsScreen} />
           <Stack.Screen name="DailyChallengeHubScreen" component={DailyChallengeHubScreen} />
           <Stack.Screen name="ActiveDailyChallengeScreen" component={ActiveDailyChallengeScreen} />
+          <Stack.Screen name="DailyChallengeResultScreen" component={DailyChallengeResultScreen} />
         </Stack.Navigator>
         </NavigationContainer>
       </AuthProvider>
