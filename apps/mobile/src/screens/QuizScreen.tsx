@@ -494,85 +494,41 @@ export default function QuizScreen() {
               {displayPerc}%
             </Text>
 
-            <View
-              style={{
-                width: "90%",
-                backgroundColor: COLORS.card,
-                marginTop: 20,
-                borderRadius: 18,
-                padding: 16,
-                elevation: 6,
-              }}
-            >
-              <Text
-                style={{
-                  color: COLORS.text,
-                  fontSize: 18,
-                  fontWeight: "700",
-                  marginBottom: 12,
-                  textAlign: "center",
-                }}
-              >
-                Performance Summary
-              </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginTop: 24, width: "100%" }}>
+              {/* Box 1: Correct */}
+              <View style={{ width: "48%", backgroundColor: "#10b9811a", padding: 16, borderRadius: 18, alignItems: "center", marginBottom: 12, borderBottomWidth: 3, borderColor: "#10b981" }}>
+                <Ionicons name="checkmark-circle" size={26} color="#10B981" />
+                <Text style={{ color: COLORS.text, fontSize: 11, fontWeight: "800", marginTop: 8, opacity: 0.6, letterSpacing: 1 }}>CORRECT</Text>
+                <Text style={{ color: "#10b981", fontSize: 22, fontWeight: "900", marginTop: 2 }}>{correctCount}</Text>
+              </View>
 
-              <View style={{ marginTop: 6 }}>
-                <View style={{ flexDirection: "row", marginVertical: 6 }}>
-                  <Ionicons name="book-outline" size={20} color={COLORS.accent} />
-                  <Text style={{ color: COLORS.text, marginLeft: 10, fontSize: 15 }}>
-                    Subject:{" "}
-                    <Text style={{ color: COLORS.accent, fontWeight: "700" }}>
-                      {subject}
-                    </Text>
-                  </Text>
-                </View>
+              {/* Box 2: Incorrect */}
+              <View style={{ width: "48%", backgroundColor: "#ef44441a", padding: 16, borderRadius: 18, alignItems: "center", marginBottom: 12, borderBottomWidth: 3, borderColor: "#ef4444" }}>
+                <Ionicons name="close-circle" size={26} color="#EF4444" />
+                <Text style={{ color: COLORS.text, fontSize: 11, fontWeight: "800", marginTop: 8, opacity: 0.6, letterSpacing: 1 }}>INCORRECT</Text>
+                <Text style={{ color: "#ef4444", fontSize: 22, fontWeight: "900", marginTop: 2 }}>{incorrectCount}</Text>
+              </View>
 
-                <View style={{ flexDirection: "row", marginVertical: 6 }}>
-                  <Ionicons name="checkmark-circle-outline" size={20} color="#10B981" />
-                  <Text style={{ color: COLORS.text, marginLeft: 10, fontSize: 15 }}>
-                    Correct:{" "}
-                    <Text style={{ color: "#10B981", fontWeight: "700" }}>
-                      {correctCount}
-                    </Text>
-                  </Text>
-                </View>
+              {/* Box 3: Marks */}
+              <View style={{ width: "48%", backgroundColor: COLORS.accent + "1a", padding: 16, borderRadius: 18, alignItems: "center", marginBottom: 12, borderBottomWidth: 3, borderColor: COLORS.accent }}>
+                <Ionicons name="trophy" size={26} color={COLORS.accent} />
+                <Text style={{ color: COLORS.text, fontSize: 11, fontWeight: "800", marginTop: 8, opacity: 0.6, letterSpacing: 1 }}>MARKS</Text>
+                <Text style={{ color: COLORS.accent, fontSize: 22, fontWeight: "900", marginTop: 2 }}>{totalMarks.toFixed(2)}</Text>
+              </View>
 
-                <View style={{ flexDirection: "row", marginVertical: 6 }}>
-                  <Ionicons name="close-circle-outline" size={20} color="#EF4444" />
-                  <Text style={{ color: COLORS.text, marginLeft: 10, fontSize: 15 }}>
-                    Incorrect:{" "}
-                    <Text style={{ color: "#EF4444", fontWeight: "700" }}>
-                      {incorrectCount}
-                    </Text>
-                  </Text>
-                </View>
-
-                <View style={{ flexDirection: "row", marginVertical: 6 }}>
-                  <Ionicons name="trophy-outline" size={20} color={COLORS.accent} />
-                  <Text style={{ color: COLORS.text, marginLeft: 10, fontSize: 15 }}>
-                    Marks:{" "}
-                    <Text style={{ color: COLORS.accent, fontWeight: "700" }}>
-                      {totalMarks.toFixed(2)} / {maxMarks}
-                    </Text>
-                  </Text>
-                </View>
-
-                <View style={{ flexDirection: "row", marginVertical: 6 }}>
-                  <Ionicons name="time-outline" size={20} color={COLORS.accent} />
-                  <Text style={{ color: COLORS.text, marginLeft: 10, fontSize: 15 }}>
-                    Time Taken:{" "}
-                    <Text style={{ color: COLORS.accent, fontWeight: "700" }}>
-                      {formatSeconds(secondsElapsed)}
-                    </Text>
-                  </Text>
-                </View>
+              {/* Box 4: Time */}
+              <View style={{ width: "48%", backgroundColor: COLORS.accent + "1a", padding: 16, borderRadius: 18, alignItems: "center", marginBottom: 12, borderBottomWidth: 3, borderColor: COLORS.accent }}>
+                <Ionicons name="time" size={26} color={COLORS.accent} />
+                <Text style={{ color: COLORS.text, fontSize: 11, fontWeight: "800", marginTop: 8, opacity: 0.6, letterSpacing: 1 }}>TIME</Text>
+                <Text style={{ color: COLORS.accent, fontSize: 20, fontWeight: "900", marginTop: 2 }}>{formatSeconds(secondsElapsed)}</Text>
               </View>
             </View>
 
             {/* BUTTONS */}
-            <View style={styles.resultButtons}>
+            <View style={{ width: "100%", marginTop: 12 }}>
               <TouchableOpacity
-                style={[styles.btn, { backgroundColor: COLORS.accent }]}
+                activeOpacity={0.7}
+                style={{ backgroundColor: COLORS.accent, paddingVertical: 16, borderRadius: 16, borderBottomWidth: 4, borderColor: "#0284c7", marginBottom: 12, alignItems: "center" }}
                 onPress={() => {
                   const first = answers.findIndex((a) => a !== null);
                   setCurrentIndex(first >= 0 ? first : 0);
@@ -580,16 +536,17 @@ export default function QuizScreen() {
                   setReviewMode(true);
                 }}
               >
-                <Text style={[styles.btnText, { color: "#fff" }]}>
+                <Text style={{ color: "#fff", fontSize: 15, fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 }}>
                   Review Answers
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.btn, { backgroundColor: COLORS.sub }]}
+                activeOpacity={0.7}
+                style={{ backgroundColor: "transparent", paddingVertical: 16, borderRadius: 16, borderWidth: 2, borderColor: COLORS.accent, alignItems: "center" }}
                 onPress={handleContinue}
               >
-                <Text style={[styles.btnText, { color: "#fff" }]}>
+                <Text style={{ color: COLORS.accent, fontSize: 15, fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 }}>
                   Continue
                 </Text>
               </TouchableOpacity>
