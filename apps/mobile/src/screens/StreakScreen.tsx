@@ -9,6 +9,8 @@ import {
   Share,
   useColorScheme,
   Dimensions,
+  Animated,
+  Easing,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,7 +20,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { useProgress } from "../hooks/useProgress";
 import ConfettiCannon from "react-native-confetti-cannon";
-import Animated, { FadeInDown, FadeIn, Easing, useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence } from "react-native-reanimated";
 import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop } from "react-native-svg";
 
 const { width } = Dimensions.get("window");
@@ -60,24 +61,41 @@ export default function StreakScreen({ navigation }: any) {
   const isDark = useColorScheme() === "dark";
   const insets = useSafeAreaInsets();
 
-  // Reanimated pulse for the flame
-  const pulseScale = useSharedValue(1);
+  // Standard Animated API Replacements for Reanimated
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim1 = useRef(new Animated.Value(0)).current;
+  const fadeAnim2 = useRef(new Animated.Value(0)).current;
+  const fadeAnim3 = useRef(new Animated.Value(0)).current;
+  const fadeAnim4 = useRef(new Animated.Value(0)).current;
+  const fadeAnim5 = useRef(new Animated.Value(0)).current;
+
+  const translateY1 = useRef(new Animated.Value(20)).current;
+  const translateY2 = useRef(new Animated.Value(20)).current;
+  const translateY3 = useRef(new Animated.Value(20)).current;
+  const translateY4 = useRef(new Animated.Value(20)).current;
+  const translateY5 = useRef(new Animated.Value(20)).current;
+
   useEffect(() => {
-    pulseScale.value = withRepeat(
-      withSequence(
-        withTiming(1.08, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      true
-    );
-  }, []);
+    // Infinite Pulse Loop for the Flame
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.08, duration: 1000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1000, easing: Easing.inOut(Easing.ease), useNativeDriver: true })
+      ])
+    ).start();
 
-  const animatedFlameStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulseScale.value }],
-  }));
+    // Staggered Entrance Animations
+    if (!loading) {
+      Animated.stagger(100, [
+        Animated.parallel([Animated.timing(fadeAnim1, { toValue: 1, duration: 500, useNativeDriver: true }), Animated.timing(translateY1, { toValue: 0, duration: 500, useNativeDriver: true })]),
+        Animated.parallel([Animated.timing(fadeAnim2, { toValue: 1, duration: 500, useNativeDriver: true }), Animated.timing(translateY2, { toValue: 0, duration: 500, useNativeDriver: true })]),
+        Animated.parallel([Animated.timing(fadeAnim3, { toValue: 1, duration: 500, useNativeDriver: true }), Animated.timing(translateY3, { toValue: 0, duration: 500, useNativeDriver: true })]),
+        Animated.parallel([Animated.timing(fadeAnim4, { toValue: 1, duration: 500, useNativeDriver: true }), Animated.timing(translateY4, { toValue: 0, duration: 500, useNativeDriver: true })]),
+        Animated.parallel([Animated.timing(fadeAnim5, { toValue: 1, duration: 500, useNativeDriver: true }), Animated.timing(translateY5, { toValue: 0, duration: 500, useNativeDriver: true })]),
+      ]).start();
+    }
+  }, [loading]);
 
-  // Dynamic Colors for Ultra Premium feel
   const COLORS = {
     bg: (isDark ? ["#020617", "#0f172a"] : ["#f8fafc", "#e2e8f0"]) as [string, string],
     card: isDark ? "rgba(30,41,59,0.8)" : "rgba(255,255,255,0.8)",
@@ -89,7 +107,6 @@ export default function StreakScreen({ navigation }: any) {
     cellBg: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)",
   };
 
-  // Calendar helpers
   const getMonthName = (date: Date) => date.toLocaleString("default", { month: "long", year: "numeric" });
   const getDaysInMonth = (m: number, y: number) => new Date(y, m + 1, 0).getDate();
   const getFirstDay = (m: number, y: number) => new Date(y, m, 1).getDay();
@@ -126,20 +143,17 @@ export default function StreakScreen({ navigation }: any) {
   }
   const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
 
-  // Milestones Calculation
   const milestones = [
     { title: "7-Day Scholar", required: 7, icon: "shield-checkmark" as const },
     { title: "21-Day Habit", required: 21, icon: "flash" as const },
     { title: "50-Day Elite", required: 50, icon: "ribbon" as const },
     { title: "100-Day Legend", required: 100, icon: "trophy" as const },
   ];
-  const unlockedMilestonesCount = milestones.filter(m => longestStreak >= m.required).length;
   
-  // Progress Ring Calculation
   const nextMilestone = milestones.find(m => longestStreak < m.required) || milestones[milestones.length - 1];
   const previousMilestone = [...milestones].reverse().find(m => longestStreak >= m.required) || { required: 0 };
   const progressToNext = Math.min(1, Math.max(0, (longestStreak - previousMilestone.required) / (nextMilestone.required - previousMilestone.required || 1)));
-  const ringCircumference = 2 * Math.PI * 65; // radius 65
+  const ringCircumference = 2 * Math.PI * 65;
   const strokeDashoffset = ringCircumference - progressToNext * ringCircumference;
 
   const shareStreak = async () => {
@@ -170,7 +184,6 @@ export default function StreakScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.bg[0] }}>
-      {/* Aurora Background Orbs */}
       <View style={[styles.orb, { backgroundColor: "#0ea5e9", top: -100, left: -50 }]} />
       <View style={[styles.orb, { backgroundColor: "#f59e0b", top: 200, right: -100, opacity: 0.15 }]} />
       
@@ -180,8 +193,7 @@ export default function StreakScreen({ navigation }: any) {
             <ConfettiCannon count={50} origin={{ x: width / 2, y: -20 }} fallSpeed={2500} fadeOut />
           )}
           
-          {/* Header */}
-          <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
+          <Animated.View style={[styles.header, { opacity: fadeAnim1, transform: [{ translateY: translateY1 }] }]}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
               <Ionicons name="arrow-back" size={24} color={COLORS.text} />
             </TouchableOpacity>
@@ -193,8 +205,7 @@ export default function StreakScreen({ navigation }: any) {
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
             
-            {/* Massive Circular Progress Flame */}
-            <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.ringContainer}>
+            <Animated.View style={[styles.ringContainer, { opacity: fadeAnim2, transform: [{ translateY: translateY2 }] }]}>
               <View style={styles.svgWrapper}>
                 <Svg width={180} height={180} viewBox="0 0 160 160">
                   <Defs>
@@ -203,9 +214,7 @@ export default function StreakScreen({ navigation }: any) {
                       <Stop offset="1" stopColor="#f43f5e" />
                     </SvgGradient>
                   </Defs>
-                  {/* Background Track */}
                   <Circle cx="80" cy="80" r="65" stroke={COLORS.glassBorder} strokeWidth="8" fill="none" />
-                  {/* Active Progress */}
                   <Circle
                     cx="80"
                     cy="80"
@@ -220,8 +229,7 @@ export default function StreakScreen({ navigation }: any) {
                   />
                 </Svg>
                 
-                {/* Flame & Count */}
-                <Animated.View style={[styles.flameCenter, animatedFlameStyle]}>
+                <Animated.View style={[styles.flameCenter, { transform: [{ scale: pulseAnim }] }]}>
                   <Ionicons name="flame" size={56} color="#f59e0b" style={styles.flameIconGlow} />
                   <Text style={[styles.ringCountText, { color: COLORS.text }]}>{streakCount}</Text>
                   <Text style={[styles.ringSubText, { color: COLORS.sub }]}>DAYS</Text>
@@ -235,8 +243,7 @@ export default function StreakScreen({ navigation }: any) {
               </Text>
             </Animated.View>
 
-            {/* Heatmap Calendar */}
-            <Animated.View entering={FadeInDown.delay(200).duration(500)}>
+            <Animated.View style={{ opacity: fadeAnim3, transform: [{ translateY: translateY3 }] }}>
               <BlurView intensity={isDark ? 30 : 60} tint={isDark ? "dark" : "light"} style={[styles.glassCard, { borderColor: COLORS.glassBorder }]}>
                 <View style={styles.monthHeader}>
                   <TouchableOpacity onPress={() => handleMonthChange("prev")} style={styles.monthArrow}>
@@ -291,8 +298,7 @@ export default function StreakScreen({ navigation }: any) {
               </BlurView>
             </Animated.View>
 
-            {/* Lifetime Stats */}
-            <Animated.View entering={FadeInDown.delay(300).duration(500)} style={styles.statsRow}>
+            <Animated.View style={[styles.statsRow, { opacity: fadeAnim4, transform: [{ translateY: translateY4 }] }]}>
               <BlurView intensity={isDark ? 30 : 60} tint={isDark ? "dark" : "light"} style={[styles.statBox, { borderColor: COLORS.glassBorder }]}>
                 <View style={[styles.statIconWrap, { backgroundColor: "rgba(16,185,129,0.1)" }]}>
                   <Ionicons name="trending-up" size={22} color="#10b981" />
@@ -309,8 +315,7 @@ export default function StreakScreen({ navigation }: any) {
               </BlurView>
             </Animated.View>
 
-            {/* Milestones Scroll */}
-            <Animated.View entering={FadeInDown.delay(400).duration(500)}>
+            <Animated.View style={{ opacity: fadeAnim5, transform: [{ translateY: translateY5 }] }}>
               <Text style={[styles.sectionTitle, { color: COLORS.text }]}>Trophies</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
                 {milestones.map((m, idx) => {
