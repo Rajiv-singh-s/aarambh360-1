@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { auth } from '../firebaseConfig';
 
-const API_BASE_URL = 'https://aarambh360-1.onrender.com';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://aarambh360-1.onrender.com';
 
 let onUnauthorized: (() => void) | null = null;
 
