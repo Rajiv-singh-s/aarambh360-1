@@ -157,7 +157,7 @@ export default function ActiveDailyChallengeScreen() {
 
   return (
     <LinearGradient colors={COLORS.bg} style={quizStyles.safe}>
-      <SafeContainer style={{ flex: 1 }} disableBottom={true}>
+      <SafeContainer style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
           {/* HEADER */}
           <View style={quizStyles.header}>
