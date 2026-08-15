@@ -817,7 +817,7 @@ export default function QuizScreen() {
   return (
     <LinearGradient colors={COLORS.bg} style={styles.safe}>
       <SafeContainer style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
           {/* HEADER */}
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
