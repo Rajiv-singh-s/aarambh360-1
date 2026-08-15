@@ -103,6 +103,7 @@ export type RootStackParamList = {
   ChapterScreen: { subject: string; chapter: string };
   DailyChallengeHubScreen: undefined;
   ActiveDailyChallengeScreen: { challengeId: string; paperType: "PRELIMS_1" | "PRELIMS_2" | "MAINS"; timeLimitMinutes: number };
+  DailyChallengeResultScreen: { challengeId: string; score: number; total: number; timeTaken: number };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

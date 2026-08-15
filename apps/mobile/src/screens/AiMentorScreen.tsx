@@ -17,34 +17,12 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import SafeContainer from "../components/SafeContainer";
 
-// Dummy data to show the UI in action
-const INITIAL_MESSAGES = [
-  {
-    id: "1",
-    role: "ai",
-    content:
-      "Hello! I am your UPSC AI Mentor. I am trained on standard NCERTs and UPSC reference books. How can I help you today?",
-    mode: "general",
-  },
-  {
-    id: "2",
-    role: "user",
-    content: "Can you explain the Repo Rate in simple terms?",
-  },
-  {
-    id: "3",
-    role: "ai",
-    content:
-      "Think of the RBI (Reserve Bank of India) as the 'bank of banks.' When regular banks (like SBI or HDFC) run out of cash, they borrow money from the RBI.\n\nThe interest rate that the RBI charges these banks for borrowing money is called the **Repo Rate**.\n\n*If the Repo Rate increases*, banks have to pay more to borrow. So, they increase the interest rates for us (the public). Loans become expensive, and people spend less, which helps control inflation.",
-    mode: "eli5",
-    citation: "NCERT Class 12 Macroeconomics, Chapter 3",
-  },
-];
+
 
 export default function AiMentorScreen() {
   const navigation = useNavigation<any>();
   const isDark = useColorScheme() === "dark";
-  const [messages, setMessages] = useState(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState<any[]>([]);
   const [inputText, setInputText] = useState("");
   const [selectedMode, setSelectedMode] = useState<"general" | "eli5" | "mains">("general");
   const flatListRef = useRef<FlatList>(null);
@@ -95,7 +73,7 @@ export default function AiMentorScreen() {
     }, 1500);
   };
 
-  const renderMessage = ({ item }: { item: typeof INITIAL_MESSAGES[0] }) => {
+  const renderMessage = ({ item }: { item: any }) => {
     const isUser = item.role === "user";
 
     return (

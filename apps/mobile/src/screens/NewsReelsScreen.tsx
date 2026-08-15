@@ -13,56 +13,40 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { apiGet } from "../services/apiClient";
+import { ActivityIndicator } from "react-native";
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 
-const DUMMY_NEWS = [
-  {
-    id: "1",
-    title: "Supreme Court upholds constitutional validity of Article 370 abrogation",
-    summary:
-      "The Supreme Court of India unanimously upheld the power of the President to abrogate Article 370 in August 2019. The court stated that Jammu & Kashmir did not retain any element of sovereignty after the instrument of accession was signed. It also directed the Election Commission to conduct elections to the J&K legislative assembly by September 2024.",
-    source: "The Hindu",
-    date: "11 Dec 2023",
-    paper: "GS2",
-    topic: "Polity & Constitution",
-    image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=1000&auto=format&fit=crop", // Law/Courts
-  },
-  {
-    id: "2",
-    title: "India completes first phase of strategic Chabahar Port project",
-    summary:
-      "India and Iran have signed a historic 10-year bilateral contract for the operation of the Shahid Beheshti Port in Chabahar. This marks the first time India will take over the management of an overseas port, securing a crucial transit route to Afghanistan and Central Asia, bypassing Pakistan. It significantly boosts the International North-South Transport Corridor (INSTC).",
-    source: "Indian Express",
-    date: "14 May 2024",
-    paper: "GS2",
-    topic: "International Relations",
-    image: "https://images.unsplash.com/photo-1598911543265-d0ff642f4955?q=80&w=1000&auto=format&fit=crop", // Port/Ships
-  },
-  {
-    id: "3",
-    title: "RBI keeps repo rate unchanged at 6.5% for 7th consecutive time",
-    summary:
-      "The Reserve Bank of India's Monetary Policy Committee (MPC) decided to keep the policy repo rate unchanged at 6.50% to ensure inflation progressively aligns with the target while supporting growth. The focus remains on the withdrawal of accommodation to ensure that inflation targets are met without stifling the current economic momentum.",
-    source: "LiveMint",
-    date: "05 Apr 2024",
-    paper: "GS3",
-    topic: "Economy",
-    image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=1000&auto=format&fit=crop", // Economics/Finance
-  },
-];
+
 
 export default function NewsReelsScreen() {
   const navigation = useNavigation<any>();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [news, setNews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const isDark = useColorScheme() === "dark";
+
+  React.useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const data = await apiGet<any[]>("/content/current-affairs");
+        setNews(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Failed to fetch news reels:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNews();
+  }, []);
 
   const handleScroll = (e: any) => {
     const index = Math.round(e.nativeEvent.contentOffset.y / SCREEN_HEIGHT);
     setCurrentIndex(index);
   };
 
-  const renderItem = ({ item, index }: { item: typeof DUMMY_NEWS[0]; index: number }) => {
+  const renderItem = ({ item, index }: { item: any; index: number }) => {
     return (
       <View style={styles.reelContainer}>
         <Image source={{ uri: item.image }} style={styles.bgImage} />
@@ -117,6 +101,22 @@ export default function NewsReelsScreen() {
     );
   };
 
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color="#06b6d4" />
+      </View>
+    );
+  }
+
+  if (!news || news.length === 0) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <Text style={{ color: "#fff", fontSize: 16 }}>No news available right now.</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Header Overlay */}
@@ -129,7 +129,7 @@ export default function NewsReelsScreen() {
       </View>
 
       <FlatList
-        data={DUMMY_NEWS}
+        data={news}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         pagingEnabled

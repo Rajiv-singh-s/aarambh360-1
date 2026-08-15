@@ -30,8 +30,6 @@ export default function DailyChallengeHubScreen() {
 
   const [challenges, setChallenges] = useState<DailyChallengeDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [leaderboardData, setLeaderboardData] = useState<DailyChallengeLeaderboardEntryDto[]>([]);
-  const [lbLoading, setLbLoading] = useState(false);
 
   const COLORS = {
     bg: isDark ? (["#0b1220", "#111b2e"] as [string, string]) : (["#e9f3ff", "#ffffff"] as [string, string]),
@@ -47,49 +45,16 @@ export default function DailyChallengeHubScreen() {
     fetchChallenges();
   }, []);
 
-  useEffect(() => {
-    if (activeTab === "LEADERBOARD") {
-      fetchLeaderboard();
-    }
-  }, [activeTab]);
-
   const fetchChallenges = async () => {
     try {
       setLoading(true);
-      const data = await apiGet<DailyChallengeDto[]>("/daily-challenges/active");
+      const data = await apiGet<DailyChallengeDto[]>("/daily-challenges/today");
       setChallenges(data || []);
     } catch (error) {
       console.error("Failed to fetch challenges", error);
-      // Fallback dummy data if backend not ready
-      setChallenges([
-        { id: "dc1", date: new Date().toISOString().split('T')[0], paperType: "PRELIMS_1", timeLimitMinutes: 25, totalQuestions: 20, isActive: true },
-        { id: "dc2", date: new Date().toISOString().split('T')[0], paperType: "PRELIMS_2", timeLimitMinutes: 25, totalQuestions: 20, isActive: true },
-        { id: "dc3", date: new Date().toISOString().split('T')[0], paperType: "MAINS", timeLimitMinutes: 20, totalQuestions: 1, isActive: true }
-      ]);
+      setChallenges([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchLeaderboard = async () => {
-    try {
-      setLbLoading(true);
-      const data = await apiGet<DailyChallengeLeaderboardResponseDto>("/daily-challenges/leaderboard?period=DAILY");
-      if (data && data.entries) {
-        setLeaderboardData(data.entries);
-      } else {
-        throw new Error("No data");
-      }
-    } catch (error) {
-      // Dummy leaderboard fallback
-      setLeaderboardData([
-        { userId: "1", name: "Aarav S.", rank: 1, score: 95, accuracy: 100, timeTakenSeconds: 300, avatarUrl: "https://i.pravatar.cc/150?u=a", isCurrentUser: false },
-        { userId: "2", name: "Isha P.", rank: 2, score: 90, accuracy: 95, timeTakenSeconds: 350, avatarUrl: "https://i.pravatar.cc/150?u=b", isCurrentUser: false },
-        { userId: "3", name: "You", rank: 3, score: 85, accuracy: 90, timeTakenSeconds: 400, avatarUrl: null, isCurrentUser: true },
-        { userId: "4", name: "Rohan G.", rank: 4, score: 80, accuracy: 85, timeTakenSeconds: 450, avatarUrl: "https://i.pravatar.cc/150?u=c", isCurrentUser: false },
-      ]);
-    } finally {
-      setLbLoading(false);
     }
   };
 
@@ -105,49 +70,6 @@ export default function DailyChallengeHubScreen() {
     }
   };
 
-  const PodiumAvatar = ({ user, rank }: { user: DailyChallengeLeaderboardEntryDto; rank: number }) => {
-    const isFirst = rank === 1;
-    const size = isFirst ? 80 : 60;
-    const color = isFirst ? "#fbbf24" : rank === 2 ? "#94a3b8" : "#b45309";
-
-    return (
-      <View style={[styles.podiumItem, isFirst && { zIndex: 10, transform: [{ translateY: -20 }] }]}>
-        <View style={[styles.avatarRing, { borderColor: color, padding: isFirst ? 4 : 2 }]}>
-          <Image 
-            source={{ uri: user.avatarUrl || `https://ui-avatars.com/api/?name=${user.name}` }} 
-            style={{ width: size, height: size, borderRadius: size / 2 }} 
-          />
-          <View style={[styles.rankBadge, { backgroundColor: color }]}>
-            <Text style={styles.rankBadgeText}>{rank}</Text>
-          </View>
-        </View>
-        <Text style={[styles.podiumName, { color: COLORS.text }]} numberOfLines={1}>
-          {user.name.split(" ")[0]}
-        </Text>
-        <Text style={[styles.podiumScore, { color: color }]}>{user.score} pts</Text>
-      </View>
-    );
-  };
-
-  const renderLeaderboardItem = ({ item }: { item: DailyChallengeLeaderboardEntryDto }) => (
-    <View
-      style={[
-        styles.listItem,
-        { backgroundColor: item.isCurrentUser ? "rgba(245,158,11,0.15)" : COLORS.cardBg, borderColor: item.isCurrentUser ? "#f59e0b" : COLORS.border },
-      ]}
-    >
-      <Text style={[styles.listRank, { color: COLORS.text }]}>{item.rank}</Text>
-      <Image source={{ uri: item.avatarUrl || `https://ui-avatars.com/api/?name=${item.name}` }} style={styles.listAvatar} />
-      <View style={styles.listInfo}>
-        <Text style={[styles.listName, { color: COLORS.text, fontWeight: item.isCurrentUser ? "800" : "600" }]}>
-          {item.name} {item.isCurrentUser && "(You)"}
-        </Text>
-        <Text style={[styles.listAcc, { color: COLORS.sub }]}>{item.accuracy}% Acc</Text>
-      </View>
-      <Text style={[styles.listScore, { color: COLORS.text }]}>{item.score} pts</Text>
-    </View>
-  );
-
   return (
     <LinearGradient colors={COLORS.bg} style={styles.safe}>
       <SafeContainer style={{ flex: 1 }} disableBottom={true}>
@@ -161,7 +83,7 @@ export default function DailyChallengeHubScreen() {
 
         <View style={styles.tabsContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
-            {(["PRELIMS_1", "PRELIMS_2", "MAINS", "LEADERBOARD"] as TabType[]).map((tab) => (
+            {(["PRELIMS_1", "PRELIMS_2", "MAINS"] as TabType[]).map((tab) => (
               <TouchableOpacity
                 key={tab}
                 style={[
@@ -172,63 +94,40 @@ export default function DailyChallengeHubScreen() {
                 onPress={() => setActiveTab(tab)}
               >
                 <Text style={[styles.tabText, { color: activeTab === tab ? "#fff" : COLORS.sub }]}>
-                  {tab === "PRELIMS_1" ? "Prelims 1" : tab === "PRELIMS_2" ? "Prelims 2" : tab === "MAINS" ? "Mains" : "Leaderboard"}
+                  {tab === "PRELIMS_1" ? "Prelims 1" : tab === "PRELIMS_2" ? "Prelims 2" : "Mains"}
                 </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
 
-        {activeTab === "LEADERBOARD" ? (
-          lbLoading ? (
-            <ActivityIndicator style={{ marginTop: 50 }} size="large" color={COLORS.accent} />
+        <ScrollView contentContainerStyle={{ padding: 20 }}>
+          {loading ? (
+            <ActivityIndicator size="large" color={COLORS.accent} />
+          ) : currentChallenge ? (
+            <View style={[styles.challengeCard, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
+              <Ionicons name={activeTab === "MAINS" ? "create" : "document-text"} size={48} color={COLORS.accent} />
+              <Text style={[styles.challengeTitle, { color: COLORS.text }]}>
+                Today's {activeTab === "PRELIMS_1" ? "Prelims 1" : activeTab === "PRELIMS_2" ? "Prelims 2" : "Mains"} Challenge
+              </Text>
+              <Text style={[styles.challengeDesc, { color: COLORS.sub }]}>
+                {currentChallenge.totalQuestions} Questions • {currentChallenge.timeLimitMinutes} Minutes
+              </Text>
+              
+              <TouchableOpacity style={[styles.startBtn, { backgroundColor: COLORS.accent }]} onPress={startChallenge}>
+                <Text style={styles.startBtnText}>Start Now</Text>
+              </TouchableOpacity>
+            </View>
           ) : (
-            <FlatList
-              data={leaderboardData.slice(3)}
-              keyExtractor={(item) => item.userId}
-              showsVerticalScrollIndicator={false}
-              ListHeaderComponent={
-                leaderboardData.length >= 3 ? (
-                  <View style={styles.podiumContainer}>
-                    <PodiumAvatar user={leaderboardData[1]} rank={2} />
-                    <PodiumAvatar user={leaderboardData[0]} rank={1} />
-                    <PodiumAvatar user={leaderboardData[2]} rank={3} />
-                  </View>
-                ) : null
-              }
-              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
-              renderItem={renderLeaderboardItem}
-            />
-          )
-        ) : (
-          <ScrollView contentContainerStyle={{ padding: 20 }}>
-            {loading ? (
-              <ActivityIndicator size="large" color={COLORS.accent} />
-            ) : currentChallenge ? (
-              <View style={[styles.challengeCard, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
-                <Ionicons name={activeTab === "MAINS" ? "create" : "document-text"} size={48} color={COLORS.accent} />
-                <Text style={[styles.challengeTitle, { color: COLORS.text }]}>
-                  Today's {activeTab === "PRELIMS_1" ? "Prelims 1" : activeTab === "PRELIMS_2" ? "Prelims 2" : "Mains"} Challenge
-                </Text>
-                <Text style={[styles.challengeDesc, { color: COLORS.sub }]}>
-                  {currentChallenge.totalQuestions} Questions • {currentChallenge.timeLimitMinutes} Minutes
-                </Text>
-                
-                <TouchableOpacity style={[styles.startBtn, { backgroundColor: COLORS.accent }]} onPress={startChallenge}>
-                  <Text style={styles.startBtnText}>Start Now</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View style={[styles.challengeCard, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
-                <Ionicons name="checkmark-done-circle" size={48} color="#10b981" />
-                <Text style={[styles.challengeTitle, { color: COLORS.text }]}>All Caught Up!</Text>
-                <Text style={[styles.challengeDesc, { color: COLORS.sub }]}>
-                  No active challenge for this section right now. Come back later.
-                </Text>
-              </View>
-            )}
-          </ScrollView>
-        )}
+            <View style={[styles.challengeCard, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
+              <Ionicons name="checkmark-done-circle" size={48} color="#10b981" />
+              <Text style={[styles.challengeTitle, { color: COLORS.text }]}>All Caught Up!</Text>
+              <Text style={[styles.challengeDesc, { color: COLORS.sub }]}>
+                No active challenge for this section right now. Come back later.
+              </Text>
+            </View>
+          )}
+        </ScrollView>
       </SafeContainer>
     </LinearGradient>
   );

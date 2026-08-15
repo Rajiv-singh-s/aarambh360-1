@@ -11,45 +11,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import SafeContainer from "../components/SafeContainer";
+import { apiGet } from "../services/apiClient";
+import { ActivityIndicator } from "react-native";
 
-const DUMMY_TESTS = [
-  {
-    id: "1",
-    title: "Aarambh360 Full Length Test 1",
-    type: "Full Length",
-    questions: 100,
-    marks: 200,
-    time: 120, // mins
-    status: "New",
-  },
-  {
-    id: "2",
-    title: "Sectional Mock: Indian Polity",
-    type: "Sectional",
-    questions: 50,
-    marks: 100,
-    time: 60,
-    status: "Attempted",
-  },
-  {
-    id: "3",
-    title: "CSAT Full Length Mock 1",
-    type: "CSAT",
-    questions: 80,
-    marks: 200,
-    time: 120,
-    status: "New",
-  },
-  {
-    id: "4",
-    title: "UPSC CSE Prelims 2023 (GS1)",
-    type: "PYQ",
-    questions: 100,
-    marks: 200,
-    time: 120,
-    status: "New",
-  },
-];
+
 
 const TABS = ["All", "Full Length", "Sectional", "CSAT", "PYQ"];
 
@@ -57,6 +22,22 @@ export default function TestSeriesHubScreen() {
   const navigation = useNavigation<any>();
   const isDark = useColorScheme() === "dark";
   const [activeTab, setActiveTab] = useState("All");
+  const [tests, setTests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const fetchTests = async () => {
+      try {
+        const data = await apiGet<any[]>("/quiz/test-series");
+        setTests(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Failed to fetch test series:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTests();
+  }, []);
 
   const COLORS = {
     bg: isDark ? (["#0b1220", "#111b2e"] as [string, string]) : (["#e9f0ff", "#ffffff"] as [string, string]),
@@ -69,10 +50,10 @@ export default function TestSeriesHubScreen() {
 
   const filteredTests =
     activeTab === "All"
-      ? DUMMY_TESTS
-      : DUMMY_TESTS.filter((t) => t.type === activeTab);
+      ? tests
+      : tests.filter((t: any) => t.type === activeTab);
 
-  const renderTestCard = ({ item }: { item: typeof DUMMY_TESTS[0] }) => (
+  const renderTestCard = ({ item }: { item: any }) => (
     <View style={[styles.testCard, { backgroundColor: COLORS.cardBg, borderColor: COLORS.border }]}>
       <View style={styles.cardHeader}>
         <View style={styles.badgeRow}>
@@ -116,6 +97,14 @@ export default function TestSeriesHubScreen() {
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={[styles.safe, { backgroundColor: COLORS.bg[0], justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    );
+  }
+
   return (
     <LinearGradient colors={COLORS.bg} style={styles.safe}>
       <SafeContainer style={{ flex: 1 }} disableBottom={true}>
@@ -153,13 +142,19 @@ export default function TestSeriesHubScreen() {
         </View>
 
         {/* Tests List */}
-        <FlatList
-          data={filteredTests}
-          keyExtractor={(item) => item.id}
-          renderItem={renderTestCard}
-          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-          showsVerticalScrollIndicator={false}
-        />
+        {filteredTests.length === 0 ? (
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <Text style={{ color: COLORS.text, fontSize: 16 }}>No tests found.</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredTests}
+            keyExtractor={(item) => item.id}
+            renderItem={renderTestCard}
+            contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </SafeContainer>
     </LinearGradient>
   );

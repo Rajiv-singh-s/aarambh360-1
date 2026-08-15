@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,28 +7,23 @@ import {
   TouchableOpacity,
   useColorScheme,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import SafeContainer from "../components/SafeContainer";
-
-const DUMMY_LEADERBOARD = [
-  { id: "1", rank: 1, name: "Aarav Sharma", score: 198, accuracy: 98, avatar: "https://i.pravatar.cc/150?u=aarav" },
-  { id: "2", rank: 2, name: "Isha Patel", score: 192, accuracy: 95, avatar: "https://i.pravatar.cc/150?u=isha" },
-  { id: "3", rank: 3, name: "Rohan Gupta", score: 188, accuracy: 92, avatar: "https://i.pravatar.cc/150?u=rohan" },
-  { id: "4", rank: 4, name: "Kavya Singh", score: 180, accuracy: 90, avatar: "https://i.pravatar.cc/150?u=kavya" },
-  { id: "5", rank: 5, name: "Ananya Desai", score: 175, accuracy: 88, avatar: "https://i.pravatar.cc/150?u=ananya" },
-  { id: "6", rank: 6, name: "Vikram Mehta", score: 170, accuracy: 85, avatar: "https://i.pravatar.cc/150?u=vikram" },
-  { id: "7", rank: 7, name: "Priya Nair", score: 165, accuracy: 82, avatar: "https://i.pravatar.cc/150?u=priya" },
-  { id: "8", rank: 8, name: "Rajiv Singh", score: 160, accuracy: 80, avatar: "https://i.pravatar.cc/150?u=rajiv", isCurrentUser: true },
-  { id: "9", rank: 9, name: "Neha Joshi", score: 155, accuracy: 78, avatar: "https://i.pravatar.cc/150?u=neha" },
-  { id: "10", rank: 10, name: "Aditya Kumar", score: 150, accuracy: 75, avatar: "https://i.pravatar.cc/150?u=aditya" },
-];
+import { apiGet } from "../services/apiClient";
+import type { DailyChallengeLeaderboardResponseDto, DailyChallengeLeaderboardEntryDto, DailyChallengePaperType } from "@aarambh360/types";
 
 export default function LeaderboardScreen() {
   const navigation = useNavigation<any>();
   const isDark = useColorScheme() === "dark";
+
+  const [activePeriod, setActivePeriod] = useState<"DAILY" | "WEEKLY" | "MONTHLY">("DAILY");
+  const [activePaper, setActivePaper] = useState<DailyChallengePaperType>("PRELIMS_1");
+  const [leaderboard, setLeaderboard] = useState<DailyChallengeLeaderboardEntryDto[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const COLORS = {
     bg: isDark ? (["#0b1220", "#111b2e"] as [string, string]) : (["#e9f0ff", "#ffffff"] as [string, string]),
@@ -36,13 +31,36 @@ export default function LeaderboardScreen() {
     text: isDark ? "#f8fafc" : "#0f172a",
     sub: isDark ? "#94a3b8" : "#475569",
     border: isDark ? "rgba(255,255,255,0.1)" : "#e2e8f0",
+    accent: isDark ? "#06b6d4" : "#0891b2",
   };
 
-  const top3 = DUMMY_LEADERBOARD.slice(0, 3);
-  const rest = DUMMY_LEADERBOARD.slice(3);
-  const currentUser = DUMMY_LEADERBOARD.find((u) => u.isCurrentUser);
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [activePeriod, activePaper]);
 
-  const PodiumAvatar = ({ user, rank }: { user: typeof top3[0]; rank: number }) => {
+  const fetchLeaderboard = async () => {
+    try {
+      setLoading(true);
+      const data = await apiGet<DailyChallengeLeaderboardResponseDto>(`/daily-challenges/leaderboard?period=${activePeriod}&paperType=${activePaper}`);
+      if (data && data.entries) {
+        setLeaderboard(data.entries);
+      } else {
+        setLeaderboard([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch leaderboard", error);
+      setLeaderboard([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const top3 = leaderboard.slice(0, 3);
+  const rest = leaderboard.slice(3);
+  const currentUser = leaderboard.find((u) => u.isCurrentUser);
+
+  const PodiumAvatar = ({ user, rank }: { user: DailyChallengeLeaderboardEntryDto | undefined; rank: number }) => {
+    if (!user) return <View style={[styles.podiumItem, rank === 1 && { transform: [{ translateY: -20 }] }]} />;
     const isFirst = rank === 1;
     const size = isFirst ? 80 : 60;
     const color = isFirst ? "#fbbf24" : rank === 2 ? "#94a3b8" : "#b45309";
@@ -50,7 +68,7 @@ export default function LeaderboardScreen() {
     return (
       <View style={[styles.podiumItem, isFirst && { zIndex: 10, transform: [{ translateY: -20 }] }]}>
         <View style={[styles.avatarRing, { borderColor: color, padding: isFirst ? 4 : 2 }]}>
-          <Image source={{ uri: user.avatar }} style={{ width: size, height: size, borderRadius: size / 2 }} />
+          <Image source={{ uri: user.avatarUrl || `https://ui-avatars.com/api/?name=${user.name}` }} style={{ width: size, height: size, borderRadius: size / 2 }} />
           <View style={[styles.rankBadge, { backgroundColor: color }]}>
             <Text style={styles.rankBadgeText}>{rank}</Text>
           </View>
@@ -63,7 +81,7 @@ export default function LeaderboardScreen() {
     );
   };
 
-  const renderItem = ({ item }: { item: typeof DUMMY_LEADERBOARD[0] }) => (
+  const renderItem = ({ item }: { item: DailyChallengeLeaderboardEntryDto }) => (
     <View
       style={[
         styles.listItem,
@@ -71,7 +89,7 @@ export default function LeaderboardScreen() {
       ]}
     >
       <Text style={[styles.listRank, { color: COLORS.text }]}>{item.rank}</Text>
-      <Image source={{ uri: item.avatar }} style={styles.listAvatar} />
+      <Image source={{ uri: item.avatarUrl || `https://ui-avatars.com/api/?name=${item.name}` }} style={styles.listAvatar} />
       <View style={styles.listInfo}>
         <Text style={[styles.listName, { color: COLORS.text, fontWeight: item.isCurrentUser ? "800" : "600" }]}>
           {item.name} {item.isCurrentUser && "(You)"}
@@ -90,30 +108,58 @@ export default function LeaderboardScreen() {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color={COLORS.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: COLORS.text }]}>Weekly Leaderboard</Text>
+          <Text style={[styles.headerTitle, { color: COLORS.text }]}>Leaderboards</Text>
           <View style={{ width: 44 }} />
         </View>
 
-        <FlatList
-          data={rest}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={
-            <View style={styles.podiumContainer}>
-              <PodiumAvatar user={top3[1]} rank={2} />
-              <PodiumAvatar user={top3[0]} rank={1} />
-              <PodiumAvatar user={top3[2]} rank={3} />
-            </View>
-          }
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
-          renderItem={renderItem}
-        />
+        {/* Filters */}
+        <View style={styles.filtersContainer}>
+          <View style={styles.toggleRow}>
+            {(["DAILY", "WEEKLY", "MONTHLY"] as const).map(p => (
+              <TouchableOpacity key={p} style={[styles.filterBtn, activePeriod === p && { backgroundColor: COLORS.accent }]} onPress={() => setActivePeriod(p)}>
+                <Text style={[styles.filterText, activePeriod === p && { color: "#fff" }]}>{p === "DAILY" ? "Daily" : p === "WEEKLY" ? "Weekly" : "Monthly"}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View style={styles.toggleRow}>
+            {(["PRELIMS_1", "PRELIMS_2", "MAINS"] as const).map(p => (
+              <TouchableOpacity key={p} style={[styles.filterBtn, activePaper === p && { backgroundColor: COLORS.accent }]} onPress={() => setActivePaper(p)}>
+                <Text style={[styles.filterText, activePaper === p && { color: "#fff" }]}>{p === "PRELIMS_1" ? "Prelims 1" : p === "PRELIMS_2" ? "Prelims 2" : "Mains"}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
 
+        {loading ? (
+          <ActivityIndicator size="large" color={COLORS.accent} style={{ marginTop: 50 }} />
+        ) : leaderboard.length === 0 ? (
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <Ionicons name="trophy-outline" size={64} color={COLORS.sub} />
+            <Text style={{ color: COLORS.text, fontSize: 18, fontWeight: "600", marginTop: 16 }}>No rankings yet!</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={rest}
+            keyExtractor={(item) => item.userId}
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={
+              top3.length > 0 ? (
+                <View style={styles.podiumContainer}>
+                  <PodiumAvatar user={top3[1]} rank={2} />
+                  <PodiumAvatar user={top3[0]} rank={1} />
+                  <PodiumAvatar user={top3[2]} rank={3} />
+                </View>
+              ) : null
+            }
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+            renderItem={renderItem}
+          />
+        )}
         {/* Current User Sticky Banner */}
         {currentUser && (
           <View style={[styles.stickyBanner, { backgroundColor: isDark ? "#0f172a" : "#ffffff", borderTopColor: COLORS.border }]}>
             <Text style={[styles.listRank, { color: COLORS.text }]}>{currentUser.rank}</Text>
-            <Image source={{ uri: currentUser.avatar }} style={styles.listAvatar} />
+            <Image source={{ uri: currentUser.avatarUrl || `https://ui-avatars.com/api/?name=${currentUser.name}` }} style={styles.listAvatar} />
             <View style={styles.listInfo}>
               <Text style={[styles.listName, { color: COLORS.text, fontWeight: "800" }]}>
                 {currentUser.name} (You)
@@ -240,4 +286,26 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
   },
+  filtersContainer: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  toggleRow: {
+    flexDirection: "row",
+    backgroundColor: "rgba(150,150,150,0.1)",
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: 8,
+  },
+  filterBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 6,
+    alignItems: "center",
+  },
+  filterText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#64748b",
+  }
 });

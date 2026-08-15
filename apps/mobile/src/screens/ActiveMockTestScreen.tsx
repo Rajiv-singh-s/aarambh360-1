@@ -12,13 +12,10 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import SafeContainer from "../components/SafeContainer";
+import { apiGet } from "../services/apiClient";
+import { ActivityIndicator } from "react-native";
 
-// Dummy data for 100 questions
-const TOTAL_QUESTIONS = 100;
-const DUMMY_QUESTION = {
-  text: "With reference to the 'Finance Commission' of India, which of the following statements is/are correct?\n\n1. It encourages the inflow of foreign capital for infrastructure development.\n2. It facilitates the proper distribution of finances among the Public Sector Undertakings.\n3. It ensures transparency in financial administration.\n\nSelect the correct answer using the code given below:",
-  options: ["1 only", "2 and 3 only", "1, 2 and 3", "None of the above"],
-};
+
 
 export default function ActiveMockTestScreen() {
   const navigation = useNavigation<any>();
@@ -29,6 +26,9 @@ export default function ActiveMockTestScreen() {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [markedForReview, setMarkedForReview] = useState<Record<number, boolean>>({});
   const [isGridOpen, setIsGridOpen] = useState(false);
+  
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const COLORS = {
     bg: isDark ? "#0f172a" : "#f8fafc",
@@ -41,6 +41,20 @@ export default function ActiveMockTestScreen() {
     review: "#8b5cf6", // Purple
     unanswered: isDark ? "#334155" : "#e2e8f0", // Gray
   };
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const data = await apiGet<any[]>("/quiz/active");
+        setQuestions(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Failed to fetch mock test questions:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchQuestions();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setTimeLeft((t) => (t > 0 ? t - 1 : 0)), 1000);
@@ -59,7 +73,7 @@ export default function ActiveMockTestScreen() {
   };
 
   const handleSaveAndNext = () => {
-    if (currentQ < TOTAL_QUESTIONS) setCurrentQ(currentQ + 1);
+    if (currentQ < questions.length) setCurrentQ(currentQ + 1);
   };
 
   const handleMarkReview = () => {
@@ -72,6 +86,24 @@ export default function ActiveMockTestScreen() {
     if (currentQ === qNum) return COLORS.accent;
     return COLORS.unanswered;
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { backgroundColor: COLORS.bg, justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    );
+  }
+
+  if (!questions || questions.length === 0) {
+    return (
+      <View style={[styles.container, { backgroundColor: COLORS.bg, justifyContent: "center", alignItems: "center" }]}>
+        <Text style={{ color: COLORS.text, fontSize: 16 }}>No active questions found.</Text>
+      </View>
+    );
+  }
+
+  const currentQuestionData = questions[currentQ - 1];
 
   return (
     <View style={[styles.container, { backgroundColor: COLORS.bg }]}>
@@ -96,10 +128,10 @@ export default function ActiveMockTestScreen() {
             </View>
           </View>
 
-          <Text style={[styles.questionText, { color: COLORS.text }]}>{DUMMY_QUESTION.text}</Text>
+          <Text style={[styles.questionText, { color: COLORS.text }]}>{currentQuestionData?.text || currentQuestionData?.question}</Text>
 
           <View style={styles.optionsList}>
-            {DUMMY_QUESTION.options.map((opt, idx) => {
+            {(currentQuestionData?.options || []).map((opt: string, idx: number) => {
               const isSelected = answers[currentQ] === idx;
               return (
                 <TouchableOpacity
@@ -158,7 +190,7 @@ export default function ActiveMockTestScreen() {
               </View>
 
               <FlatList
-                data={Array.from({ length: TOTAL_QUESTIONS }, (_, i) => i + 1)}
+                data={Array.from({ length: questions.length }, (_, i) => i + 1)}
                 numColumns={5}
                 keyExtractor={(item) => item.toString()}
                 contentContainerStyle={{ padding: 16 }}

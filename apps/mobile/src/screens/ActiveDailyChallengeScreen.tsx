@@ -13,7 +13,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import SafeContainer from "../components/SafeContainer";
-import { apiPost } from "../services/apiClient";
+import { apiPost, apiGet } from "../services/apiClient";
 import ConfettiCannon from "react-native-confetti-cannon";
 import type {
   DailyChallengePaperType,
@@ -34,9 +34,13 @@ export default function ActiveDailyChallengeScreen() {
   const [timeLeftSeconds, setTimeLeftSeconds] = useState(timeLimitMinutes * 60);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  
+  const [challenge, setChallenge] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   // For prelims
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [answers, setAnswers] = useState<Record<string, string>>({}); // questionId -> selectedOptionId
 
   // For mains
   const [mainsAnswer, setMainsAnswer] = useState("");
@@ -53,7 +57,24 @@ export default function ActiveDailyChallengeScreen() {
   };
 
   useEffect(() => {
-    if (submitted) return;
+    fetchChallenge();
+  }, []);
+
+  const fetchChallenge = async () => {
+    try {
+      setLoading(true);
+      const data = await apiGet<any[]>("/daily-challenges/today");
+      const current = data?.find((c: any) => c.id === challengeId);
+      if (current) setChallenge(current);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (submitted || loading || !challenge) return;
 
     const timer = setInterval(() => {
       setTimeLeftSeconds((prev) => {
@@ -67,7 +88,7 @@ export default function ActiveDailyChallengeScreen() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [submitted]);
+  }, [submitted, loading, challenge]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -92,24 +113,45 @@ export default function ActiveDailyChallengeScreen() {
       if (paperType === "MAINS") {
         payload.mainsAnswerText = mainsAnswer;
       } else {
-        // dummy payload for prelims
-        payload.answers = [{ questionId: "q1", selectedOptionId: selectedOption || "" }];
+        payload.answers = Object.entries(answers).map(([questionId, selectedOptionId]) => ({
+          questionId,
+          selectedOptionId,
+        }));
       }
 
-      await apiPost("/daily-challenges/submit", payload);
-    } catch (error) {
-      console.warn("Submission error fallback for dummy", error);
-    } finally {
-      setSubmitting(false);
+      const result = await apiPost("/daily-challenges/submit", payload);
       setSubmitted(true);
       if (confettiRef.current) {
         confettiRef.current.start();
       }
       setTimeout(() => {
-        navigation.navigate("DailyChallengeHubScreen");
-      }, 4000);
+        navigation.navigate("DailyChallengeResultScreen", { result, paperType });
+      }, 3000);
+    } catch (error) {
+      console.error("Submission error", error);
+      Alert.alert("Error", "Failed to submit challenge.");
+      setSubmitting(false);
     }
   };
+
+  if (loading) {
+    return (
+      <LinearGradient colors={COLORS.bg} style={[styles.safe, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </LinearGradient>
+    );
+  }
+
+  if (!challenge) {
+    return (
+      <LinearGradient colors={COLORS.bg} style={[styles.safe, { justifyContent: "center", alignItems: "center" }]}>
+        <Text style={{ color: COLORS.text }}>Challenge not found.</Text>
+      </LinearGradient>
+    );
+  }
+
+  const currentQ = paperType === "MAINS" ? challenge.mainsQuestion : challenge.prelimsQuestions?.[currentIndex];
+  const totalQ = paperType === "MAINS" ? 1 : (challenge.prelimsQuestions?.length || 0);
 
   return (
     <LinearGradient colors={COLORS.bg} style={styles.safe}>
@@ -129,46 +171,67 @@ export default function ActiveDailyChallengeScreen() {
         </View>
 
         <ScrollView contentContainerStyle={{ padding: 20 }}>
-          {paperType === "MAINS" ? (
+          {paperType === "MAINS" && currentQ ? (
             <View style={[styles.card, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
               <Text style={[styles.questionText, { color: COLORS.text }]}>
-                Q1. Discuss the impact of climate change on Indian agriculture. Suggest measures to mitigate its adverse effects. (250 words)
+                {currentQ.text}
               </Text>
               
               <View style={[styles.textAreaContainer, { borderColor: COLORS.border, backgroundColor: isDark ? "#0f172a" : "#f8fafc" }]}>
                 <Text style={{ color: COLORS.sub, marginVertical: 40, textAlign: "center" }}>
-                  Mains Answer Editor (Integration goes here)
+                  Mains Answer Editor Placeholder
                 </Text>
               </View>
             </View>
-          ) : (
+          ) : currentQ ? (
             <View style={[styles.card, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>
+              <Text style={{ color: COLORS.sub, fontWeight: "700", marginBottom: 12 }}>
+                Question {currentIndex + 1} of {totalQ}
+              </Text>
               <Text style={[styles.questionText, { color: COLORS.text }]}>
-                Q1. Which of the following is correct regarding the Monetary Policy Committee (MPC) in India?
+                {currentQ.text}
               </Text>
               
-              {["It is a 6-member body.", "It is chaired by the Finance Minister.", "It meets at least 6 times a year.", "Both A and C."].map((opt, i) => {
-                const isSelected = selectedOption === String(i);
+              {currentQ.options?.map((opt: any) => {
+                const isSelected = answers[currentQ.id] === opt.id;
                 return (
                   <TouchableOpacity
-                    key={i}
+                    key={opt.id}
                     style={[
                       styles.optionBtn,
                       { borderColor: isSelected ? COLORS.accent : COLORS.border },
                       isSelected && { backgroundColor: isDark ? "rgba(16,185,129,0.15)" : "#dcfce3" }
                     ]}
-                    onPress={() => setSelectedOption(String(i))}
+                    onPress={() => setAnswers(prev => ({ ...prev, [currentQ.id]: opt.id }))}
                     disabled={submitted}
                   >
                     <View style={[styles.radio, { borderColor: isSelected ? COLORS.accent : COLORS.sub }]}>
                       {isSelected && <View style={[styles.radioDot, { backgroundColor: COLORS.accent }]} />}
                     </View>
-                    <Text style={[styles.optionText, { color: COLORS.text }]}>{opt}</Text>
+                    <Text style={[styles.optionText, { color: COLORS.text }]}>{opt.text}</Text>
                   </TouchableOpacity>
                 );
               })}
+
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 20 }}>
+                <TouchableOpacity 
+                  style={[styles.navBtn, { opacity: currentIndex === 0 ? 0.5 : 1, backgroundColor: COLORS.border }]}
+                  onPress={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
+                  disabled={currentIndex === 0 || submitted}
+                >
+                  <Text style={{ color: COLORS.text, fontWeight: "700" }}>Previous</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.navBtn, { opacity: currentIndex === totalQ - 1 ? 0.5 : 1, backgroundColor: COLORS.border }]}
+                  onPress={() => setCurrentIndex(prev => Math.min(totalQ - 1, prev + 1))}
+                  disabled={currentIndex === totalQ - 1 || submitted}
+                >
+                  <Text style={{ color: COLORS.text, fontWeight: "700" }}>Next</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          )}
+          ) : null}
         </ScrollView>
 
         <View style={[styles.footer, { backgroundColor: COLORS.card, borderTopColor: COLORS.border }]}>
@@ -289,4 +352,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "800",
   },
+  navBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  }
 });

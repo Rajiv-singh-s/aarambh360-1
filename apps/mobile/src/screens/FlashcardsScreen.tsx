@@ -12,35 +12,20 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import SafeContainer from "../components/SafeContainer";
+import { apiGet } from "../services/apiClient";
+import { ActivityIndicator } from "react-native";
 
 const { width } = Dimensions.get("window");
 
-const DUMMY_CARDS = [
-  {
-    id: "1",
-    tag: "Polity",
-    question: "Which Article of the Constitution deals with the Election Commission of India?",
-    answer: "Article 324\n\nIt grants the power of superintendence, direction, and control of elections to parliament, state legislatures, the office of president of India and the office of vice-president of India to the Election Commission.",
-  },
-  {
-    id: "2",
-    tag: "History",
-    question: "Who was the founder of the Indian National Congress?",
-    answer: "A.O. Hume\n\nFounded in 1885. The first session was held in Bombay, presided over by W.C. Bonnerjee.",
-  },
-  {
-    id: "3",
-    tag: "Geography",
-    question: "What is the difference between Bhabar and Terai regions?",
-    answer: "Bhabar is a narrow belt parallel to the Shiwalik foothills where streams disappear due to highly porous gravel.\n\nTerai lies south of Bhabar, where streams re-emerge, creating a wet, swampy, and marshy region with thick forests.",
-  },
-];
+
 
 export default function FlashcardsScreen() {
   const navigation = useNavigation<any>();
   const isDark = useColorScheme() === "dark";
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [cards, setCards] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const animatedValue = useRef(new Animated.Value(0)).current;
 
@@ -56,6 +41,20 @@ export default function FlashcardsScreen() {
     inputRange: [0, 180],
     outputRange: ["0deg", "180deg"],
   });
+
+  React.useEffect(() => {
+    const fetchCards = async () => {
+      try {
+        const data = await apiGet<any[]>("/learn/flashcards");
+        setCards(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Failed to fetch flashcards:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCards();
+  }, []);
 
   const backInterpolate = animatedValue.interpolate({
     inputRange: [0, 180],
@@ -99,7 +98,7 @@ export default function FlashcardsScreen() {
       useNativeDriver: true,
     }).start(() => {
       setIsFlipped(false);
-      if (currentIndex < DUMMY_CARDS.length - 1) {
+      if (currentIndex < cards.length - 1) {
         setCurrentIndex(currentIndex + 1);
       } else {
         navigation.goBack(); // Finished
@@ -107,7 +106,23 @@ export default function FlashcardsScreen() {
     });
   };
 
-  const currentCard = DUMMY_CARDS[currentIndex];
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: COLORS.bg[0], justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#06b6d4" />
+      </View>
+    );
+  }
+
+  if (!cards || cards.length === 0) {
+    return (
+      <View style={{ flex: 1, backgroundColor: COLORS.bg[0], justifyContent: "center", alignItems: "center" }}>
+        <Text style={{ color: COLORS.text, fontSize: 16 }}>No flashcards found.</Text>
+      </View>
+    );
+  }
+
+  const currentCard = cards[currentIndex];
 
   if (!currentCard) return null;
 
@@ -121,13 +136,13 @@ export default function FlashcardsScreen() {
           </TouchableOpacity>
           <View style={styles.progressBox}>
             <Text style={[styles.progressText, { color: COLORS.sub }]}>
-              {currentIndex + 1} / {DUMMY_CARDS.length}
+              {currentIndex + 1} / {cards.length}
             </Text>
             <View style={[styles.progressBarBg, { backgroundColor: COLORS.border }]}>
               <View
                 style={[
                   styles.progressBarFill,
-                  { width: `${((currentIndex + 1) / DUMMY_CARDS.length) * 100}%` },
+                  { width: `${((currentIndex + 1) / cards.length) * 100}%` },
                 ]}
               />
             </View>
