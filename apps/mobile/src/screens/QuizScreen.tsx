@@ -831,38 +831,77 @@ export default function QuizScreen() {
             <View style={{ width: 22 }} />
           </View>
 
-          {/* GAMIFIED PROGRESS BAR */}
-          <View style={styles.progressContainer}>
-            <View 
-              style={[
-                styles.progressBarFill, 
-                { 
-                  backgroundColor: COLORS.accent,
-                  width: `${Math.max(5, ((currentIndex + 1) / questions.length) * 100)}%` 
-                }
-              ]} 
-            />
-          </View>
+          {/* PROGRESS DOTS */}
+          <ScrollView
+            ref={progressScrollRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.progressRow}
+          >
+            {progressColors.map((state, i) => {
+              let color = COLORS.dotDefault;
 
-          {/* GAMIFIED HUD PILLS */}
-          <View style={styles.hudRow}>
-            <View style={styles.hudPill}>
-              <Ionicons name="list" size={16} color={COLORS.accent} />
-              <Text style={[styles.hudText, { color: COLORS.text }]}>
-                {currentIndex + 1} / {questions.length}
+              if (state === "correct") color = COLORS.correct;
+              else if (state === "wrong") color = COLORS.wrong;
+
+              const isSelected = currentIndex === i;
+
+              return (
+                <TouchableOpacity
+                  key={i}
+                  onPress={() => {
+                    setCurrentIndex(i);
+                    progressScrollRef.current?.scrollTo({
+                      x: i * 40,
+                      animated: true,
+                    });
+                  }}
+                >
+                  <View
+                    style={[
+                      styles.progressDot,
+                      {
+                        backgroundColor: color,
+                        borderColor: isSelected
+                          ? COLORS.accent
+                          : "transparent",
+                        borderWidth: isSelected ? 2 : 1,
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.dotText, { color: COLORS.text }]}>
+                      {i + 1}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          {/* TOP INFO CARD */}
+          <View
+            style={[
+              styles.topInfoCard,
+              { backgroundColor: COLORS.card, borderColor: COLORS.accent + "22" },
+            ]}
+          >
+            <View style={styles.infoItem}>
+              <Text style={[styles.infoLabel, { color: COLORS.sub }]}>QUESTION</Text>
+              <Text style={[styles.infoValue, { color: COLORS.text }]}>
+                {currentIndex + 1}/{questions.length}
               </Text>
             </View>
 
-            <View style={styles.hudPill}>
-              <Ionicons name="star" size={16} color="#f59e0b" />
-              <Text style={[styles.hudText, { color: COLORS.text }]}>
+            <View style={styles.infoItem}>
+              <Text style={[styles.infoLabel, { color: COLORS.sub }]}>SCORE</Text>
+              <Text style={[styles.infoValue, { color: COLORS.text }]}>
                 {(correctCount * 2 - incorrectCount * 0.66).toFixed(2)}
               </Text>
             </View>
 
-            <View style={styles.hudPill}>
-              <Ionicons name="time" size={16} color="#ef4444" />
-              <Text style={[styles.hudText, { color: COLORS.text }]}>
+            <View style={styles.infoItem}>
+              <Text style={[styles.infoLabel, { color: COLORS.sub }]}>TIME</Text>
+              <Text style={[styles.infoValue, { color: COLORS.text }]}>
                 {formatSeconds(secondsElapsed)}
               </Text>
             </View>
@@ -895,6 +934,7 @@ export default function QuizScreen() {
                 <TouchableOpacity
                   key={i}
                   disabled={answered}
+                  activeOpacity={0.6}
                   onPress={() => selectOption(opt)}
                   style={[
                     styles.optionCard,
