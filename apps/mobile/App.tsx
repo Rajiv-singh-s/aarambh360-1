@@ -38,12 +38,16 @@ import WeaknessVaultScreen from "./src/screens/WeaknessVaultScreen";
 import CheatSheetScreen from "./src/screens/CheatSheetScreen";
 import SubscriptionScreen from "./src/screens/SubscriptionScreen";
 import NotificationScreen from "./src/screens/NotificationScreen";
+import BookmarksScreen from "./src/screens/BookmarksScreen";
+import ReportsScreen from "./src/screens/ReportsScreen";
 
 // Type definitions for navigation
 export type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
   NotificationScreen: undefined;
+  BookmarksScreen: undefined;
+  ReportsScreen: undefined;
   ExamHomeScreen: { exam?: string } | undefined;
   QuizScreen: {
     topicId?: string;
@@ -146,6 +150,8 @@ export default function App() {
           <Stack.Screen name="ChapterScreen" component={ChapterScreen} />
           <Stack.Screen name="SubscriptionScreen" component={SubscriptionScreen} />
           <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
+          <Stack.Screen name="BookmarksScreen" component={BookmarksScreen} />
+          <Stack.Screen name="ReportsScreen" component={ReportsScreen} />
         </Stack.Navigator>
         </NavigationContainer>
       </AuthProvider>

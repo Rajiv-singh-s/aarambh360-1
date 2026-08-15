@@ -12,15 +12,45 @@ export class BookmarksService {
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: 100,
+      include: {
+        question: {
+          include: {
+            options: true,
+          },
+        },
+      },
     });
 
-    return bookmarks.map((bookmark) => ({
-      id: bookmark.id,
-      targetType: bookmark.targetType,
-      targetId: bookmark.questionId ?? bookmark.lessonId ?? '',
-      notes: bookmark.notes,
-      createdAt: bookmark.createdAt.toISOString(),
-    }));
+    return bookmarks.map((bookmark) => {
+      let mappedQuestion: BookmarkDto['question'] = undefined;
+      
+      if (bookmark.question) {
+        const correctOption = bookmark.question.options.find(o => o.isCorrect);
+        mappedQuestion = {
+          id: bookmark.question.id,
+          type: bookmark.question.type as any,
+          text: bookmark.question.text,
+          difficulty: bookmark.question.difficulty as any,
+          options: bookmark.question.options.map(o => ({
+            id: o.id,
+            label: o.label,
+            text: o.text,
+            sortOrder: o.sortOrder,
+          })),
+          explanation: bookmark.question.explanation,
+          correctOptionId: correctOption?.id,
+        };
+      }
+
+      return {
+        id: bookmark.id,
+        targetType: bookmark.targetType,
+        targetId: bookmark.questionId ?? bookmark.lessonId ?? '',
+        notes: bookmark.notes,
+        createdAt: bookmark.createdAt.toISOString(),
+        question: mappedQuestion,
+      };
+    });
   }
 
   async create(userId: string, payload: CreateBookmarkRequestDto): Promise<BookmarkDto> {

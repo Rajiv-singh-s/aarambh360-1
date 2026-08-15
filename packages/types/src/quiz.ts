@@ -87,18 +87,39 @@ export interface MistakeDto {
   lastAttemptedAt: string;
 }
 
+export interface BookmarkedQuestionDto extends QuizQuestionDto {
+  explanation?: string | null;
+  correctOptionId?: string;
+}
+
 export interface BookmarkDto {
   id: string;
   targetType: string;
   targetId: string;
   notes: string | null;
   createdAt: string;
+  question?: BookmarkedQuestionDto;
 }
 
 export interface CreateBookmarkRequestDto {
   targetType: 'QUESTION' | 'LESSON' | 'MAINS_QUESTION';
   targetId: string;
   notes?: string;
+}
+
+export interface CreateReportRequestDto {
+  questionId: string;
+  reason: string;
+}
+
+export interface ReportDto {
+  id: string;
+  questionId: string;
+  reason: string;
+  status: 'OPEN' | 'IN_REVIEW' | 'RESOLVED' | 'DISMISSED';
+  adminNotes: string | null;
+  createdAt: string;
+  question?: BookmarkedQuestionDto;
 }
 
 export interface LeaderboardEntryDto {

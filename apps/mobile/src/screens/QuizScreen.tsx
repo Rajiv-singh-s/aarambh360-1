@@ -15,7 +15,7 @@ import {
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useColorScheme } from "react-native";
 import { useQuizEngine } from "../hooks/useQuizEngine";
-import { apiPost } from "../services/apiClient";
+import { apiPost, apiDelete } from "../services/apiClient";
 import { trackLearningEvent } from "../services/analyticsService";
 import { QuizSkeleton } from "../components/SkeletonLoader";
 
@@ -133,19 +133,37 @@ export default function QuizScreen() {
 
   /* BOOKMARKS */
   const [showBookmarkPopup, setShowBookmarkPopup] = useState(false);
-  const [bookmarks, setBookmarks] = useState<{ [key: number]: boolean }>({});
+  const [showRemoveBookmarkPopup, setShowRemoveBookmarkPopup] = useState(false);
+  const [bookmarks, setBookmarks] = useState<{ [key: number]: string }>({});
 
   const saveBookmark = async () => {
     try {
       const q = questions[currentIndex];
-      setBookmarks((prev) => ({ ...prev, [currentIndex]: true }));
-      setShowBookmarkPopup(false);
-      await apiPost("/bookmarks", {
+      const res = await apiPost<{ id: string }>("/bookmarks", {
         targetType: "QUESTION",
         targetId: q.id,
       });
+      setBookmarks((prev) => ({ ...prev, [currentIndex]: res.id }));
+      setShowBookmarkPopup(false);
     } catch (err) {
       console.error("Bookmark error:", err);
+    }
+  };
+
+  const removeBookmark = async () => {
+    const bId = bookmarks[currentIndex];
+    if (bId) {
+      try {
+        await apiDelete(`/bookmarks/${bId}`);
+        setBookmarks((prev) => {
+          const next = { ...prev };
+          delete next[currentIndex];
+          return next;
+        });
+        setShowRemoveBookmarkPopup(false);
+      } catch (err) {
+        console.error("Remove bookmark error:", err);
+      }
     }
   };
 
@@ -376,7 +394,16 @@ export default function QuizScreen() {
     }
 
     const q = questions[currentIndex];
-    console.log("Report submitted:", q.id, reportText.trim());
+    try {
+      await apiPost("/reports", {
+        questionId: q.id,
+        reason: reportText.trim(),
+      });
+      alert("Report submitted successfully.");
+    } catch(err) {
+      console.error("Report error:", err);
+      alert("Failed to submit report.");
+    }
     closeReport();
   };
 
@@ -946,7 +973,13 @@ export default function QuizScreen() {
             {/* ACTIONS */}
             <View style={styles.actionRow}>
               <TouchableOpacity
-                onPress={() => setShowBookmarkPopup(true)}
+                onPress={() => {
+                  if (bookmarks[currentIndex]) {
+                    setShowRemoveBookmarkPopup(true);
+                  } else {
+                    setShowBookmarkPopup(true);
+                  }
+                }}
               >
                 <Ionicons
                   name={bookmarks[currentIndex] ? "bookmark" : "bookmark-outline"}
@@ -1030,6 +1063,41 @@ export default function QuizScreen() {
                 onPress={saveBookmark}
               >
                 <Text style={[styles.btnText, { color: "#fff" }]}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={showRemoveBookmarkPopup} transparent animationType="fade">
+        <View style={styles.modalWrapper}>
+          <TouchableOpacity
+            style={styles.backdrop}
+            activeOpacity={1}
+            onPress={() => setShowRemoveBookmarkPopup(false)}
+          />
+          <View style={[styles.popupCardBig, { backgroundColor: isDark ? "#1e293b" : "#ffffff", paddingVertical: 24, width: "90%" }]}>
+            <View style={{ backgroundColor: "#ef44441a", padding: 16, borderRadius: 40, marginBottom: 12 }}>
+              <Ionicons name="trash-outline" size={36} color="#ef4444" />
+            </View>
+            <Text style={[styles.popupTextLarge, { color: COLORS.text, fontSize: 20 }]}>
+              Remove Bookmark?
+            </Text>
+            <Text style={[styles.popupSubText, { color: COLORS.sub, fontSize: 14 }]}>
+              Are you sure you want to remove this bookmark?
+            </Text>
+            <View style={{ flexDirection: "row", marginTop: 10, width: "100%", justifyContent: "space-between" }}>
+              <TouchableOpacity
+                style={[styles.btn, { backgroundColor: "transparent", borderWidth: 2, borderColor: COLORS.sub, flex: 1, marginRight: 8, alignItems: "center", borderRadius: 14 }]}
+                onPress={() => setShowRemoveBookmarkPopup(false)}
+              >
+                <Text style={[styles.btnText, { color: COLORS.sub }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btn, { backgroundColor: "#ef4444", borderBottomWidth: 4, borderColor: "#b91c1c", flex: 1, marginLeft: 8, alignItems: "center", borderRadius: 14 }]}
+                onPress={removeBookmark}
+              >
+                <Text style={[styles.btnText, { color: "#fff" }]}>Remove</Text>
               </TouchableOpacity>
             </View>
           </View>

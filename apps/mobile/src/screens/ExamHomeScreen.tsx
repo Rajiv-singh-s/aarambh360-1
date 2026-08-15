@@ -293,6 +293,11 @@ const ListItemCard = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS 
           <ListItemCard icon="create-outline" color={COLORS.accent} title="Mains Answer Writing" onPress={() => navigation.navigate("MainScreen")} COLORS={COLORS} />
           <ListItemCard icon="clipboard-list" IconLib={FontAwesome5} color={COLORS.accent} title="Previous Year Papers" onPress={() => navigation.navigate("PYQScreen")} COLORS={COLORS} />
 
+          {/* My Saved Items */}
+          <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>My Saved Items</Text>
+          <ListItemCard icon="bookmark" color={COLORS.accent} title="My Bookmarks" onPress={() => navigation.navigate("BookmarksScreen")} COLORS={COLORS} />
+          <ListItemCard icon="flag" color={COLORS.accent} title="My Reports" onPress={() => navigation.navigate("ReportsScreen")} COLORS={COLORS} />
+
           {/* Study Materials */}
           <Text style={[styles.sectionTitle, { color: COLORS.accent }]}>Study Materials</Text>
           <ListItemCard icon="book-open" IconLib={FontAwesome5} color={COLORS.accent} title="NCERT Books" onPress={() => navigation.navigate("NcertScreen")} COLORS={COLORS} />

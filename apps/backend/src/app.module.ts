@@ -5,6 +5,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
 import { BookmarksModule } from './bookmarks/bookmarks.module';
+import { ReportsModule } from './reports/reports.module';
 import { AppConfigModule } from './config/app-config.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -45,6 +46,7 @@ import { UsersModule } from './users/users.module';
     QuizModule,
     ProgressModule,
     BookmarksModule,
+    ReportsModule,
     AdminModule,
     StorageModule,
     MainsModule,
