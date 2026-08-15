@@ -150,8 +150,8 @@ export default function ActiveDailyChallengeScreen() {
     );
   }
 
-  const currentQ = paperType === "MAINS" ? challenge.mainsQuestion : challenge.prelimsQuestions?.[currentIndex];
-  const totalQ = paperType === "MAINS" ? 1 : (challenge.prelimsQuestions?.length || 0);
+  const currentQ = paperType === "MAINS" ? challenge.mainsQuestion : challenge.questions?.[currentIndex];
+  const totalQ = paperType === "MAINS" ? 1 : (challenge.questions?.length || 0);
 
   return (
     <LinearGradient colors={COLORS.bg} style={styles.safe}>
