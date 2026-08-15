@@ -18,6 +18,7 @@ import {
   Alert,
   useColorScheme,
   Switch,
+  Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
@@ -44,8 +45,18 @@ export default function ProfileScreen({ navigation }: any) {
 
   const mcqStreak = streaks.find((item) => item.streakType === "MCQ");
   const streak = mcqStreak?.currentCount ?? 0;
-  const quizzesTaken = stats?.totalQuestionsAnswered ?? 0;
+  const quizzesTaken = stats?.totalQuizzesTaken ?? 0;
   const accuracyRate = stats?.accuracy ?? 0;
+
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const translateY = React.useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+      Animated.spring(translateY, { toValue: 0, speed: 12, bounciness: 8, useNativeDriver: true })
+    ]).start();
+  }, []);
   const userData = profile?.profile;
   const loading = authLoading;
   const isDark = useColorScheme() === "dark";
@@ -168,39 +179,43 @@ export default function ProfileScreen({ navigation }: any) {
             <Ionicons name="settings-outline" size={24} color={COLORS.accent} />
           </View>
 
-          {/* PROFILE SECTION */}
-          <View style={styles.profileSection}>
-            <Image
-              source={{ uri: userData.avatarUrl || "https://i.ibb.co/4pDNDk1/avatar.png" }}
-              style={styles.avatar}
-            />
+          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY }] }}>
+            {/* PROFILE SECTION */}
+            <View style={styles.profileSection}>
+              <View style={styles.avatarContainer}>
+                <Image
+                  source={{ uri: userData.avatarUrl || "https://i.ibb.co/4pDNDk1/avatar.png" }}
+                  style={styles.avatar}
+                />
+              </View>
 
-            <Text style={[styles.name, { color: COLORS.text }]}>{userData.name}</Text>
-            <Text style={[styles.email, { color: COLORS.sub }]}>
-              {profile?.user.email}
-            </Text>
-          </View>
-
-          {/* STATS ROW */}
-          <View style={styles.statsRow}>
-            <View style={[styles.statsCard, { backgroundColor: COLORS.card }]}>
-              <Ionicons name="book-outline" size={22} color={COLORS.accent} />
-              <Text style={[styles.statsValue, { color: COLORS.text }]}>{quizzesTaken}</Text>
-              <Text style={[styles.statsLabel, { color: COLORS.sub }]}>Quizzes</Text>
+              <Text style={[styles.name, { color: COLORS.text }]}>{userData.name}</Text>
+              <Text style={[styles.email, { color: COLORS.sub }]}>
+                {profile?.user.email}
+              </Text>
             </View>
 
-            <View style={[styles.statsCard, { backgroundColor: COLORS.card }]}>
-              <Ionicons name="stats-chart-outline" size={22} color="#10B981" />
-              <Text style={[styles.statsValue, { color: "#10B981" }]}>{accuracyRate}%</Text>
-              <Text style={[styles.statsLabel, { color: COLORS.sub }]}>Accuracy</Text>
-            </View>
+            {/* STATS ROW */}
+            <View style={styles.statsRow}>
+              <View style={[styles.statsCard, { backgroundColor: COLORS.accent + "1a", borderColor: COLORS.accent }]}>
+                <Ionicons name="book" size={24} color={COLORS.accent} />
+                <Text style={[styles.statsValue, { color: COLORS.accent }]}>{quizzesTaken}</Text>
+                <Text style={[styles.statsLabel, { color: COLORS.text }]}>Quizzes</Text>
+              </View>
 
-            <View style={[styles.statsCard, { backgroundColor: COLORS.card }]}>
-              <Ionicons name="flame" size={24} color="#F59E0B" />
-              <Text style={[styles.statsValue, { color: "#F59E0B" }]}>{streak}</Text>
-              <Text style={[styles.statsLabel, { color: COLORS.sub }]}>Streak</Text>
+              <View style={[styles.statsCard, { backgroundColor: "#10b9811a", borderColor: "#10B981" }]}>
+                <Ionicons name="analytics" size={24} color="#10B981" />
+                <Text style={[styles.statsValue, { color: "#10B981" }]}>{accuracyRate}%</Text>
+                <Text style={[styles.statsLabel, { color: COLORS.text }]}>Accuracy</Text>
+              </View>
+
+              <View style={[styles.statsCard, { backgroundColor: "#f59e0b1a", borderColor: "#F59E0B" }]}>
+                <Ionicons name="flame" size={24} color="#F59E0B" />
+                <Text style={[styles.statsValue, { color: "#F59E0B" }]}>{streak}</Text>
+                <Text style={[styles.statsLabel, { color: COLORS.text }]}>Streak</Text>
+              </View>
             </View>
-          </View>
+          </Animated.View>
 
           <TouchableOpacity
             style={[styles.upgradeBtn, { borderColor: COLORS.accent }]}
@@ -446,74 +461,93 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    borderBottomWidth: 0.6,
+    borderBottomWidth: 0,
   },
-  headerTitle: { fontSize: 20, fontWeight: "800", flex: 1, textAlign: "center" },
+  headerTitle: { fontSize: 18, fontWeight: "900", flex: 1, textAlign: "center", textTransform: "uppercase", letterSpacing: 1 },
 
-  profileSection: { alignItems: "center", marginTop: 20 },
-  avatar: {
-    width: 115,
-    height: 115,
+  profileSection: { alignItems: "center", marginTop: 24 },
+  avatarContainer: {
+    elevation: 10,
+    shadowColor: "#0ea5e9",
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 8 },
+    backgroundColor: "#fff",
     borderRadius: 80,
-    borderWidth: 3,
-    borderColor: "#06b6d4",
+    padding: 4,
   },
-  name: { marginTop: 10, fontSize: 22, fontWeight: "800" },
-  email: { fontSize: 14, marginTop: 4 },
+  avatar: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+  },
+  name: { marginTop: 16, fontSize: 24, fontWeight: "900", letterSpacing: 0.5 },
+  email: { fontSize: 14, marginTop: 4, fontWeight: "600", opacity: 0.7 },
 
   statsRow: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginTop: 25,
+    marginTop: 32,
+    paddingHorizontal: 16,
   },
   statsCard: {
     width: "30%",
     paddingVertical: 18,
     alignItems: "center",
-    borderRadius: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderBottomWidth: 4,
   },
-  statsValue: { marginTop: 6, fontSize: 17, fontWeight: "700" },
-  statsLabel: { marginTop: 4, fontSize: 12 },
+  statsValue: { marginTop: 8, fontSize: 22, fontWeight: "900" },
+  statsLabel: { marginTop: 4, fontSize: 12, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5, opacity: 0.7 },
 
   upgradeBtn: {
     marginHorizontal: 16,
-    marginTop: 18,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 12,
+    marginTop: 24,
+    borderWidth: 1.5,
+    borderBottomWidth: 4,
+    borderRadius: 16,
+    paddingVertical: 14,
     alignItems: "center",
   },
-  upgradeText: { fontWeight: "800", fontSize: 15 },
+  upgradeText: { fontWeight: "900", fontSize: 15, textTransform: "uppercase", letterSpacing: 1 },
 
-  sectionTitle: { marginLeft: 16, marginTop: 28, fontWeight: "700", fontSize: 16 },
+  sectionTitle: { marginLeft: 16, marginTop: 32, fontWeight: "900", fontSize: 16, textTransform: "uppercase", letterSpacing: 0.5 },
 
   infoCard: {
     marginHorizontal: 16,
     marginTop: 12,
-    padding: 14,
-    borderRadius: 12,
+    padding: 16,
+    borderRadius: 16,
     borderWidth: 1,
+    borderBottomWidth: 3,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
   },
-  infoLabel: { fontSize: 12 },
-  infoValue: { fontSize: 15, marginTop: 4, fontWeight: "700" },
+  infoLabel: { fontSize: 12, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1, opacity: 0.6 },
+  infoValue: { fontSize: 16, marginTop: 6, fontWeight: "900" },
 
   btnRow: {
     flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 28,
+    justifyContent: "center",
+    marginTop: 32,
   },
   btn: {
     flexDirection: "row",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    borderWidth: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderBottomWidth: 4,
     alignItems: "center",
   },
-  btnText: { marginLeft: 6, fontWeight: "700" },
+  btnText: { marginLeft: 8, fontWeight: "900", fontSize: 15, textTransform: "uppercase", letterSpacing: 1 },
 
-  logoutBtn: { flexDirection: "row", alignSelf: "center", marginTop: 30 },
-  logoutText: { marginLeft: 6, color: "#ef4444", fontSize: 16, fontWeight: "700" },
+  logoutBtn: { flexDirection: "row", alignSelf: "center", marginTop: 32, backgroundColor: "#ef44441a", paddingVertical: 14, paddingHorizontal: 32, borderRadius: 16, borderWidth: 1, borderColor: "#ef4444", borderBottomWidth: 4 },
+  logoutText: { marginLeft: 8, color: "#ef4444", fontSize: 15, fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 },
 
   modalContainer: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-end" },
 
