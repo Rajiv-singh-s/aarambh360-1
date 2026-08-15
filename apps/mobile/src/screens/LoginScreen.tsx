@@ -12,7 +12,8 @@ import {
   useColorScheme,
   Animated,
   Easing,
-  Dimensions
+  Dimensions,
+  Image
 } from "react-native";
 import {
   signInWithEmailAndPassword,
@@ -27,6 +28,7 @@ import { RootStackParamList } from "../../App";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
+import Svg, { Circle, Path, Defs, RadialGradient, Stop } from "react-native-svg";
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -34,6 +36,49 @@ type LoginScreenNavigationProp = NativeStackNavigationProp<
 >;
 
 const { width, height } = Dimensions.get("window");
+
+// Floating Particle Component
+const FloatingParticle = ({ delay, size, startX, speed }: { delay: number, size: number, startX: number, speed: number }) => {
+  const translateY = useRef(new Animated.Value(height)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.parallel([
+          Animated.timing(translateY, { toValue: -100, duration: speed, easing: Easing.linear, useNativeDriver: true }),
+          Animated.sequence([
+            Animated.timing(opacity, { toValue: 0.6, duration: speed * 0.2, useNativeDriver: true }),
+            Animated.timing(opacity, { toValue: 0.6, duration: speed * 0.6, useNativeDriver: true }),
+            Animated.timing(opacity, { toValue: 0, duration: speed * 0.2, useNativeDriver: true }),
+          ])
+        ])
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <Animated.View
+      style={{
+        position: "absolute",
+        left: startX,
+        bottom: 0,
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: "#0ea5e9",
+        opacity: opacity,
+        transform: [{ translateY }],
+        shadowColor: "#0ea5e9",
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 1,
+        shadowRadius: 10,
+        elevation: 5,
+      }}
+    />
+  );
+};
 
 export default function LoginScreen() {
   const navigation = useNavigation<LoginScreenNavigationProp>();
@@ -57,23 +102,72 @@ export default function LoginScreen() {
 
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const input1Anim = useRef(new Animated.Value(50)).current;
+  const input2Anim = useRef(new Animated.Value(50)).current;
+  const btnAnim = useRef(new Animated.Value(50)).current;
+  
+  const orb1X = useRef(new Animated.Value(-50)).current;
+  const orb1Y = useRef(new Animated.Value(-100)).current;
+  const orb2X = useRef(new Animated.Value(width)).current;
+  const orb2Y = useRef(new Animated.Value(height)).current;
+  
+  const ripple1 = useRef(new Animated.Value(1)).current;
+  const ripple1Opacity = useRef(new Animated.Value(0.5)).current;
+  const ripple2 = useRef(new Animated.Value(1)).current;
+  const ripple2Opacity = useRef(new Animated.Value(0.5)).current;
 
   useEffect(() => {
-    // Entrance Animation
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 800, easing: Easing.out(Easing.exp), useNativeDriver: true })
+    // Staggered Entrance Animation
+    Animated.stagger(150, [
+      Animated.parallel([
+        Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: 0, duration: 800, easing: Easing.out(Easing.exp), useNativeDriver: true })
+      ]),
+      Animated.timing(input1Anim, { toValue: 0, duration: 600, easing: Easing.out(Easing.exp), useNativeDriver: true }),
+      Animated.timing(input2Anim, { toValue: 0, duration: 600, easing: Easing.out(Easing.exp), useNativeDriver: true }),
+      Animated.timing(btnAnim, { toValue: 0, duration: 600, easing: Easing.out(Easing.exp), useNativeDriver: true }),
     ]).start();
 
-    // Background Orb Pulse
+    // Floating Orbs Figure-8 Animation
     Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.1, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true })
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(orb1X, { toValue: width / 2, duration: 6000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(orb1X, { toValue: -50, duration: 6000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ]),
+        Animated.sequence([
+          Animated.timing(orb1Y, { toValue: 200, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(orb1Y, { toValue: -100, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ]),
+        Animated.sequence([
+          Animated.timing(orb2X, { toValue: -100, duration: 7000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(orb2X, { toValue: width, duration: 7000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ]),
+        Animated.sequence([
+          Animated.timing(orb2Y, { toValue: 0, duration: 5000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(orb2Y, { toValue: height, duration: 5000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ])
       ])
     ).start();
+
+    // Infinite Ripple Effect behind Logo
+    const createRipple = (scale: Animated.Value, opacity: Animated.Value, delay: number) => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.parallel([
+            Animated.timing(scale, { toValue: 2.5, duration: 3000, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+            Animated.timing(opacity, { toValue: 0, duration: 3000, easing: Easing.out(Easing.quad), useNativeDriver: true })
+          ]),
+          Animated.timing(scale, { toValue: 1, duration: 0, useNativeDriver: true }),
+          Animated.timing(opacity, { toValue: 0.5, duration: 0, useNativeDriver: true }),
+        ])
+      ).start();
+    };
+
+    createRipple(ripple1, ripple1Opacity, 0);
+    createRipple(ripple2, ripple2Opacity, 1500);
 
     // Auth Session Restore
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -100,7 +194,7 @@ export default function LoginScreen() {
 
   if (restoringSession) {
     return (
-      <LinearGradient colors={COLORS.bg} style={[styles.container, { justifyContent: "center" }]}>
+      <LinearGradient colors={COLORS.bg} style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
         <ActivityIndicator size="large" color={COLORS.accent} />
         <Text style={{ color: COLORS.text, marginTop: 16, fontSize: 16, fontWeight: "600" }}>Securing connection...</Text>
       </LinearGradient>
@@ -157,9 +251,20 @@ export default function LoginScreen() {
 
   return (
     <LinearGradient colors={COLORS.bg} style={styles.container}>
-      {/* Background Glowing Orbs */}
-      <Animated.View style={[styles.orb, { backgroundColor: "#0ea5e9", top: -100, left: -50, transform: [{ scale: pulseAnim }] }]} />
-      <Animated.View style={[styles.orb, { backgroundColor: "#f59e0b", bottom: -100, right: -50, opacity: 0.15, transform: [{ scale: pulseAnim }] }]} />
+      {/* Background Animated Orbs */}
+      <Animated.View style={[styles.orb, { backgroundColor: "#0ea5e9", transform: [{ translateX: orb1X }, { translateY: orb1Y }] }]} />
+      <Animated.View style={[styles.orb, { backgroundColor: "#f59e0b", opacity: 0.25, transform: [{ translateX: orb2X }, { translateY: orb2Y }] }]} />
+
+      {/* Floating Particles */}
+      {[...Array(15)].map((_, i) => (
+        <FloatingParticle
+          key={i}
+          delay={Math.random() * 5000}
+          size={Math.random() * 10 + 5}
+          startX={Math.random() * width}
+          speed={Math.random() * 5000 + 5000}
+        />
+      ))}
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -168,8 +273,12 @@ export default function LoginScreen() {
         <Animated.View style={[styles.cardContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
           
           <View style={styles.logoContainer}>
+            {/* Animated Ripples */}
+            <Animated.View style={[styles.ripple, { transform: [{ scale: ripple1 }], opacity: ripple1Opacity }]} />
+            <Animated.View style={[styles.ripple, { transform: [{ scale: ripple2 }], opacity: ripple2Opacity }]} />
+            
             <View style={styles.logoCircle}>
-              <Ionicons name="book" size={32} color="#ffffff" />
+              <Ionicons name="school" size={36} color="#ffffff" />
             </View>
             <Text style={[styles.title, { color: COLORS.text }]}>Aarambh360</Text>
             <Text style={[styles.subtitle, { color: COLORS.sub }]}>Conquer your UPSC Journey</Text>
@@ -177,7 +286,7 @@ export default function LoginScreen() {
 
           <BlurView intensity={isDark ? 30 : 60} tint={isDark ? "dark" : "light"} style={[styles.glassCard, { borderColor: COLORS.glassBorder }]}>
             
-            <View style={[styles.inputContainer, { backgroundColor: COLORS.inputBg, borderColor: COLORS.glassBorder }]}>
+            <Animated.View style={[styles.inputContainer, { backgroundColor: COLORS.inputBg, borderColor: COLORS.glassBorder, transform: [{ translateY: input1Anim }] }]}>
               <Ionicons name="mail-outline" size={20} color={COLORS.sub} style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, { color: COLORS.text }]}
@@ -188,9 +297,9 @@ export default function LoginScreen() {
                 value={email}
                 onChangeText={setEmail}
               />
-            </View>
+            </Animated.View>
 
-            <View style={[styles.inputContainer, { backgroundColor: COLORS.inputBg, borderColor: COLORS.glassBorder }]}>
+            <Animated.View style={[styles.inputContainer, { backgroundColor: COLORS.inputBg, borderColor: COLORS.glassBorder, transform: [{ translateY: input2Anim }] }]}>
               <Ionicons name="lock-closed-outline" size={20} color={COLORS.sub} style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, { color: COLORS.text }]}
@@ -200,27 +309,29 @@ export default function LoginScreen() {
                 value={password}
                 onChangeText={setPassword}
               />
-            </View>
+            </Animated.View>
 
-            <TouchableOpacity
-              style={[styles.btn, loading && { opacity: 0.7 }]}
-              onPress={handleAuth}
-              disabled={loading}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={["#0ea5e9", "#0284c7"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.btnGradient}
+            <Animated.View style={{ transform: [{ translateY: btnAnim }] }}>
+              <TouchableOpacity
+                style={[styles.btn, loading && { opacity: 0.7 }]}
+                onPress={handleAuth}
+                disabled={loading}
+                activeOpacity={0.8}
               >
-                {loading ? (
-                  <ActivityIndicator color="#ffffff" />
-                ) : (
-                  <Text style={styles.btnText}>Login / Sign Up</Text>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
+                <LinearGradient
+                  colors={["#0ea5e9", "#0284c7"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.btnGradient}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#ffffff" />
+                  ) : (
+                    <Text style={styles.btnText}>Login / Sign Up</Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </Animated.View>
 
             <TouchableOpacity
               style={styles.forgotBtn}
@@ -247,10 +358,11 @@ const styles = StyleSheet.create({
   },
   orb: {
     position: "absolute",
-    width: 350,
-    height: 350,
-    borderRadius: 175,
-    opacity: 0.2,
+    width: 400,
+    height: 400,
+    borderRadius: 200,
+    opacity: 0.3,
+    filter: [{ blur: 40 }], // Web/Newer React Native support for CSS blur
   },
   keyboardView: {
     flex: 1,
@@ -265,7 +377,17 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: "center",
-    marginBottom: 32,
+    marginBottom: 40,
+    position: "relative",
+  },
+  ripple: {
+    position: "absolute",
+    top: -12,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: "#0ea5e9",
+    zIndex: -1,
   },
   logoCircle: {
     width: 64,
@@ -277,33 +399,33 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     shadowColor: "#0ea5e9",
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
+    elevation: 10,
   },
   title: {
-    fontSize: 32,
+    fontSize: 34,
     fontWeight: "900",
-    letterSpacing: 0.5,
-    marginBottom: 8,
+    letterSpacing: 1,
+    marginBottom: 6,
   },
   subtitle: {
     fontSize: 15,
-    fontWeight: "600",
+    fontWeight: "700",
     letterSpacing: 0.5,
   },
   glassCard: {
     width: "100%",
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
+    borderRadius: 28,
+    padding: 28,
+    borderWidth: 1.5,
     overflow: "hidden",
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    height: 54,
-    borderRadius: 16,
+    height: 56,
+    borderRadius: 18,
     borderWidth: 1,
     paddingHorizontal: 16,
     marginBottom: 16,
@@ -318,39 +440,39 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   btn: {
-    marginTop: 8,
-    borderRadius: 16,
+    marginTop: 12,
+    borderRadius: 18,
     overflow: "hidden",
     shadowColor: "#0ea5e9",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
   btnGradient: {
-    height: 56,
+    height: 60,
     alignItems: "center",
     justifyContent: "center",
   },
   btnText: {
     color: "#ffffff",
-    fontWeight: "800",
-    fontSize: 17,
-    letterSpacing: 0.5,
+    fontWeight: "900",
+    fontSize: 18,
+    letterSpacing: 1,
   },
   forgotBtn: {
-    marginTop: 20,
+    marginTop: 24,
     alignItems: "center",
   },
   forgotText: {
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 15,
+    fontWeight: "800",
   },
   footer: {
     position: "absolute",
     bottom: 30,
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "700",
     textAlign: "center",
   },
 });
