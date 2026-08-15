@@ -6,52 +6,61 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   ScrollView,
   Modal,
   Animated,
   useColorScheme,
   Easing,
   Dimensions,
+  ImageBackground,
 } from "react-native";
 import { Ionicons, FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import type { SubjectSummaryDto, TopicSummaryDto } from "@aarambh360/types";
 import { useSubjects } from "../hooks/useContent";
 import { ListSkeleton } from "../components/SkeletonLoader";
 import { apiGet } from "../services/apiClient";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 const mcqCounts = [10, 20, 25, 50];
 
-// Animated Touchable Card
-const AnimatedCard = ({ subject, getIcon, onPress, index }: { subject: SubjectSummaryDto, getIcon: any, onPress: any, index: number }) => {
-  const scale = useRef(new Animated.Value(1)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  
-  const isDark = useColorScheme() === "dark";
-  const COLORS = {
-    card: isDark ? "rgba(30,41,59,0.7)" : "rgba(255,255,255,0.7)",
-    accent: isDark ? "#0ea5e9" : "#0284c7",
-    text: isDark ? "#f8fafc" : "#0f172a",
-    sub: isDark ? "#94a3b8" : "#475569",
-    glassBorder: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
-  };
+// Themed palettes for subjects
+const SUBJECT_THEMES: Record<string, { colors: [string, string], icon: string }> = {
+  "history": { colors: ["#f97316", "#ea580c"], icon: "landmark" }, // Orange
+  "geography": { colors: ["#10b981", "#059669"], icon: "earth" }, // Green
+  "polity": { colors: ["#3b82f6", "#2563eb"], icon: "account-balance" }, // Blue
+  "economy": { colors: ["#8b5cf6", "#7c3aed"], icon: "trending-up" }, // Purple
+  "social science": { colors: ["#ec4899", "#db2777"], icon: "book-open" }, // Pink
+  "default": { colors: ["#0ea5e9", "#0284c7"], icon: "book" } // Cyan
+};
 
+const getTheme = (name: string) => {
+  const s = name.toLowerCase();
+  for (const key in SUBJECT_THEMES) {
+    if (s.includes(key)) return SUBJECT_THEMES[key];
+  }
+  return SUBJECT_THEMES["default"];
+};
+
+// Animated Themed Card
+const AnimatedCard = ({ subject, onPress, index }: { subject: SubjectSummaryDto, onPress: any, index: number }) => {
+  const scale = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(80)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const theme = getTheme(subject.name);
+  
   useEffect(() => {
     Animated.sequence([
-      Animated.delay(index * 100),
+      Animated.delay(index * 120),
       Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
-        Animated.timing(slideAnim, { toValue: 0, duration: 500, easing: Easing.out(Easing.exp), useNativeDriver: true })
+        Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: 0, duration: 600, easing: Easing.out(Easing.exp), useNativeDriver: true })
       ])
     ]).start();
   }, []);
 
   const onPressIn = () => {
-    Animated.spring(scale, { toValue: 0.95, useNativeDriver: true }).start();
+    Animated.spring(scale, { toValue: 0.94, useNativeDriver: true }).start();
   };
   const onPressOut = () => {
     Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start();
@@ -60,30 +69,43 @@ const AnimatedCard = ({ subject, getIcon, onPress, index }: { subject: SubjectSu
   return (
     <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }, { scale }] }}>
       <TouchableOpacity 
-        activeOpacity={0.9} 
+        activeOpacity={1} 
         onPressIn={onPressIn} 
         onPressOut={onPressOut} 
         onPress={() => onPress(subject)}
-        style={{ marginBottom: 16 }}
+        style={styles.cardWrapper}
       >
-        <BlurView intensity={isDark ? 30 : 60} tint={isDark ? "dark" : "light"} style={[styles.subjectCard, { borderColor: COLORS.glassBorder }]}>
-          <View style={styles.cardContent}>
-            <View style={styles.iconCircle}>
-              <View style={styles.iconGlow} />
-              {getIcon(subject.name)}
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.cardTitle, { color: COLORS.text }]}>{subject.name}</Text>
-              <Text style={[styles.cardSub, { color: COLORS.sub }]}>Choose a topic to begin</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.sub} />
+        <LinearGradient
+          colors={theme.colors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.subjectCard}
+        >
+          {/* Background decorative icon */}
+          <View style={styles.bgIconWrapper}>
+            {theme.icon === "earth" || theme.icon === "book" ? (
+              <Ionicons name={theme.icon as any} size={140} color="rgba(255,255,255,0.15)" />
+            ) : theme.icon === "account-balance" ? (
+              <MaterialIcons name={theme.icon as any} size={140} color="rgba(255,255,255,0.15)" />
+            ) : (
+              <FontAwesome5 name={theme.icon as any} size={120} color="rgba(255,255,255,0.15)" />
+            )}
           </View>
-        </BlurView>
+
+          <View style={styles.cardContent}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>{subject.name}</Text>
+              <Text style={styles.cardSub}>Tap to select a topic</Text>
+            </View>
+            <View style={styles.playBtn}>
+              <Ionicons name="play" size={20} color={theme.colors[1]} />
+            </View>
+          </View>
+        </LinearGradient>
       </TouchableOpacity>
     </Animated.View>
   );
 };
-
 
 export default function MCQScreen({ navigation }: any) {
   const { data: subjects, loading: subjectsLoading } = useSubjects("UPSC_CSE");
@@ -94,44 +116,14 @@ export default function MCQScreen({ navigation }: any) {
   const [selectedTopic, setSelectedTopic] = useState<TopicSummaryDto | null>(null);
   const [loadingTopics, setLoadingTopics] = useState(false);
   
-  const orb1Y = useRef(new Animated.Value(0)).current;
-  const orb2Y = useRef(new Animated.Value(0)).current;
-
   const isDark = useColorScheme() === "dark";
 
   const COLORS = {
     bg: (isDark ? ["#020617", "#0f172a"] : ["#f8fafc", "#e2e8f0"]) as [string, string],
-    card: isDark ? "rgba(30,41,59,0.7)" : "rgba(255,255,255,0.7)",
-    accent: isDark ? "#0ea5e9" : "#0284c7",
+    card: isDark ? "#1e293b" : "#ffffff",
     text: isDark ? "#f8fafc" : "#0f172a",
     sub: isDark ? "#94a3b8" : "#475569",
-    glassBorder: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
-  };
-
-  useEffect(() => {
-    // Ambient floating orbs
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(orb1Y, { toValue: -50, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(orb1Y, { toValue: 0, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-      ])
-    ).start();
-    
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(orb2Y, { toValue: 50, duration: 5000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(orb2Y, { toValue: 0, duration: 5000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-
-  const getIcon = (subject: string) => {
-    const s = subject.toLowerCase();
-    if (s.includes("history")) return <FontAwesome5 name="landmark" size={24} color={COLORS.accent} />;
-    if (s.includes("geography")) return <Ionicons name="earth" size={26} color={COLORS.accent} />;
-    if (s.includes("polity")) return <MaterialIcons name="account-balance" size={26} color={COLORS.accent} />;
-    if (s.includes("economy")) return <Ionicons name="trending-up" size={26} color={COLORS.accent} />;
-    return <Ionicons name="book" size={24} color={COLORS.accent} />;
+    border: isDark ? "#334155" : "#e2e8f0",
   };
 
   const handleSubjectPress = async (subject: SubjectSummaryDto) => {
@@ -165,171 +157,235 @@ export default function MCQScreen({ navigation }: any) {
   const loading = subjectsLoading || loadingTopics;
 
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.bg[0] }}>
-      <Animated.View style={[styles.orb, { backgroundColor: "#0ea5e9", top: -100, left: -50, transform: [{ translateY: orb1Y }] }]} />
-      <Animated.View style={[styles.orb, { backgroundColor: "#f59e0b", bottom: 100, right: -100, opacity: 0.15, transform: [{ translateY: orb2Y }] }]} />
-
-      <LinearGradient colors={COLORS.bg} style={styles.safe}>
-        <SafeContainer style={{ flex: 1 }}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
-              <Ionicons name="arrow-back" size={24} color={COLORS.text} />
-            </TouchableOpacity>
-            <Text style={[styles.headerText, { color: COLORS.text }]}>MCQ Practice</Text>
-            <TouchableOpacity style={styles.iconBtn}>
-              <Ionicons name="information-circle-outline" size={24} color={COLORS.text} />
-            </TouchableOpacity>
+    <LinearGradient colors={COLORS.bg} style={styles.safe}>
+      <SafeContainer style={{ flex: 1 }}>
+        
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.iconBtn, { backgroundColor: COLORS.card }]}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+          </TouchableOpacity>
+          <View style={{ alignItems: "center" }}>
+            <Text style={[styles.headerSub, { color: COLORS.sub }]}>UPSC CSE</Text>
+            <Text style={[styles.headerText, { color: COLORS.text }]}>Practice By Subject</Text>
           </View>
+          <TouchableOpacity style={[styles.iconBtn, { backgroundColor: COLORS.card }]}>
+            <Ionicons name="filter" size={20} color={COLORS.text} />
+          </TouchableOpacity>
+        </View>
 
-          {loading ? (
-            <ListSkeleton />
-          ) : (
-            <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-              {subjects.map((subject, index) => (
-                <AnimatedCard 
-                  key={subject.id} 
-                  subject={subject} 
-                  getIcon={getIcon} 
-                  onPress={handleSubjectPress} 
-                  index={index} 
-                />
-              ))}
-            </ScrollView>
-          )}
+        {loading ? (
+          <ListSkeleton />
+        ) : (
+          <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+            {subjects.map((subject, index) => (
+              <AnimatedCard 
+                key={subject.id} 
+                subject={subject} 
+                onPress={handleSubjectPress} 
+                index={index} 
+              />
+            ))}
+          </ScrollView>
+        )}
 
-          {/* Topic Selection Modal */}
-          <Modal visible={topicModalVisible} transparent animationType="fade">
-            <View style={styles.modalOverlay}>
-              <BlurView intensity={isDark ? 50 : 80} tint={isDark ? "dark" : "light"} style={[styles.modalBox, { borderColor: COLORS.glassBorder }]}>
-                <View style={styles.modalHeader}>
-                  <Text style={[styles.modalTitle, { color: COLORS.text }]}>Select Topic</Text>
-                  <TouchableOpacity onPress={() => setTopicModalVisible(false)} style={styles.iconBtn}>
-                    <Ionicons name="close" size={24} color={COLORS.text} />
-                  </TouchableOpacity>
-                </View>
-                <ScrollView showsVerticalScrollIndicator={false}>
-                  {topics.map((topic) => (
-                    <TouchableOpacity key={topic.id} style={[styles.modalItem, { borderBottomColor: COLORS.glassBorder }]} onPress={() => handleTopicSelect(topic)}>
-                      <Text style={{ color: COLORS.text, fontSize: 16, fontWeight: "600" }}>{topic.name}</Text>
+        {/* Topic Selection Modal */}
+        <Modal visible={topicModalVisible} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setTopicModalVisible(false)} />
+            <View style={[styles.bottomSheet, { backgroundColor: COLORS.card }]}>
+              <View style={styles.sheetHandle} />
+              <Text style={[styles.sheetTitle, { color: COLORS.text }]}>Select Topic</Text>
+              <Text style={[styles.sheetSub, { color: COLORS.sub }]}>{selectedSubject?.name}</Text>
+              
+              <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 20 }}>
+                {topics.length === 0 ? (
+                  <Text style={{ textAlign: "center", color: COLORS.sub, marginTop: 40 }}>No topics available.</Text>
+                ) : (
+                  topics.map((topic) => (
+                    <TouchableOpacity 
+                      key={topic.id} 
+                      style={[styles.topicItem, { borderBottomColor: COLORS.border }]} 
+                      onPress={() => handleTopicSelect(topic)}
+                    >
+                      <Text style={[styles.topicText, { color: COLORS.text }]}>{topic.name}</Text>
+                      <Ionicons name="chevron-forward" size={18} color={COLORS.sub} />
                     </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </BlurView>
+                  ))
+                )}
+              </ScrollView>
             </View>
-          </Modal>
+          </View>
+        </Modal>
 
-          {/* Question Count Modal */}
-          <Modal visible={countModalVisible} transparent animationType="fade">
-            <View style={styles.modalOverlay}>
-              <BlurView intensity={isDark ? 50 : 80} tint={isDark ? "dark" : "light"} style={[styles.modalBox, { borderColor: COLORS.glassBorder }]}>
-                <View style={styles.modalHeader}>
-                  <Text style={[styles.modalTitle, { color: COLORS.text }]}>Question Count</Text>
-                  <TouchableOpacity onPress={() => setCountModalVisible(false)} style={styles.iconBtn}>
-                    <Ionicons name="close" size={24} color={COLORS.text} />
+        {/* Question Count Modal */}
+        <Modal visible={countModalVisible} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={[styles.centeredModal, { backgroundColor: COLORS.card }]}>
+              <Text style={[styles.centeredModalTitle, { color: COLORS.text }]}>How many questions?</Text>
+              <Text style={[styles.centeredModalSub, { color: COLORS.sub }]}>Select the length of your practice session</Text>
+              
+              <View style={styles.countGrid}>
+                {mcqCounts.map((count) => (
+                  <TouchableOpacity 
+                    key={count} 
+                    style={[styles.countCard, { backgroundColor: COLORS.bg[0], borderColor: COLORS.border }]} 
+                    onPress={() => handleMCQSelect(count)}
+                  >
+                    <Text style={[styles.countNum, { color: COLORS.text }]}>{count}</Text>
+                    <Text style={{ color: COLORS.sub, fontSize: 13, fontWeight: "600" }}>Questions</Text>
                   </TouchableOpacity>
-                </View>
-                <View style={styles.countGrid}>
-                  {mcqCounts.map((count) => (
-                    <TouchableOpacity key={count} style={[styles.countCard, { backgroundColor: COLORS.card, borderColor: COLORS.glassBorder }]} onPress={() => handleMCQSelect(count)}>
-                      <LinearGradient
-                        colors={["rgba(14,165,233,0.1)", "transparent"]}
-                        style={StyleSheet.absoluteFill}
-                      />
-                      <Text style={{ color: COLORS.accent, fontWeight: "900", fontSize: 24 }}>{count}</Text>
-                      <Text style={{ color: COLORS.sub, fontSize: 12, fontWeight: "700" }}>Questions</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </BlurView>
+                ))}
+              </View>
+              
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setCountModalVisible(false)}>
+                <Text style={{ color: COLORS.sub, fontWeight: "700", fontSize: 16 }}>Cancel</Text>
+              </TouchableOpacity>
             </View>
-          </Modal>
-        </SafeContainer>
-      </LinearGradient>
-    </View>
+          </View>
+        </Modal>
+      </SafeContainer>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "transparent" },
-  orb: {
-    position: "absolute",
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    opacity: 0.15,
-  },
+  safe: { flex: 1 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingTop: 12,
     paddingBottom: 20,
-    zIndex: 10,
   },
   iconBtn: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.05)",
-  },
-  headerText: { fontSize: 22, fontWeight: "900", letterSpacing: 0.5 },
-  scrollContainer: { padding: 16, paddingBottom: 100 },
-  
-  subjectCard: {
-    borderRadius: 24,
-    borderWidth: 1,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  cardContent: {
-    padding: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-  },
-  iconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(14,165,233,0.1)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  iconGlow: {
-    position: "absolute",
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "#0ea5e9",
-    opacity: 0.2,
-    transform: [{ scale: 1.5 }],
-  },
-  cardTitle: { fontSize: 19, fontWeight: "800", marginBottom: 4, letterSpacing: 0.5 },
-  cardSub: { fontSize: 13, fontWeight: "600" },
+  headerSub: { fontSize: 12, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1, marginBottom: 2 },
+  headerText: { fontSize: 20, fontWeight: "900", letterSpacing: 0.5 },
   
-  modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.4)" },
-  modalBox: { 
-    borderRadius: 28, 
-    padding: 24, 
-    maxHeight: "80%", 
-    width: "88%", 
-    borderWidth: 1,
-    overflow: "hidden" 
+  scrollContainer: { padding: 16, paddingBottom: 100 },
+  
+  cardWrapper: {
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 15,
+    elevation: 8,
   },
-  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
-  modalTitle: { fontSize: 22, fontWeight: "900", letterSpacing: 0.5 },
-  modalItem: { paddingVertical: 16, borderBottomWidth: 1 },
+  subjectCard: {
+    borderRadius: 24,
+    overflow: "hidden",
+    height: 140,
+  },
+  bgIconWrapper: {
+    position: "absolute",
+    right: -20,
+    bottom: -20,
+    transform: [{ rotate: "-15deg" }],
+  },
+  cardContent: {
+    flex: 1,
+    padding: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  cardTitle: { 
+    fontSize: 24, 
+    fontWeight: "900", 
+    color: "#ffffff", 
+    marginBottom: 6,
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3
+  },
+  cardSub: { 
+    fontSize: 14, 
+    fontWeight: "600", 
+    color: "rgba(255,255,255,0.8)" 
+  },
+  playBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  
+  modalOverlay: { 
+    flex: 1, 
+    justifyContent: "flex-end", 
+    backgroundColor: "rgba(0,0,0,0.5)" 
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  bottomSheet: { 
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24, 
+    maxHeight: "85%",
+    minHeight: "50%",
+    width: "100%",
+  },
+  sheetHandle: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: "#cbd5e1",
+    alignSelf: "center",
+    marginBottom: 20,
+  },
+  sheetTitle: { fontSize: 24, fontWeight: "900", letterSpacing: 0.5 },
+  sheetSub: { fontSize: 15, fontWeight: "600", marginTop: 4 },
+  
+  topicItem: { 
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 18, 
+    borderBottomWidth: 1 
+  },
+  topicText: {
+    fontSize: 17,
+    fontWeight: "600",
+  },
+  
+  centeredModal: {
+    alignSelf: "center",
+    marginVertical: "auto",
+    width: "88%",
+    borderRadius: 28,
+    padding: 28,
+    alignItems: "center",
+  },
+  centeredModalTitle: { fontSize: 22, fontWeight: "900", marginBottom: 8, textAlign: "center" },
+  centeredModalSub: { fontSize: 14, textAlign: "center", marginBottom: 24 },
   
   countGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 16,
     justifyContent: "center",
-    marginTop: 10,
   },
   countCard: {
     width: "45%",
@@ -338,6 +394,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
+  },
+  countNum: {
+    fontSize: 32,
+    fontWeight: "900",
+    marginBottom: 4,
+  },
+  cancelBtn: {
+    marginTop: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
   }
 });
