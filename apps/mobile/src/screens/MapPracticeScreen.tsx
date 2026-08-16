@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
-  ImageBackground,
   Dimensions,
   Alert,
 } from "react-native";
@@ -14,19 +13,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import SafeContainer from "../components/SafeContainer";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import IndiaMapSvg from "../components/IndiaMapSvg";
+import indiaData from "../utils/indiaMapData";
 
 const { width } = Dimensions.get("window");
-const MAP_WIDTH = width * 0.9;
-const MAP_HEIGHT = MAP_WIDTH * 1.1; // roughly India's aspect ratio
+const MAP_WIDTH = width * 0.95;
+const MAP_HEIGHT = MAP_WIDTH * 1.15; // India aspect ratio
 
-// We use rough relative coordinates (0 to 1) to position hitboxes
-const LOCATIONS = [
-  { id: "thar", name: "Thar Desert", top: 0.35, left: 0.15, w: 0.2, h: 0.2 },
-  { id: "himalayas", name: "Himalayas", top: 0.1, left: 0.3, w: 0.4, h: 0.15 },
-  { id: "western_ghats", name: "Western Ghats", top: 0.6, left: 0.25, w: 0.15, h: 0.3 },
-  { id: "chilika", name: "Chilika Lake", top: 0.55, left: 0.6, w: 0.1, h: 0.1 },
-  { id: "kaziranga", name: "Kaziranga NP", top: 0.4, left: 0.8, w: 0.15, h: 0.1 },
-];
+const LOCATIONS = indiaData.locations;
 
 export default function MapPracticeScreen() {
   const navigation = useNavigation<any>();
@@ -36,7 +30,8 @@ export default function MapPracticeScreen() {
   const [highScore, setHighScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTarget, setCurrentTarget] = useState(LOCATIONS[0]);
+  const [currentTarget, setCurrentTarget] = useState<any>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
 
   const COLORS = {
@@ -76,15 +71,17 @@ export default function MapPracticeScreen() {
 
   const startGame = () => {
     setScore(0);
-    setTimeLeft(30);
+    setTimeLeft(60);
     setIsPlaying(true);
     setFeedback(null);
+    setSelectedId(null);
     pickNextTarget();
   };
 
   const endGame = () => {
     setIsPlaying(false);
     saveHighScore(score);
+    setCurrentTarget(null);
     Alert.alert("Time's Up!", `You scored ${score} points!`, [
       { text: "Play Again", onPress: startGame },
       { text: "Cancel", style: "cancel" },
@@ -94,28 +91,27 @@ export default function MapPracticeScreen() {
   const pickNextTarget = () => {
     const randomLoc = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];
     setCurrentTarget(randomLoc);
+    setSelectedId(null);
+    setFeedback(null);
   };
 
   const handleTap = (locId: string) => {
-    if (!isPlaying) return;
+    if (!isPlaying || feedback !== null) return;
+
+    setSelectedId(locId);
 
     if (locId === currentTarget.id) {
-      setScore(score + 1);
+      setScore(score + 10); // +10 for correct
       setFeedback("correct");
       setTimeout(() => {
-        setFeedback(null);
         pickNextTarget();
-      }, 500);
+      }, 800); // give time to see green flash
     } else {
       setFeedback("wrong");
-      setTimeout(() => setFeedback(null), 500);
+      setTimeout(() => {
+        pickNextTarget();
+      }, 1500); // more time to see the yellow correct answer
     }
-  };
-
-  const handleMiss = () => {
-    if (!isPlaying) return;
-    setFeedback("wrong");
-    setTimeout(() => setFeedback(null), 500);
   };
 
   return (
@@ -149,62 +145,36 @@ export default function MapPracticeScreen() {
 
         {/* Target Prompt */}
         <View style={styles.targetContainer}>
-          {isPlaying ? (
+          {isPlaying && currentTarget ? (
             <>
               <Text style={[styles.findText, { color: COLORS.sub }]}>Locate:</Text>
               <Text style={[styles.targetText, { color: COLORS.text }]}>{currentTarget.name}</Text>
             </>
           ) : (
-            <Text style={[styles.targetText, { color: COLORS.text }]}>Ready to play?</Text>
+            <Text style={[styles.targetText, { color: COLORS.text, fontSize: 24, marginTop: 10 }]}>Ready to identify States?</Text>
           )}
         </View>
 
         {/* Game Map Area */}
         <View style={styles.mapContainer}>
-          <TouchableOpacity activeOpacity={1} onPress={handleMiss} style={styles.mapWrapper}>
-            <ImageBackground
-              source={{ uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/India_outline_map.svg/1024px-India_outline_map.svg.png" }}
-              style={styles.mapImage}
-              imageStyle={{ opacity: isDark ? 0.8 : 0.6, tintColor: isDark ? "#fff" : "#000" }}
-            >
-              {/* Hitboxes */}
-              {LOCATIONS.map((loc) => (
-                <TouchableOpacity
-                  key={loc.id}
-                  style={[
-                    styles.hitbox,
-                    {
-                      top: loc.top * MAP_HEIGHT,
-                      left: loc.left * MAP_WIDTH,
-                      width: loc.w * MAP_WIDTH,
-                      height: loc.h * MAP_HEIGHT,
-                      // For debugging, uncomment the line below to see hitboxes
-                      // backgroundColor: "rgba(255,0,0,0.2)",
-                    },
-                  ]}
-                  onPress={() => handleTap(loc.id)}
-                />
-              ))}
-
-              {/* Feedback Overlay */}
-              {feedback && (
-                <View style={[styles.feedbackOverlay, { backgroundColor: feedback === "correct" ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)" }]}>
-                  <Ionicons
-                    name={feedback === "correct" ? "checkmark-circle" : "close-circle"}
-                    size={80}
-                    color={feedback === "correct" ? "#10b981" : "#ef4444"}
-                  />
-                </View>
-              )}
-            </ImageBackground>
-          </TouchableOpacity>
+          <View style={styles.mapWrapper}>
+            <IndiaMapSvg
+              width={MAP_WIDTH}
+              height={MAP_HEIGHT}
+              isDark={isDark}
+              selectedId={selectedId}
+              targetId={currentTarget?.id}
+              feedback={feedback}
+              onLocationPress={handleTap}
+            />
+          </View>
         </View>
 
         {/* Controls */}
         {!isPlaying && (
           <TouchableOpacity style={[styles.startBtn, { backgroundColor: COLORS.accent }]} onPress={startGame}>
             <Ionicons name="play" size={20} color="#fff" />
-            <Text style={styles.startBtnText}>Start Game (30s)</Text>
+            <Text style={styles.startBtnText}>Start Game (60s)</Text>
           </TouchableOpacity>
         )}
       </SafeContainer>
@@ -289,20 +259,8 @@ const styles = StyleSheet.create({
   mapWrapper: {
     width: MAP_WIDTH,
     height: MAP_HEIGHT,
-  },
-  mapImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "contain",
-  },
-  hitbox: {
-    position: "absolute",
-  },
-  feedbackOverlay: {
-    ...StyleSheet.absoluteFillObject,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 24,
   },
   startBtn: {
     flexDirection: "row",
