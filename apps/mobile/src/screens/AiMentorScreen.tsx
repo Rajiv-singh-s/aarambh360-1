@@ -26,7 +26,6 @@ export default function AiMentorScreen() {
   const isDark = useColorScheme() === "dark";
   const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [inputText, setInputText] = useState("");
   const [selectedMode, setSelectedMode] = useState<"general" | "eli5" | "mains">("general");
   const flatListRef = useRef<FlatList>(null);

@@ -27,9 +27,6 @@
     "seed:subscriptions": "ts-node --transpile-only scripts/seed-subscriptions.ts",
     "postinstall": "prisma generate"
   },
-  "prisma": {
-    "seed": "ts-node --transpile-only prisma/seed.ts"
-  },
   "dependencies": {
     "@aarambh360/types": "workspace:*",
     "@aws-sdk/client-s3": "^3.787.0",
