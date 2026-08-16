@@ -242,6 +242,8 @@ export default function AiMentorScreen() {
             }}
             contentContainerStyle={styles.chatContainer}
             showsVerticalScrollIndicator={false}
+            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
           />
 
           {/* INPUT AREA */}
