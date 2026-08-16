@@ -25,6 +25,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { StorageModule } from './storage/storage.module';
 import { SyllabusModule } from './syllabus/syllabus.module';
 import { UsersModule } from './users/users.module';
+import { AiMentorModule } from './ai-mentor/ai-mentor.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { UsersModule } from './users/users.module';
     NotificationsModule,
     AnalyticsModule,
     AdsModule,
+    AiMentorModule,
   ],
   controllers: [AppController],
   providers: [

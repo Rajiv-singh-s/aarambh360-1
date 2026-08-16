@@ -16,6 +16,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import SafeContainer from "../components/SafeContainer";
+import { apiPost } from "../utils/api";
 
 
 
@@ -23,6 +24,7 @@ export default function AiMentorScreen() {
   const navigation = useNavigation<any>();
   const isDark = useColorScheme() === "dark";
   const [messages, setMessages] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [inputText, setInputText] = useState("");
   const [selectedMode, setSelectedMode] = useState<"general" | "eli5" | "mains">("general");
   const flatListRef = useRef<FlatList>(null);
@@ -54,23 +56,45 @@ export default function AiMentorScreen() {
     }, 100);
   }, [messages]);
 
-  const handleSend = () => {
-    if (!inputText.trim()) return;
+  const handleSend = async () => {
+    if (!inputText.trim() || isLoading) return;
     const userMsg = { id: Date.now().toString(), role: "user", content: inputText };
+    
+    // Add user message to UI immediately
     setMessages((prev) => [...prev, userMsg]);
     setInputText("");
+    setIsLoading(true);
+    
+    // Create the conversation history to send (excluding IDs)
+    const conversationHistory = [...messages, userMsg].map(m => ({
+      role: m.role,
+      content: m.content
+    }));
 
-    // Mock AI typing and responding
-    setTimeout(() => {
+    try {
+      const response = await apiPost("/ai-mentor/chat", {
+        messages: conversationHistory,
+        mode: selectedMode
+      });
+      
       const aiMsg = {
         id: (Date.now() + 1).toString(),
         role: "ai",
-        content: `This is a mock response in **${selectedMode}** mode.\n\nThe backend is currently being integrated, but soon I will answer this question using our RAG-backed database!`,
-        mode: selectedMode,
-        citation: "System Architecture Preview",
+        content: response.content || "I encountered an error generating a response.",
+        mode: response.mode || selectedMode,
       };
       setMessages((prev) => [...prev, aiMsg]);
-    }, 1500);
+    } catch (error) {
+      console.error("Failed to get AI response:", error);
+      const errorMsg = {
+        id: (Date.now() + 1).toString(),
+        role: "ai",
+        content: "Sorry, I am currently unavailable or the server is unreachable. Please check your connection or try again later.",
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const renderMessage = ({ item }: { item: any }) => {
