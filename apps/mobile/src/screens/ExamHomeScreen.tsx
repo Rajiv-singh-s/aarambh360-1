@@ -22,6 +22,57 @@ import type { RecommendationDto, DailyChallengeDto } from "@aarambh360/types";
 import SafeContainer from "../components/SafeContainer";
 import { HomeScreenSkeleton } from "../components/SkeletonLoader";
 
+const PREMIUM_GRADIENTS: Record<string, [string, string]> = {
+  "#8b5cf6": ["#8b5cf6", "#6d28d9"],
+  "#f59e0b": ["#fbb86c", "#d97706"],
+  "#f43f5e": ["#fb7185", "#be123c"],
+  "#06b6d4": ["#22d3ee", "#0369a1"],
+  "#10b981": ["#34d399", "#047857"],
+  "#ef4444": ["#f87171", "#b91c1c"],
+};
+
+const PremiumCard = ({ icon, color, title, desc, onPress, IconLib = Ionicons }: any) => {
+  const gradientColors = PREMIUM_GRADIENTS[color] || [color, color];
+  return (
+    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={{ paddingBottom: 12 }}>
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.premiumCard, { shadowColor: color }]}
+      >
+        <View style={[styles.premiumIconBox, { backgroundColor: "rgba(255,255,255,0.25)" }]}>
+          <IconLib name={icon} size={32} color="#fff" />
+        </View>
+        <Text style={[styles.premiumCardTitle, { color: "#fff" }]}>{title}</Text>
+        <Text style={[styles.premiumCardDesc, { color: "rgba(255,255,255,0.85)" }]}>{desc}</Text>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+};
+
+const ListItemCard = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS }: any) => {
+  return (
+    <TouchableOpacity 
+      style={[
+        styles.listItemCard, 
+        { 
+          backgroundColor: COLORS.card, 
+          borderColor: COLORS.border
+        }
+      ]} 
+      onPress={onPress} 
+      activeOpacity={0.7}
+    >
+      <View style={[styles.listIconBox, { backgroundColor: color + "15" }]}>
+        <IconLib name={icon} size={20} color={color} />
+      </View>
+      <Text style={[styles.listText, { color: COLORS.text }]}>{title}</Text>
+      <Ionicons name="chevron-forward" size={18} color={COLORS.sub} />
+    </TouchableOpacity>
+  );
+};
+
 export default function ExamHomeScreen({ navigation, route }: any) {
   const exam = route?.params?.exam || "UPSC";
   const { profile, loading: authLoading } = useAuth();
@@ -189,57 +240,6 @@ export default function ExamHomeScreen({ navigation, route }: any) {
       </LinearGradient>
     );
   }
-
-const PREMIUM_GRADIENTS: Record<string, [string, string]> = {
-  "#8b5cf6": ["#8b5cf6", "#6d28d9"],
-  "#f59e0b": ["#fbb86c", "#d97706"],
-  "#f43f5e": ["#fb7185", "#be123c"],
-  "#06b6d4": ["#22d3ee", "#0369a1"],
-  "#10b981": ["#34d399", "#047857"],
-  "#ef4444": ["#f87171", "#b91c1c"],
-};
-
-const PremiumCard = ({ icon, color, title, desc, onPress, IconLib = Ionicons }: any) => {
-  const gradientColors = PREMIUM_GRADIENTS[color] || [color, color];
-  return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={{ paddingBottom: 12 }}>
-      <LinearGradient
-        colors={gradientColors}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.premiumCard, { shadowColor: color }]}
-      >
-        <View style={[styles.premiumIconBox, { backgroundColor: "rgba(255,255,255,0.25)" }]}>
-          <IconLib name={icon} size={32} color="#fff" />
-        </View>
-        <Text style={[styles.premiumCardTitle, { color: "#fff" }]}>{title}</Text>
-        <Text style={[styles.premiumCardDesc, { color: "rgba(255,255,255,0.85)" }]}>{desc}</Text>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-};
-
-const ListItemCard = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS }: any) => {
-  return (
-    <TouchableOpacity 
-      style={[
-        styles.listItemCard, 
-        { 
-          backgroundColor: COLORS.card, 
-          borderColor: COLORS.border
-        }
-      ]} 
-      onPress={onPress} 
-      activeOpacity={0.7}
-    >
-      <View style={[styles.listIconBox, { backgroundColor: color + "15" }]}>
-        <IconLib name={icon} size={20} color={color} />
-      </View>
-      <Text style={[styles.listText, { color: COLORS.text }]}>{title}</Text>
-      <Ionicons name="chevron-forward" size={18} color={COLORS.sub} />
-    </TouchableOpacity>
-  );
-};
 
   return (
     <LinearGradient colors={COLORS.bg} style={styles.safe}>
