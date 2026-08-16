@@ -85,6 +85,8 @@ export interface MistakeDto {
   topicId: string | null;
   incorrectCount: number;
   lastAttemptedAt: string;
+  options: { id: string; text: string; isCorrect: boolean }[];
+  explanation: string | null;
 }
 
 export interface BookmarkedQuestionDto extends QuizQuestionDto {

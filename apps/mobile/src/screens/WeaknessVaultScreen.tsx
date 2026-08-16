@@ -7,46 +7,73 @@ import {
   ScrollView,
   useColorScheme,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import SafeContainer from "../components/SafeContainer";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  withSequence,
+  Easing,
+} from "react-native-reanimated";
+import { useProgress } from "../hooks/useProgress";
 
-const INITIAL_MISTAKES = [
-  {
-    id: "m1",
-    tag: "Economy",
-    question: "Which of the following is NOT included in the calculation of Gross Domestic Product (GDP)?",
-    wrongAnswer: "Exports minus Imports",
-    correctAnswer: "Transfer payments (like pensions)",
-    explanation: "Transfer payments are not included in GDP because they do not represent production of goods and services.",
-  },
-  {
-    id: "m2",
-    tag: "Polity",
-    question: "The power to increase the number of judges in the Supreme Court of India is vested in:",
-    wrongAnswer: "The President of India",
-    correctAnswer: "The Parliament",
-    explanation: "Article 124 of the Constitution authorizes the Parliament to increase the number of judges in the Supreme Court.",
-  },
-  {
-    id: "m3",
-    tag: "History",
-    question: "The 'Swadeshi' and 'Boycott' were adopted as methods of struggle for the first time during the:",
-    wrongAnswer: "Non-Cooperation Movement",
-    correctAnswer: "Agitation against the Partition of Bengal",
-    explanation: "The Swadeshi Movement started with the partition of Bengal by the Viceroy of India, Lord Curzon, in 1905.",
-  },
-];
+const DangerBadge = ({ count, color }: { count: number; color: string }) => {
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
+
+  useEffect(() => {
+    scale.value = withRepeat(
+      withSequence(
+        withTiming(1.1, { duration: 500, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 500, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0.7, { duration: 500 }),
+        withTiming(1, { duration: 500 })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  if (count <= 1) return null;
+
+  return (
+    <Animated.View style={[styles.dangerBadge, animatedStyle, { backgroundColor: color + "20", borderColor: color }]}>
+      <Ionicons name="flame" size={14} color={color} />
+      <Text style={[styles.dangerText, { color }]}>{count}x Wrong</Text>
+    </Animated.View>
+  );
+};
 
 export default function WeaknessVaultScreen() {
   const navigation = useNavigation<any>();
   const isDark = useColorScheme() === "dark";
 
-  const [mistakes, setMistakes] = useState(INITIAL_MISTAKES);
+  const { mistakes: rawMistakes, loading } = useProgress();
+  const [mistakes, setMistakes] = useState<any[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (rawMistakes) {
+      setMistakes(rawMistakes);
+    }
+  }, [rawMistakes]);
 
   const COLORS = {
     bg: isDark ? (["#0b1220", "#111b2e"] as [string, string]) : (["#e9f0ff", "#ffffff"] as [string, string]),
@@ -58,32 +85,10 @@ export default function WeaknessVaultScreen() {
     success: "#10b981",
   };
 
-  useEffect(() => {
-    loadMistakes();
-  }, []);
-
-  const loadMistakes = async () => {
-    try {
-      const saved = await AsyncStorage.getItem("weaknessVault");
-      if (saved) {
-        setMistakes(JSON.parse(saved));
-      } else {
-        // First time load
-        await AsyncStorage.setItem("weaknessVault", JSON.stringify(INITIAL_MISTAKES));
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const markAsMastered = async (id: string) => {
+  const markAsMastered = (id: string) => {
     const updated = mistakes.filter((m) => m.id !== id);
     setMistakes(updated);
-    try {
-      await AsyncStorage.setItem("weaknessVault", JSON.stringify(updated));
-    } catch (e) {
-      console.error(e);
-    }
+    // TODO: Connect to backend to mark mistake as resolved
   };
 
   const handleMasterPress = (id: string) => {
@@ -101,7 +106,7 @@ export default function WeaknessVaultScreen() {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color={COLORS.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: COLORS.text }]}>Weakness Vault</Text>
+          <Text style={[styles.headerTitle, { color: COLORS.text }]}>Mistake Vault</Text>
           <View style={{ width: 44 }} />
         </View>
 
@@ -113,7 +118,9 @@ export default function WeaknessVaultScreen() {
         </View>
 
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
-          {mistakes.length === 0 ? (
+          {loading ? (
+            <ActivityIndicator size="large" color={COLORS.accent} style={{ marginTop: 60 }} />
+          ) : mistakes.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="checkmark-circle" size={80} color={COLORS.success} />
               <Text style={[styles.emptyText, { color: COLORS.text }]}>Vault is Empty!</Text>
@@ -122,6 +129,8 @@ export default function WeaknessVaultScreen() {
           ) : (
             mistakes.map((item) => {
               const isExpanded = expandedId === item.id;
+              const options = item.options || [];
+
               return (
                 <View key={item.id} style={[styles.mistakeCard, { backgroundColor: COLORS.cardBg, borderColor: isExpanded ? COLORS.accent : COLORS.border }]}>
                   <TouchableOpacity
@@ -129,26 +138,36 @@ export default function WeaknessVaultScreen() {
                     onPress={() => setExpandedId(isExpanded ? null : item.id)}
                   >
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.tagText, { color: COLORS.accent }]}>{item.tag}</Text>
-                      <Text style={[styles.questionText, { color: COLORS.text }]}>{item.question}</Text>
+                      <View style={styles.tagRow}>
+                        <DangerBadge count={item.incorrectCount} color={COLORS.accent} />
+                      </View>
+                      <Text style={[styles.questionText, { color: COLORS.text }]}>{item.questionText}</Text>
                     </View>
-                    <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={20} color={COLORS.sub} style={{ marginLeft: 10 }} />
+                    <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={20} color={COLORS.sub} style={{ marginLeft: 10, marginTop: 4 }} />
                   </TouchableOpacity>
 
                   {isExpanded && (
                     <View style={[styles.cardBody, { borderTopColor: COLORS.border }]}>
-                      <View style={styles.answerRow}>
-                        <Ionicons name="close-circle" size={18} color="#ef4444" />
-                        <Text style={[styles.wrongAnswerText, { color: "#ef4444" }]}>You answered: {item.wrongAnswer}</Text>
-                      </View>
-                      <View style={styles.answerRow}>
-                        <Ionicons name="checkmark-circle" size={18} color="#10b981" />
-                        <Text style={[styles.correctAnswerText, { color: "#10b981" }]}>Correct: {item.correctAnswer}</Text>
-                      </View>
+                      
+                      <Text style={[styles.optionsTitle, { color: COLORS.sub }]}>Options:</Text>
+                      {options.map((opt: any, idx: number) => (
+                        <View key={opt.id} style={[styles.optionRow, opt.isCorrect && { backgroundColor: COLORS.success + "15", borderColor: COLORS.success }]}>
+                          <Text style={[styles.optionLabel, { color: opt.isCorrect ? COLORS.success : COLORS.sub }]}>
+                            {String.fromCharCode(65 + idx)}.
+                          </Text>
+                          <Text style={[styles.optionText, { color: opt.isCorrect ? COLORS.success : COLORS.text, fontWeight: opt.isCorrect ? "700" : "500" }]}>
+                            {opt.text}
+                          </Text>
+                          {opt.isCorrect && <Ionicons name="checkmark-circle" size={18} color={COLORS.success} style={{ marginLeft: "auto" }} />}
+                        </View>
+                      ))}
 
-                      <View style={[styles.explanationBox, { backgroundColor: "rgba(150,150,150,0.1)" }]}>
-                        <Text style={[styles.explanationText, { color: COLORS.text }]}>{item.explanation}</Text>
-                      </View>
+                      {item.explanation && (
+                        <View style={[styles.explanationBox, { backgroundColor: "rgba(150,150,150,0.1)" }]}>
+                          <Text style={[styles.explanationTitle, { color: COLORS.text }]}>Explanation:</Text>
+                          <Text style={[styles.explanationText, { color: COLORS.text }]}>{item.explanation}</Text>
+                        </View>
+                      )}
 
                       <TouchableOpacity
                         style={[styles.masterBtn, { backgroundColor: COLORS.success }]}
@@ -233,11 +252,24 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: "flex-start",
   },
-  tagText: {
-    fontSize: 12,
+  tagRow: {
+    flexDirection: "row",
+    marginBottom: 8,
+  },
+  dangerBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 4,
+    alignSelf: "flex-start",
+  },
+  dangerText: {
+    fontSize: 11,
     fontWeight: "800",
     textTransform: "uppercase",
-    marginBottom: 8,
   },
   questionText: {
     fontSize: 16,
@@ -250,29 +282,43 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     marginTop: 8,
   },
-  answerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginTop: 12,
-    paddingRight: 20,
-  },
-  wrongAnswerText: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 8,
-    lineHeight: 20,
-  },
-  correctAnswerText: {
-    fontSize: 14,
+  optionsTitle: {
+    fontSize: 12,
     fontWeight: "700",
-    marginLeft: 8,
+    textTransform: "uppercase",
+    marginBottom: 12,
+    marginTop: 16,
+  },
+  optionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "transparent",
+    marginBottom: 8,
+    backgroundColor: "rgba(150,150,150,0.05)",
+  },
+  optionLabel: {
+    fontSize: 14,
+    fontWeight: "800",
+    marginRight: 12,
+  },
+  optionText: {
+    fontSize: 14,
     lineHeight: 20,
+    flex: 1,
   },
   explanationBox: {
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 16,
-    marginBottom: 16,
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 8,
+    marginBottom: 20,
+  },
+  explanationTitle: {
+    fontSize: 13,
+    fontWeight: "800",
+    marginBottom: 8,
   },
   explanationText: {
     fontSize: 14,

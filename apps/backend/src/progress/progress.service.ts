@@ -133,6 +133,11 @@ export class ProgressService {
         question: {
           select: {
             text: true,
+            explanation: true,
+            options: {
+              select: { id: true, text: true, isCorrect: true },
+              orderBy: { sortOrder: 'asc' },
+            },
             topicMappings: { select: { topicId: true }, take: 1 },
           },
         },
@@ -148,6 +153,8 @@ export class ProgressService {
       topicId: mistake.question.topicMappings[0]?.topicId ?? null,
       incorrectCount: mistake.reviewCount + 1,
       lastAttemptedAt: mistake.lastReviewedAt?.toISOString() ?? mistake.createdAt.toISOString(),
+      options: mistake.question.options,
+      explanation: mistake.question.explanation,
     }));
   }
 
