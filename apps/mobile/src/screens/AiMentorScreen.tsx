@@ -16,7 +16,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import SafeContainer from "../components/SafeContainer";
-import { apiPost } from "../utils/api";
+import { apiPost } from "../services/apiClient";
 
 
 
