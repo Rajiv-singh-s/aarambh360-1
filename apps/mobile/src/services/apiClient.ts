@@ -54,13 +54,13 @@ function createClient(): AxiosInstance {
 export const apiClient = createClient();
 
 export async function apiGet<T>(path: string, params?: Record<string, unknown>): Promise<T> {
-  const response = await apiClient.get<{ data: T }>(path, { params });
-  return response.data.data;
+  const response = await apiClient.get<{ data?: T } & T>(path, { params });
+  return response.data.data !== undefined ? (response.data.data as T) : (response.data as T);
 }
 
 export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
-  const response = await apiClient.post<{ data: T }>(path, body);
-  return response.data.data;
+  const response = await apiClient.post<{ data?: T } & T>(path, body);
+  return response.data.data !== undefined ? (response.data.data as T) : (response.data as T);
 }
 
 export async function apiDelete<T>(path: string, body?: unknown): Promise<T> {
