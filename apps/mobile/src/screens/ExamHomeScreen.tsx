@@ -78,7 +78,7 @@ export default function ExamHomeScreen({ navigation, route }: any) {
           return [{
             type: 'QUIZ',
             title: 'Daily Challenge',
-            reason: 'Complete all 3 sections to maintain your daily streak!'
+            reason: 'Complete all 3 sections of the Daily Challenge.'
           }, ...filtered];
         });
       } else if (allDone) {
