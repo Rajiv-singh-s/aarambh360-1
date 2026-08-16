@@ -11,6 +11,7 @@ export class AiMentorController {
   @ApiOperation({ summary: 'Chat with the AI Mentor' })
   // @UseGuards(AuthGuard) // Disabled temporarily for easy local testing if Auth is tricky, or enable if Auth is required.
   async chat(@Body() body: { messages: any[]; mode: string }) {
-    return this.aiMentorService.chat(body.messages, body.mode);
+    const result = await this.aiMentorService.chat(body.messages, body.mode);
+    return { data: result };
   }
 }
