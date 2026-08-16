@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import SafeContainer from "../components/SafeContainer";
 import Svg, { Circle } from "react-native-svg";
+import { Audio } from "expo-av";
 
 const { width } = Dimensions.get("window");
 const SIZE = width * 0.7;
@@ -27,7 +28,8 @@ export default function StudyRoomScreen() {
   const [mode, setMode] = useState<"focus" | "break">("focus");
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
-  const [lofiEnabled, setLofiEnabled] = useState(true);
+  const [lofiEnabled, setLofiEnabled] = useState(false); // Default to false to prevent autoplay issues
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
 
   // Constants
   const totalTime = mode === "focus" ? 25 * 60 : 5 * 60;
@@ -44,11 +46,59 @@ export default function StudyRoomScreen() {
     accentBg: mode === "focus" ? "rgba(6,182,212,0.15)" : "rgba(16,185,129,0.15)",
   };
 
+  // Audio Setup
+  useEffect(() => {
+    let currentSound: Audio.Sound | null = null;
+    const loadAudio = async () => {
+      try {
+        await Audio.setAudioModeAsync({
+          playsInSilentModeIOS: true,
+          staysActiveInBackground: true,
+          shouldRouteThroughEarpiece: false,
+        });
+
+        const { sound: newSound } = await Audio.Sound.createAsync(
+          { uri: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" }, // reliable placeholder lofi track
+          { isLooping: true, volume: 0.5 }
+        );
+        currentSound = newSound;
+        setSound(newSound);
+        
+        if (lofiEnabled) {
+          await newSound.playAsync();
+        }
+      } catch (e) {
+        console.log("Audio Load Error:", e);
+      }
+    };
+
+    loadAudio();
+
+    return () => {
+      if (currentSound) {
+        currentSound.stopAsync();
+        currentSound.unloadAsync();
+      }
+    };
+  }, []);
+
+  // Audio Play/Pause Sync
+  useEffect(() => {
+    if (sound) {
+      if (lofiEnabled) {
+        sound.playAsync();
+      } else {
+        sound.pauseAsync();
+      }
+    }
+  }, [lofiEnabled, sound]);
+
+  // Timer Logic
   useEffect(() => {
     let interval: any = null;
     if (isActive && timeLeft > 0) {
       interval = setInterval(() => setTimeLeft((t) => t - 1), 1000);
-    } else if (timeLeft === 0) {
+    } else if (timeLeft === 0 && isActive) {
       setIsActive(false);
       // Auto-switch mode
       if (mode === "focus") {
