@@ -12,6 +12,7 @@ import {
   Animated,
   Keyboard,
 } from "react-native";
+import Markdown from 'react-native-markdown-display';
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -42,6 +43,15 @@ export default function AiMentorScreen() {
     aiBubble: isDark ? "#1e293b" : "#f1f5f9",
     aiText: isDark ? "#f8fafc" : "#0f172a",
     badgeBg: isDark ? "rgba(6,182,212,0.15)" : "#e0f2fe",
+  };
+
+  const markdownStyles = {
+    body: { color: COLORS.aiText, fontSize: 14, lineHeight: 22 },
+    paragraph: { marginTop: 0, marginBottom: 10 },
+    strong: { fontWeight: '700' },
+    heading1: { fontSize: 18, fontWeight: 'bold', marginTop: 10, marginBottom: 5 },
+    heading2: { fontSize: 16, fontWeight: 'bold', marginTop: 8, marginBottom: 5 },
+    list_item: { marginBottom: 4 },
   };
 
   const MODES = [
@@ -131,9 +141,15 @@ export default function AiMentorScreen() {
             </View>
           )}
 
-          <Text style={[styles.messageText, { color: isUser ? COLORS.userText : COLORS.aiText }]}>
-            {item.content}
-          </Text>
+          {isUser ? (
+            <Text style={[styles.messageText, { color: COLORS.userText }]}>
+              {item.content}
+            </Text>
+          ) : (
+            <Markdown style={markdownStyles}>
+              {item.content}
+            </Markdown>
+          )}
 
           {item.citation && !isUser && (
             <View style={[styles.citationBox, { borderTopColor: COLORS.border }]}>
@@ -205,9 +221,25 @@ export default function AiMentorScreen() {
         >
           <FlatList
             ref={flatListRef}
-            data={messages}
+            data={isLoading ? [...messages, { id: 'loading', role: 'ai', isTyping: true }] : messages}
             keyExtractor={(item) => item.id}
-            renderItem={renderMessage}
+            renderItem={({ item }) => {
+              if (item.isTyping) {
+                return (
+                  <View style={[styles.messageWrapper, styles.messageWrapperAi]}>
+                    <View style={[styles.avatar, { backgroundColor: COLORS.accent }]}>
+                      <MaterialCommunityIcons name="robot-outline" size={16} color="#fff" />
+                    </View>
+                    <View style={[styles.bubble, { backgroundColor: COLORS.aiBubble, borderBottomLeftRadius: 4 }]}>
+                      <Text style={[styles.messageText, { color: COLORS.sub, fontStyle: 'italic' }]}>
+                        Mentor is thinking...
+                      </Text>
+                    </View>
+                  </View>
+                );
+              }
+              return renderMessage({ item });
+            }}
             contentContainerStyle={styles.chatContainer}
             showsVerticalScrollIndicator={false}
           />
@@ -257,7 +289,11 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: 10 },
   headerTitleContainer: { flex: 1, alignItems: "center" },
-  titleRow: { flexDirection: "row", alignItems: "center" },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   title: { fontSize: 18, fontWeight: "800", marginRight: 6 },
   proBadge: {
     backgroundColor: "#ef4444",
@@ -268,9 +304,14 @@ const styles = StyleSheet.create({
   proText: { color: "#fff", fontSize: 9, fontWeight: "900" },
   subtitle: { fontSize: 12, marginTop: 2 },
   
+  modeContainer: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 10,
+    paddingHorizontal: 50,
+  },
   modeScroll: {
     flexDirection: "row",
-    paddingHorizontal: 16,
     marginTop: 12,
     gap: 8,
     justifyContent: "center",
