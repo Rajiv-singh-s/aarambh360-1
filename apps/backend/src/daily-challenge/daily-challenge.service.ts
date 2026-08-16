@@ -10,7 +10,7 @@ export class DailyChallengeService {
     return new Date().toISOString().split('T')[0];
   }
 
-  async getTodayChallenges(): Promise<{ data: DailyChallengeDto[] }> {
+  async getTodayChallenges(userId: string): Promise<{ data: DailyChallengeDto[] }> {
     const today = this.getTodayDateString();
     let challenges = await this.prisma.dailyChallenge.findMany({
       where: { date: today, isActive: true },
@@ -24,7 +24,17 @@ export class DailyChallengeService {
       challenges = (await this.generateTodayChallenges(today)) as any;
     }
 
-    const mapped = challenges.map(c => this.mapChallengeToDto(c));
+    const challengeIds = challenges.map(c => c.id);
+    const userAttempts = await this.prisma.dailyChallengeAttempt.findMany({
+      where: {
+        userId,
+        challengeId: { in: challengeIds }
+      }
+    });
+
+    const attemptedChallengeIds = new Set(userAttempts.map(a => a.challengeId));
+
+    const mapped = challenges.map(c => this.mapChallengeToDto(c, attemptedChallengeIds.has(c.id)));
     return { data: mapped };
   }
 
@@ -68,7 +78,7 @@ export class DailyChallengeService {
     return created;
   }
 
-  private mapChallengeToDto(challenge: any): DailyChallengeDto {
+  private mapChallengeToDto(challenge: any, isAttempted: boolean = false): DailyChallengeDto {
     return {
       id: challenge.id,
       date: challenge.date,
@@ -76,6 +86,7 @@ export class DailyChallengeService {
       timeLimitMinutes: challenge.timeLimitMinutes,
       totalQuestions: challenge.totalQuestions,
       isActive: challenge.isActive,
+      isAttempted,
       questions: challenge.prelimsQuestions?.map((pq: any) => ({
         id: pq.question.id,
         text: pq.question.text,

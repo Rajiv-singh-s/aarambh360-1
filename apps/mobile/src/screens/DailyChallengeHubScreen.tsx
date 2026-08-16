@@ -114,9 +114,18 @@ export default function DailyChallengeHubScreen() {
                 {currentChallenge.totalQuestions} Questions • {currentChallenge.timeLimitMinutes} Minutes
               </Text>
               
-              <TouchableOpacity style={[styles.startBtn, { backgroundColor: COLORS.accent }]} onPress={startChallenge}>
-                <Text style={styles.startBtnText}>Start Now</Text>
-              </TouchableOpacity>
+              {currentChallenge.isAttempted ? (
+                <>
+                  <Text style={[styles.startBtnText, { color: COLORS.sub, marginTop: 10 }]}>Already attempted today</Text>
+                  <TouchableOpacity style={[styles.startBtn, { backgroundColor: COLORS.border, marginTop: 10 }]} disabled={true}>
+                    <Text style={[styles.startBtnText, { color: COLORS.sub }]}>Completed</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <TouchableOpacity style={[styles.startBtn, { backgroundColor: COLORS.accent }]} onPress={startChallenge}>
+                  <Text style={styles.startBtnText}>Start Now</Text>
+                </TouchableOpacity>
+              )}
             </View>
           ) : (
             <View style={[styles.challengeCard, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}>

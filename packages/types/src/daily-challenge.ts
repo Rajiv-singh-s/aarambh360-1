@@ -12,6 +12,7 @@ export interface DailyChallengeDto {
   questions?: QuizQuestionDto[]; // For prelims
   mainsQuestion?: MainsQuestionSummaryDto; // For mains
   isActive: boolean;
+  isAttempted?: boolean;
 }
 
 export interface DailyChallengeAttemptDto {

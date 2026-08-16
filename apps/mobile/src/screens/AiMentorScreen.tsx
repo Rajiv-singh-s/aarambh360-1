@@ -44,7 +44,7 @@ export default function AiMentorScreen() {
     badgeBg: isDark ? "rgba(6,182,212,0.15)" : "#e0f2fe",
   };
 
-  const markdownStyles = {
+  const markdownStyles: any = {
     body: { color: COLORS.aiText, fontSize: 14, lineHeight: 22 },
     paragraph: { marginTop: 0, marginBottom: 10 },
     strong: { fontWeight: '700' },
@@ -84,7 +84,7 @@ export default function AiMentorScreen() {
     }));
 
     try {
-      const response = await apiPost("/ai-mentor/chat", {
+      const response: any = await apiPost("/ai-mentor/chat", {
         messages: conversationHistory,
         mode: selectedMode
       });

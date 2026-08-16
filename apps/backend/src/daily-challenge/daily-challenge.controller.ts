@@ -10,8 +10,8 @@ export class DailyChallengeController {
   constructor(private readonly service: DailyChallengeService) {}
 
   @Get('today')
-  getTodayChallenges() {
-    return this.service.getTodayChallenges();
+  getTodayChallenges(@CurrentUser() user: any) {
+    return this.service.getTodayChallenges(user.id);
   }
 
   @Post('submit')

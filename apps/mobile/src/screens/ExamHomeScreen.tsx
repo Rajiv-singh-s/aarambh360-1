@@ -17,7 +17,8 @@ import { useAuth } from "../hooks/useAuth";
 import { useProgress } from "../hooks/useProgress";
 import { useFocusEffect } from "@react-navigation/native";
 import { getRecommendations } from "../services/analyticsService";
-import type { RecommendationDto } from "@aarambh360/types";
+import { apiGet } from "../services/apiClient";
+import type { RecommendationDto, DailyChallengeDto } from "@aarambh360/types";
 import SafeContainer from "../components/SafeContainer";
 import { HomeScreenSkeleton } from "../components/SkeletonLoader";
 
@@ -44,6 +45,10 @@ export default function ExamHomeScreen({ navigation, route }: any) {
   const [recLoading, setRecLoading] = useState(true);
   const [recError, setRecError] = useState<string | null>(null);
 
+  const [dailyChallenges, setDailyChallenges] = useState<DailyChallengeDto[]>([]);
+  const [allAttempted, setAllAttempted] = useState(false);
+  const [timeLeftToMidnight, setTimeLeftToMidnight] = useState("");
+
   const fetchRecommendations = async () => {
     setRecLoading(true);
     setRecError(null);
@@ -58,9 +63,27 @@ export default function ExamHomeScreen({ navigation, route }: any) {
     }
   };
 
+  const fetchDailyChallenges = async () => {
+    try {
+      const data = await apiGet<DailyChallengeDto[]>("/daily-challenges/today");
+      setDailyChallenges(data || []);
+      
+      const hasActive = data && data.length > 0;
+      const allDone = hasActive && data.every(c => c.isAttempted);
+      setAllAttempted(allDone);
+      
+      if (allDone) {
+        setRecommendations(prev => prev.filter(r => r.type !== 'QUIZ' || r.title !== 'Daily Challenge'));
+      }
+    } catch (err) {
+      console.error("Failed to fetch daily challenges:", err);
+    }
+  };
+
   useFocusEffect(
     React.useCallback(() => {
       fetchRecommendations();
+      fetchDailyChallenges();
       void reloadProgress();
     }, [reloadProgress])
   );
@@ -110,7 +133,20 @@ export default function ExamHomeScreen({ navigation, route }: any) {
     fetchRealTime();
 
     const timer = setInterval(() => {
-      setDateTime(new Date(Date.now() + timeOffset));
+      const now = new Date(Date.now() + timeOffset);
+      setDateTime(now);
+      
+      // Calculate time left to midnight IST
+      const istTime = now.getTime() + (5.5 * 60 * 60 * 1000);
+      const istDateCurrent = new Date(istTime);
+      const tomorrowIST = new Date(istDateCurrent);
+      tomorrowIST.setUTCHours(24, 0, 0, 0);
+      
+      const diff = tomorrowIST.getTime() - istDateCurrent.getTime();
+      const h = Math.floor(diff / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeLeftToMidnight(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
     }, 1000);
     return () => clearInterval(timer);
   }, [navigation, timeOffset]);
@@ -243,24 +279,36 @@ const ListItemCard = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS 
 
           {/* Daily Challenge Banner */}
           <TouchableOpacity 
-            activeOpacity={0.9} 
+            activeOpacity={allAttempted ? 1 : 0.9} 
             style={styles.dailyChallengeBanner}
-            onPress={() => navigation.navigate("DailyChallengeHubScreen")}
+            onPress={() => {
+              if (!allAttempted) {
+                navigation.navigate("DailyChallengeHubScreen");
+              }
+            }}
           >
             <LinearGradient
-              colors={["#f59e0b", "#d97706"]}
+              colors={allAttempted ? (isDark ? ["#1e293b", "#334155"] : ["#cbd5e1", "#e2e8f0"]) : ["#f59e0b", "#d97706"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.dailyChallengeGradient}
             >
               <View style={styles.dcContent}>
                 <View>
-                  <Text style={styles.dcTitle}>🎯 Daily Challenge</Text>
-                  <Text style={styles.dcSub}>Compete with peers • Win Streaks</Text>
+                  <Text style={[styles.dcTitle, allAttempted && { color: COLORS.text }]}>🎯 Daily Challenge</Text>
+                  {allAttempted ? (
+                    <Text style={[styles.dcSub, { color: COLORS.sub, marginTop: 6 }]}>
+                      Already attempted.{"\n"}Wait for next in <Text style={{fontWeight: '800', color: COLORS.accent}}>{timeLeftToMidnight}</Text>
+                    </Text>
+                  ) : (
+                    <Text style={styles.dcSub}>Compete with peers • Win Streaks</Text>
+                  )}
                 </View>
-                <View style={styles.dcPlayBtn}>
-                  <Ionicons name="play" size={20} color="#d97706" />
-                </View>
+                {!allAttempted && (
+                  <View style={styles.dcPlayBtn}>
+                    <Ionicons name="play" size={20} color="#d97706" />
+                  </View>
+                )}
               </View>
             </LinearGradient>
           </TouchableOpacity>
