@@ -195,83 +195,45 @@ export default function AiMentorScreen() {
         </View>
 
         {/* CHAT AND INPUT AREA */}
-        {Platform.OS === "ios" ? (
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior="padding"
-            keyboardVerticalOffset={90}
-          >
-            <FlatList
-              ref={flatListRef}
-              data={messages}
-              keyExtractor={(item) => item.id}
-              renderItem={renderMessage}
-              contentContainerStyle={styles.chatContainer}
-              showsVerticalScrollIndicator={false}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+        >
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            keyExtractor={(item) => item.id}
+            renderItem={renderMessage}
+            contentContainerStyle={styles.chatContainer}
+            showsVerticalScrollIndicator={false}
+          />
+
+          {/* INPUT AREA */}
+          <View style={[styles.inputContainer, { backgroundColor: isDark ? "#0f172a" : "#ffffff", borderTopColor: COLORS.border }]}>
+            <TouchableOpacity style={styles.attachBtn}>
+              <Ionicons name="camera-outline" size={24} color={COLORS.sub} />
+            </TouchableOpacity>
+            
+            <TextInput
+              style={[styles.input, { color: COLORS.text, backgroundColor: COLORS.card, borderColor: COLORS.border }]}
+              placeholder="Ask a doubt about UPSC..."
+              placeholderTextColor={COLORS.sub}
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
+              maxLength={500}
             />
 
-            {/* INPUT AREA */}
-            <View style={[styles.inputContainer, { backgroundColor: isDark ? "#0f172a" : "#ffffff", borderTopColor: COLORS.border }]}>
-              <TouchableOpacity style={styles.attachBtn}>
-                <Ionicons name="camera-outline" size={24} color={COLORS.sub} />
-              </TouchableOpacity>
-              
-              <TextInput
-                style={[styles.input, { color: COLORS.text, backgroundColor: COLORS.card, borderColor: COLORS.border }]}
-                placeholder="Ask a doubt about UPSC..."
-                placeholderTextColor={COLORS.sub}
-                value={inputText}
-                onChangeText={setInputText}
-                multiline
-                maxLength={500}
-              />
-
-              <TouchableOpacity
-                style={[styles.sendBtn, { backgroundColor: inputText.trim() ? COLORS.accent : COLORS.card }]}
-                onPress={handleSend}
-                disabled={!inputText.trim() || isLoading}
-              >
-                <Ionicons name="send" size={18} color={inputText.trim() ? "#fff" : COLORS.sub} />
-              </TouchableOpacity>
-            </View>
-          </KeyboardAvoidingView>
-        ) : (
-          <View style={{ flex: 1 }}>
-            <FlatList
-              ref={flatListRef}
-              data={messages}
-              keyExtractor={(item) => item.id}
-              renderItem={renderMessage}
-              contentContainerStyle={styles.chatContainer}
-              showsVerticalScrollIndicator={false}
-            />
-
-            {/* INPUT AREA */}
-            <View style={[styles.inputContainer, { backgroundColor: isDark ? "#0f172a" : "#ffffff", borderTopColor: COLORS.border }]}>
-              <TouchableOpacity style={styles.attachBtn}>
-                <Ionicons name="camera-outline" size={24} color={COLORS.sub} />
-              </TouchableOpacity>
-              
-              <TextInput
-                style={[styles.input, { color: COLORS.text, backgroundColor: COLORS.card, borderColor: COLORS.border }]}
-                placeholder="Ask a doubt about UPSC..."
-                placeholderTextColor={COLORS.sub}
-                value={inputText}
-                onChangeText={setInputText}
-                multiline
-                maxLength={500}
-              />
-
-              <TouchableOpacity
-                style={[styles.sendBtn, { backgroundColor: inputText.trim() ? COLORS.accent : COLORS.card }]}
-                onPress={handleSend}
-                disabled={!inputText.trim() || isLoading}
-              >
-                <Ionicons name="send" size={18} color={inputText.trim() ? "#fff" : COLORS.sub} />
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={[styles.sendBtn, { backgroundColor: inputText.trim() ? COLORS.accent : COLORS.card }]}
+              onPress={handleSend}
+              disabled={!inputText.trim() || isLoading}
+            >
+              <Ionicons name="send" size={18} color={inputText.trim() ? "#fff" : COLORS.sub} />
+            </TouchableOpacity>
           </View>
-        )}
+        </KeyboardAvoidingView>
       </SafeContainer>
     </LinearGradient>
   );
