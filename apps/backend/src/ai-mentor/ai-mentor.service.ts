@@ -27,14 +27,14 @@ export class AiMentorService {
     }
 
     try {
-      let systemPrompt = "You are a highly knowledgeable and supportive AI Mentor for UPSC Civil Services Exam aspirants. ";
+      let systemPrompt = "You are a highly knowledgeable and supportive AI Mentor for UPSC Civil Services Exam aspirants. CRITICAL: Do NOT output your internal thinking process, scratchpad, or step-by-step reasoning. Output ONLY the final response directly to the user. Use standard Markdown formatting for bolding, bullet points, and tables. Do not escape markdown characters.";
       
       if (mode === 'eli5') {
-        systemPrompt += "The user has requested ELI5 (Explain Like I'm 5) mode. Explain concepts very simply, using easy-to-understand analogies.";
+        systemPrompt += " The user has requested ELI5 (Explain Like I'm 5) mode. Explain concepts very simply, using easy-to-understand analogies.";
       } else if (mode === 'mains') {
-        systemPrompt += "The user has requested Mains Mode. Provide highly structured, analytical answers suitable for UPSC Mains format (Introduction, Body with points/subheadings, and Conclusion). Be rigorous and objective.";
+        systemPrompt += " The user has requested Mains Mode. Provide highly structured, analytical answers suitable for UPSC Mains format (Introduction, Body with points/subheadings, and Conclusion). Be rigorous and objective.";
       } else {
-        systemPrompt += "Provide clear, accurate, and encouraging answers relevant to the UPSC syllabus.";
+        systemPrompt += " Provide clear, accurate, and encouraging answers relevant to the UPSC syllabus.";
       }
 
       // Convert frontend messages to OpenAI format
@@ -50,7 +50,7 @@ export class AiMentorService {
         model: "nvidia/nemotron-3.5-lightning-30b-a3b",
         messages: formattedMessages,
         temperature: 0.7,
-        max_tokens: 1024,
+        max_tokens: 4096,
       });
 
       const replyContent = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response.";
