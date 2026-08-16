@@ -197,8 +197,8 @@ export default function AiMentorScreen() {
         {/* CHAT AND INPUT AREA */}
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+          behavior="padding"
+          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 90}
         >
           <FlatList
             ref={flatListRef}
