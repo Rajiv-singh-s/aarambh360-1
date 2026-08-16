@@ -194,21 +194,22 @@ export default function AiMentorScreen() {
           </View>
         </View>
 
-        {/* CHAT AREA */}
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          keyExtractor={(item) => item.id}
-          renderItem={renderMessage}
-          contentContainerStyle={styles.chatContainer}
-          showsVerticalScrollIndicator={false}
-        />
-
-        {/* INPUT AREA */}
+        {/* CHAT AND INPUT AREA */}
         <KeyboardAvoidingView
+          style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
         >
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            keyExtractor={(item) => item.id}
+            renderItem={renderMessage}
+            contentContainerStyle={styles.chatContainer}
+            showsVerticalScrollIndicator={false}
+          />
+
+          {/* INPUT AREA */}
           <View style={[styles.inputContainer, { backgroundColor: isDark ? "#0f172a" : "#ffffff", borderTopColor: COLORS.border }]}>
             <TouchableOpacity style={styles.attachBtn}>
               <Ionicons name="camera-outline" size={24} color={COLORS.sub} />
