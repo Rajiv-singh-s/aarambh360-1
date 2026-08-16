@@ -72,8 +72,17 @@ export default function ExamHomeScreen({ navigation, route }: any) {
       const allDone = hasActive && data.every(c => c.isAttempted);
       setAllAttempted(allDone);
       
-      if (allDone) {
-        setRecommendations(prev => prev.filter(r => r.type !== 'QUIZ' || r.title !== 'Daily Challenge'));
+      if (hasActive && !allDone) {
+        setRecommendations(prev => {
+          const filtered = prev.filter(r => r.title !== 'Daily Challenge');
+          return [{
+            type: 'QUIZ',
+            title: 'Daily Challenge',
+            reason: 'Complete all 3 sections to maintain your daily streak!'
+          }, ...filtered];
+        });
+      } else if (allDone) {
+        setRecommendations(prev => prev.filter(r => r.title !== 'Daily Challenge'));
       }
     } catch (err) {
       console.error("Failed to fetch daily challenges:", err);
@@ -323,6 +332,10 @@ const ListItemCard = ({ icon, color, title, onPress, IconLib = Ionicons, COLORS 
                     key={index} 
                     style={[styles.recCard, { backgroundColor: COLORS.card, borderColor: COLORS.border }]}
                     onPress={() => {
+                      if (rec.title === 'Daily Challenge') {
+                        navigation.navigate("DailyChallengeHubScreen");
+                        return;
+                      }
                       if (rec.type === "QUIZ") {
                         navigation.navigate("MCQScreen");
                       } else if (rec.type === "MAINS") {
