@@ -15,16 +15,38 @@ export class ProgressService {
 
     return streaks.map((streak) => {
       let dateStr = null;
+      let effectiveCount = streak.currentCount;
+
       if (streak.lastActivityDate) {
         const d = streak.lastActivityDate;
+        
+        // Calculate days elapsed using IST offsets
+        const last = new Date(d);
+        last.setUTCHours(last.getUTCHours() + 5);
+        last.setUTCMinutes(last.getUTCMinutes() + 30);
+        const lastDate = new Date(last.getUTCFullYear(), last.getUTCMonth(), last.getUTCDate());
+
+        const now = new Date();
+        now.setUTCHours(now.getUTCHours() + 5);
+        now.setUTCMinutes(now.getUTCMinutes() + 30);
+        const todayDate = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+
+        const diffTime = todayDate.getTime() - lastDate.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        
+        if (diffDays > 1) {
+           effectiveCount = 0;
+        }
+
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
         dateStr = `${year}-${month}-${day}`;
       }
+
       return {
         streakType: streak.streakType,
-        currentCount: streak.currentCount,
+        currentCount: effectiveCount,
         longestCount: streak.longestCount,
         lastActivityDate: dateStr,
       };
