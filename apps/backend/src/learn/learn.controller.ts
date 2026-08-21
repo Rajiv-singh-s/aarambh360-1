@@ -52,4 +52,18 @@ export class LearnController {
   async getLesson(@Param('id') id: string): Promise<ApiDataResponse<LessonDetailDto>> {
     return { data: await this.learnService.getLesson(id) };
   }
+
+  @Public()
+  @Get('learn/flashcards')
+  @ApiOperation({ summary: 'List flashcards' })
+  async listFlashcards(): Promise<ApiDataResponse<any>> {
+    return { data: await this.learnService.listFlashcards() };
+  }
+
+  @Public()
+  @Get('learn/cheatsheets')
+  @ApiOperation({ summary: 'List cheat sheets' })
+  async listCheatSheets(): Promise<ApiDataResponse<any>> {
+    return { data: await this.learnService.listCheatSheets() };
+  }
 }

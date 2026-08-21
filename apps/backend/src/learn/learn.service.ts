@@ -181,6 +181,28 @@ export class LearnService {
     };
   }
 
+  async listFlashcards(): Promise<any[]> {
+    const cards = await this.prisma.flashcard.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+    return cards.map(c => ({
+      ...c,
+      createdAt: c.createdAt.toISOString(),
+    }));
+  }
+
+  async listCheatSheets(): Promise<any[]> {
+    const sheets = await this.prisma.cheatSheet.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+    return sheets.map(s => ({
+      ...s,
+      createdAt: s.createdAt.toISOString(),
+    }));
+  }
+
   private async ensureSubjectExists(subjectId: string): Promise<void> {
     const subject = await this.prisma.subject.findFirst({
       where: { id: subjectId, ...PUBLISHED_SUBJECT },

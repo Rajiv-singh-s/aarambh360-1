@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,25 +9,14 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import SafeContainer from "../components/SafeContainer";
-
-const CHEAT_DATA = [
-  { id: "c1", type: "Article", title: "Article 14", desc: "Equality before law and equal protection of laws.", tags: "fundamental rights, equality" },
-  { id: "c2", type: "Article", title: "Article 21", desc: "Protection of life and personal liberty. No person shall be deprived of his life or personal liberty except according to procedure established by law.", tags: "life, liberty, fundamental rights" },
-  { id: "c3", type: "Article", title: "Article 32", desc: "Remedies for enforcement of rights conferred by this Part (Right to Constitutional Remedies).", tags: "writs, supreme court, fundamental rights" },
-  
-  { id: "c4", type: "Amendment", title: "42nd Amendment (1976)", desc: "Known as the 'Mini-Constitution'. Added Socialist, Secular, and Integrity to the Preamble. Added Fundamental Duties (Part IVA).", tags: "mini constitution, preamble, duties" },
-  { id: "c5", type: "Amendment", title: "44th Amendment (1978)", desc: "Reversed many changes of the 42nd Amendment. Removed Right to Property from Fundamental Rights.", tags: "property, emergency" },
-  { id: "c6", type: "Amendment", title: "73rd Amendment (1992)", desc: "Granted constitutional status to Panchayati Raj Institutions (PRIs).", tags: "panchayat, local govt" },
-
-  { id: "c7", type: "Judgment", title: "Kesavananda Bharati Case (1973)", desc: "Established the 'Basic Structure Doctrine'. Parliament can amend the constitution but cannot alter its basic structure.", tags: "basic structure, amendment power" },
-  { id: "c8", type: "Judgment", title: "Minerva Mills Case (1980)", desc: "Established that the Indian Constitution is founded on the bedrock of balance between Fundamental Rights and Directive Principles.", tags: "balance, dpsp, basic structure" },
-  { id: "c9", type: "Judgment", title: "Puttaswamy Case (2017)", desc: "Unanimously recognized the Right to Privacy as a fundamental right under Article 21.", tags: "privacy, article 21" },
-];
+import { apiGet } from "../services/apiClient";
+import type { CheatSheetDto } from "@aarambh360/types";
 
 const TABS = ["All", "Article", "Amendment", "Judgment"];
 
@@ -35,6 +24,8 @@ export default function CheatSheetScreen() {
   const navigation = useNavigation<any>();
   const isDark = useColorScheme() === "dark";
 
+  const [cheatData, setCheatData] = useState<CheatSheetDto[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("All");
 
@@ -47,17 +38,31 @@ export default function CheatSheetScreen() {
     accent: "#3b82f6",
   };
 
+  useEffect(() => {
+    const fetchCheatSheets = async () => {
+      try {
+        const res = await apiGet<{ data: CheatSheetDto[] }>("/learn/cheatsheets");
+        setCheatData(res.data || []);
+      } catch (err) {
+        console.error("Error fetching cheat sheets:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCheatSheets();
+  }, []);
+
   const filteredData = useMemo(() => {
-    return CHEAT_DATA.filter((item) => {
+    return cheatData.filter((item) => {
       const matchesTab = activeTab === "All" || item.type === activeTab;
       const query = searchQuery.toLowerCase();
       const matchesSearch =
         item.title.toLowerCase().includes(query) ||
-        item.desc.toLowerCase().includes(query) ||
-        item.tags.includes(query);
+        item.description.toLowerCase().includes(query) ||
+        item.tags.toLowerCase().includes(query);
       return matchesTab && matchesSearch;
     });
-  }, [activeTab, searchQuery]);
+  }, [activeTab, searchQuery, cheatData]);
 
   return (
     <LinearGradient colors={COLORS.bg} style={styles.safe}>
@@ -124,9 +129,9 @@ export default function CheatSheetScreen() {
                     <View style={[styles.typeBadge, { backgroundColor: COLORS.accent + "20" }]}>
                       <Text style={[styles.typeText, { color: COLORS.accent }]}>{item.type}</Text>
                     </View>
+                    <Text style={[styles.title, { color: COLORS.text }]}>{item.title}</Text>
                   </View>
-                  <Text style={[styles.title, { color: COLORS.text }]}>{item.title}</Text>
-                  <Text style={[styles.desc, { color: COLORS.sub }]}>{item.desc}</Text>
+                  <Text style={[styles.desc, { color: COLORS.sub }]} numberOfLines={3}>{item.description}</Text>
                 </View>
               ))
             )}
