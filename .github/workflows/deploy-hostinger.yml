@@ -68,6 +68,9 @@ jobs:
           set ssl:verify-certificate no
           set ftp:ssl-allow true
           set ftp:passive-mode true
+          cd public_html || true
+          pwd
           mirror -R --verbose --parallel=4 apps/web/out/ ./
+          ls -la
           bye
           EOF
