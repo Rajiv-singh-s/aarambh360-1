@@ -67,7 +67,6 @@ jobs:
           lftp -u "$FTP_USER","$FTP_PASS" "$FTP_HOST" << 'EOF'
           set ftp:ssl-allow true
           set ssl:verify-certificate no
-          set ftp:passive-mode true
-          mirror -R --verbose --delete --parallel=4 apps/web/out/ ./
+          mirror -R --verbose --parallel=4 apps/web/out/ public_html/
           bye
           EOF
