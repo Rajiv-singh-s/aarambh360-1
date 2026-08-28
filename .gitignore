@@ -6,7 +6,9 @@ node_modules/
 .turbo/
 dist/
 build/
-out/
+# out/
+!apps/web/out/
+!apps/web/out/**
 .next/
 .expo/
 *.tsbuildinfo

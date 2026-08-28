@@ -341,6 +341,7 @@ model Subject {
   topics         Topic[]
   chapters       Chapter[]
   mainsQuestions MainsQuestion[]
+  flashcards     Flashcard[]
 
   @@unique([examId, code])
   @@index([examId, publishStatus, sortOrder])
@@ -366,6 +367,7 @@ model Topic {
   questionMappings QuestionTopicMap[]
   topicProgress    TopicProgress[]
   syllabusNodes    SyllabusNode[]
+  flashcards       Flashcard[]
 
   @@unique([subjectId, slug])
   @@index([subjectId, parentId, sortOrder])
