@@ -52,9 +52,9 @@ export default function StudyRoomScreen() {
     const loadAudio = async () => {
       try {
         await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
           playsInSilentModeIOS: true,
           staysActiveInBackground: true,
-          shouldRouteThroughEarpiece: false,
         });
 
         const { sound: newSound } = await Audio.Sound.createAsync(
