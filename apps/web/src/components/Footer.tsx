@@ -4,7 +4,7 @@ import { Sparkles, Heart } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-950 border-t border-slate-800/80 pt-16 pb-12">
+    <footer className="bg-slate-950 border-t border-slate-800/80 pt-16 pb-12 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-slate-800/80">
           
@@ -18,7 +18,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-slate-400 leading-relaxed">
-              India's premier AI-powered ecosystem engineered exclusively for serious UPSC Civil Services Examination aspirants.
+              India's premier AI-powered super-app engineered exclusively for serious UPSC Civil Services Examination aspirants.
             </p>
             <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full w-fit">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -27,28 +27,29 @@ export default function Footer() {
           </div>
 
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Features</h4>
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Preparation Hub</h4>
             <ul className="space-y-2 text-sm text-slate-400">
-              <li><Link href="/#daily-challenge" className="hover:text-indigo-400 transition-colors">Daily Challenge (50 MCQs)</Link></li>
-              <li><Link href="/#ai-mentor" className="hover:text-indigo-400 transition-colors">24/7 UPSC AI Mentor</Link></li>
-              <li><Link href="/#map-game" className="hover:text-indigo-400 transition-colors">Interactive Map Practice</Link></li>
-              <li><Link href="/#mistake-vault" className="hover:text-indigo-400 transition-colors">Mistake Vault & Active Recall</Link></li>
-              <li><Link href="/#mains-eval" className="hover:text-indigo-400 transition-colors">AI Mains OCR & Evaluation</Link></li>
+              <li><Link href="/ncert" className="hover:text-indigo-400 transition-colors">NCERT Books & Chapter List</Link></li>
+              <li><Link href="/booklist" className="hover:text-indigo-400 transition-colors">Standard Reference Books</Link></li>
+              <li><Link href="/upsc-guide" className="hover:text-indigo-400 transition-colors">UPSC Exam Pattern & Cutoffs</Link></li>
+              <li><Link href="/upsc-guide#schedule" className="hover:text-indigo-400 transition-colors">2026-2027 Exam Calendar</Link></li>
+              <li><Link href="/features" className="hover:text-indigo-400 transition-colors">AI Mentor & Daily Challenge</Link></li>
             </ul>
           </div>
 
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Resources</h4>
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Editorial & Blogs</h4>
             <ul className="space-y-2 text-sm text-slate-400">
-              <li><Link href="/blog" className="hover:text-indigo-400 transition-colors">UPSC Strategy & Blog</Link></li>
+              <li><Link href="/blog" className="hover:text-indigo-400 transition-colors">All UPSC Articles</Link></li>
               <li><Link href="/blog/complete-ncert-roadmap-upsc-cse" className="hover:text-indigo-400 transition-colors">NCERT High-Yield Roadmap</Link></li>
               <li><Link href="/blog/upsc-prelims-active-recall-strategy-2026" className="hover:text-indigo-400 transition-colors">Prelims Active Recall Guide</Link></li>
-              <li><Link href="/blog/mastering-mains-answer-writing-ai-evaluation" className="hover:text-indigo-400 transition-colors">Mains Answer Writing Framework</Link></li>
+              <li><Link href="/blog/mastering-mains-answer-writing-ai-evaluation" className="hover:text-indigo-400 transition-colors">Mains Answer Blueprint</Link></li>
+              <li><Link href="/blog/eliminating-negative-marking-prelims-3-round-rule" className="hover:text-indigo-400 transition-colors">Eliminate Negative Marking</Link></li>
             </ul>
           </div>
 
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Legal & Contact</h4>
+            <h4 className="text-sm font-semibold text-white uppercase tracking-wider">Institutional</h4>
             <ul className="space-y-2 text-sm text-slate-400">
               <li><Link href="/privacy" className="hover:text-indigo-400 transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-indigo-400 transition-colors">Terms of Service</Link></li>

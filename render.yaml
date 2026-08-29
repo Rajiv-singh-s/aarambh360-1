@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: aarambh360-backend
+    env: node
+    plan: free
+    region: singapore # Matches your Neon DB region!
+    buildCommand: corepack enable pnpm && pnpm install && pnpm --filter @aarambh360/backend build
+    startCommand: pnpm --filter @aarambh360/backend start:prod
+    envVars:
+      - key: NODE_VERSION
+        value: 22.10.7
+      - key: DATABASE_URL
+        sync: false # You will paste this in Render dashboard
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_S3_ENDPOINT
+        sync: false
+      - key: AWS_S3_REGION
+        value: auto
+      - key: AWS_S3_BUCKET
+        value: aarambh360-media

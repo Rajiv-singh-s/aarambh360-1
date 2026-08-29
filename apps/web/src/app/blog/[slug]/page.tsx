@@ -1,13 +1,45 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { BLOG_POSTS, getBlogPost } from '@/lib/blogs';
-import { ArrowLeft, Clock, Calendar, Download, Sparkles } from 'lucide-react';
+import { getAllBlogSlugs, getBlogPostBySlug } from '@/lib/markdown';
+import { ArrowLeft, Clock, Calendar, Download, Sparkles, Share2 } from 'lucide-react';
 
 export async function generateStaticParams() {
-  return BLOG_POSTS.map((post) => ({
-    slug: post.slug,
-  }));
+  const slugs = getAllBlogSlugs();
+  return slugs.map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const post = getBlogPostBySlug(slug);
+  if (!post) return {};
+
+  return {
+    title: post.metaTitle,
+    description: post.metaDescription,
+    keywords: post.tags,
+    alternates: {
+      canonical: `https://aarambhskills.com/blog/${post.slug}/`,
+    },
+    openGraph: {
+      title: post.metaTitle,
+      description: post.metaDescription,
+      url: `https://aarambhskills.com/blog/${post.slug}/`,
+      type: 'article',
+      publishedTime: post.publishedAt,
+      tags: post.tags,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.metaTitle,
+      description: post.metaDescription,
+    },
+  };
 }
 
 export default async function BlogPostPage({
@@ -16,7 +48,7 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = getBlogPost(slug);
+  const post = getBlogPostBySlug(slug);
 
   if (!post) {
     notFound();
@@ -24,6 +56,7 @@ export default async function BlogPostPage({
 
   const formatContent = (content: string) => {
     return content
+      .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-black text-white mt-10 mb-5 tracking-tight">$1</h1>')
       .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold text-white mt-8 mb-4 tracking-tight">$1</h2>')
       .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold text-indigo-300 mt-6 mb-3 tracking-tight">$1</h3>')
       .replace(/^> (.*$)/gim, '<blockquote class="border-l-4 border-indigo-500 pl-4 py-2 my-4 bg-indigo-500/10 text-slate-200 italic rounded-r-lg">$1</blockquote>')
@@ -33,8 +66,39 @@ export default async function BlogPostPage({
       .replace(/\n\n/gim, '</p><p class="text-slate-300 text-base sm:text-lg leading-relaxed mb-4">');
   };
 
+  const blogSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    'headline': post.title,
+    'description': post.excerpt,
+    'datePublished': post.publishedAt,
+    'dateModified': post.publishedAt,
+    'mainEntityOfPage': {
+      '@type': 'WebPage',
+      '@id': `https://aarambhskills.com/blog/${post.slug}/`
+    },
+    'author': {
+      '@type': 'Organization',
+      'name': 'Aarambh360 Editorial Team',
+      'url': 'https://aarambhskills.com'
+    },
+    'publisher': {
+      '@type': 'Organization',
+      'name': 'Aarambh360',
+      'logo': {
+        '@type': 'ImageObject',
+        'url': 'https://aarambhskills.com/logo.png'
+      }
+    },
+    'keywords': post.tags.join(', ')
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogSchema) }}
+      />
       
       <Link
         href="/blog"
@@ -64,16 +128,10 @@ export default async function BlogPostPage({
           {post.excerpt}
         </p>
 
-        <div className="flex items-center gap-4 pt-2">
-          <img
-            src={post.author.avatar}
-            alt={post.author.name}
-            className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500/40"
-          />
-          <div>
-            <p className="text-sm font-bold text-white">{post.author.name}</p>
-            <p className="text-xs text-slate-400">{post.author.role}</p>
-          </div>
+        <div className="flex items-center gap-3 pt-2 text-xs text-slate-400">
+          <span className="font-semibold text-white">By Aarambh360 Academic Team</span>
+          <span>•</span>
+          <span>Verified UPSC CSE Guidelines</span>
         </div>
       </header>
 
