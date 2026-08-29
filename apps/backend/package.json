@@ -8,7 +8,7 @@
     "prestart:dev": "pnpm --filter @aarambh360/types build",
     "start": "pnpm --filter @aarambh360/types build && nest start",
     "start:dev": "pnpm --filter @aarambh360/types build && nest start --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node dist/src/main",
     "lint": "echo 'No lint specified yet'",
     "typecheck": "pnpm --filter @aarambh360/types build && tsc --noEmit",
     "test": "pnpm --filter @aarambh360/types build && jest",
