@@ -223,13 +223,20 @@ export default function LoginScreen() {
     } catch (err: any) {
       if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential") {
         try {
+          // If login fails, we assume they might be a new user and try to register them
           const newUser = await createUserWithEmailAndPassword(auth, email, password);
           const token = await newUser.user.getIdToken();
           await loginWithFirebaseToken(token);
           navigation.replace("Signup");
         } catch (signupErr: any) {
-          if (Platform.OS === 'web') alert(`Signup Error: ${signupErr.message}`);
-          else Alert.alert("Signup Error", signupErr.message);
+          // If signup fails because the email EXISTS, it means they just typed the WRONG password during login
+          if (signupErr.code === "auth/email-already-in-use") {
+            if (Platform.OS === 'web') alert("Incorrect Password. This email is already registered.");
+            else Alert.alert("Incorrect Password", "An account with this email already exists. Please check your password and try again.");
+          } else {
+            if (Platform.OS === 'web') alert(`Signup Error: ${signupErr.message}`);
+            else Alert.alert("Signup Error", signupErr.message);
+          }
         }
       } else if (err.code === "auth/wrong-password") {
         if (Platform.OS === 'web') alert("Incorrect Password");
