@@ -13,11 +13,23 @@ import { QuizService } from './quiz.service';
 
 @ApiTags('quiz')
 @ApiBearerAuth()
-@Controller('quiz/sessions')
+@Controller('quiz')
 export class QuizController {
   constructor(private readonly quizService: QuizService) {}
 
-  @Post()
+  @Get('test-series')
+  @ApiOperation({ summary: 'Get list of test series' })
+  async getTestSeries() {
+    return { data: [] };
+  }
+
+  @Get('active')
+  @ApiOperation({ summary: 'Get active quizzes' })
+  async getActiveQuizzes() {
+    return { data: [] };
+  }
+
+  @Post('sessions')
   @ApiOperation({ summary: 'Start a quiz session for a topic' })
   async startSession(
     @CurrentUser() user: { id: string },

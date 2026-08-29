@@ -89,4 +89,10 @@ export class ContentController {
   async getMains(@Param('id') id: string): Promise<ApiDataResponse<MainsQuestionDetailDto>> {
     return { data: await this.contentService.getMainsQuestion(id) };
   }
+
+  @Get('content/current-affairs')
+  @ApiOperation({ summary: 'List current affairs' })
+  async listCurrentAffairs() {
+    return { data: [] };
+  }
 }
