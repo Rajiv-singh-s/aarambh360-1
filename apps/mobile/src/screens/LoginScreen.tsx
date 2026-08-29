@@ -181,7 +181,7 @@ export default function LoginScreen() {
             navigation.replace("Signup");
           }
         } catch (err: any) {
-          console.error("Session restore error:", err);
+          console.warn("Session restore failed, returning to login.");
           auth.signOut();
           setRestoringSession(false);
         }
