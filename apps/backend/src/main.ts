@@ -48,7 +48,7 @@ async function bootstrap() {
     console.log(`Swagger docs are disabled in production.`);
   }
 
-  await app.listen(port);
-  console.log(`Aarambh360 Backend is running on: http://localhost:${port}`);
+  await app.listen(port, '0.0.0.0');
+  console.log(`Aarambh360 Backend is running on port: ${port}`);
 }
 bootstrap();
